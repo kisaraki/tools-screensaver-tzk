@@ -1,0 +1,9 @@
+{
+  "offline": true,
+  "freshTarget": "<PROJECT_ROOT>\\target\\phase4-repro-check",
+  "normalSha256": "88749e4c22e6b77a4a56c63989a4a609c3686aab6d7f6bad47f21c6535235829",
+  "offlineSha256": "88749e4c22e6b77a4a56c63989a4a609c3686aab6d7f6bad47f21c6535235829",
+  "hashesEqual": true,
+  "linker": "/Brepro",
+  "result": "PASS"
+}

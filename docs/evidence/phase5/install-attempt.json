@@ -1,0 +1,10 @@
+{
+  "attemptedAt": "2026-09-05T19:53:00+08:00",
+  "command": "MyDateTimeScreensaver-Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART",
+  "result": "NOT TESTED",
+  "reason": "Windows elevation request returned: 操作被使用者取消。 Setup did not start.",
+  "system32ScrExistsAfter": false,
+  "productDirExistsAfter": false,
+  "uninstallEntryCountAfter": 0,
+  "scrnsaveAfter": null
+}

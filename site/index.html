@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070a08">
+    <meta
+      name="description"
+      content="MyDateTimeScreensaver：Windows x64 的時間日期與倒數計時螢幕保護程式。下載 v0.1.0 開發候選版。"
+    >
+    <title>MyDateTimeScreensaver — Windows 時間與倒數螢幕保護程式</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="MyDateTimeScreensaver 首頁">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="5" y="5" width="30" height="30" rx="9"></rect>
+          <path d="M20 10v10l7 4"></path>
+          <circle cx="20" cy="20" r="2"></circle>
+        </svg>
+        <span>MyDateTimeScreensaver</span>
+      </a>
+      <nav aria-label="主要導覽">
+        <a href="#features">功能</a>
+        <a href="#download">下載</a>
+        <a href="#install">安裝</a>
+        <a href="https://github.com/kisaraki/tools-screensaver-tzk">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> Windows x64 · v0.1.0</p>
+          <h1>讓時間在黑色畫布上<br><em>安靜地運行。</em></h1>
+          <p class="lead">
+            原生 Win32/GDI 螢幕保護程式，結合指針鐘、六列月曆與七段倒數。
+            不需要網路、遙測、外部字型或額外 Runtime。
+          </p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/MyDateTimeScreensaver-Setup.exe">
+              下載安裝程式
+            </a>
+            <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.1.0">
+              查看 v0.1.0
+            </a>
+          </div>
+          <ul class="facts" aria-label="版本摘要">
+            <li><strong>2</strong><span>顯示模式</span></li>
+            <li><strong>4</strong><span>主色選擇</span></li>
+            <li><strong>35</strong><span>非互動測試</span></li>
+          </ul>
+        </div>
+        <figure class="hero-visual">
+          <div class="screen">
+            <span class="screen-label">TIME / DATE</span>
+            <img src="assets/time-date.png" alt="亮綠色指針鐘與 2023 年 12 月六列月曆">
+          </div>
+          <figcaption>由產品的 GDI renderer 直接產生</figcaption>
+        </figure>
+      </section>
+
+      <section class="notice section" aria-label="發行狀態">
+        <div class="notice-icon" aria-hidden="true">!</div>
+        <div>
+          <h2>開發候選版，成品尚未簽章</h2>
+          <p>
+            Windows 10 x64 的建置、原生功能與非互動 smoke test 已通過。
+            需要 UAC 的完整安裝矩陣未在遠端工作階段執行，Windows 11 也尚未驗證。
+            下載後請先核對 SHA-256；Windows 可能顯示未驗證發行者或 SmartScreen 提示。
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> DISPLAY MODES</p>
+          <h2>兩種畫面，一套原生引擎</h2>
+        </div>
+        <div class="mode-grid">
+          <article class="mode-card">
+            <div class="mode-image">
+              <img src="assets/time-date.png" alt="時間日期模式">
+            </div>
+            <div class="mode-copy">
+              <p class="index">01</p>
+              <h3>時間日期</h3>
+              <p>圓角方形刻度鐘、連續指針、星期一為首欄的六列月曆，以及清楚的今天標示。</p>
+            </div>
+          </article>
+          <article class="mode-card">
+            <div class="mode-image">
+              <img src="assets/countdown.png" alt="倒數計時模式">
+            </div>
+            <div class="mode-copy">
+              <p class="index">02</p>
+              <h3>倒數計時</h3>
+              <p>六位七段數字搭配沙漏與進度線，最後十秒顯示警示，歸零後以四次閃爍完成。</p>
+            </div>
+          </article>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <span class="feature-mark">A</span>
+            <h3>彈性顯示</h3>
+            <p>支援多螢幕、負座標、每螢幕 DPI、橫直版與極小預覽。</p>
+          </article>
+          <article>
+            <span class="feature-mark">B</span>
+            <h3>四色與字型</h3>
+            <p>深紅、深橘、亮綠、灰白，以及三種內建選項與自訂系統字型。</p>
+          </article>
+          <article>
+            <span class="feature-mark">C</span>
+            <h3>Windows 原生</h3>
+            <p>支援 <code>/s</code>、<code>/p HWND</code> 與 <code>/c</code>；設定對話框和預覽均使用原生 Win32。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="download-section section" id="download">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> DOWNLOAD</p>
+          <h2>下載 v0.1.0</h2>
+          <p>選擇安裝程式，或直接取得獨立 <code>.scr</code> 與校驗清單。</p>
+        </div>
+        <div class="download-grid">
+          <a class="download-card recommended" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/MyDateTimeScreensaver-Setup.exe">
+            <span class="tag">建議</span>
+            <span class="file-type">EXE</span>
+            <strong>Windows 安裝程式</strong>
+            <span>MyDateTimeScreensaver-Setup.exe</span>
+            <b>下載 <span aria-hidden="true">↓</span></b>
+          </a>
+          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/MyDateTimeScreensaver.scr">
+            <span class="file-type">SCR</span>
+            <strong>獨立程式檔</strong>
+            <span>MyDateTimeScreensaver.scr</span>
+            <b>下載 <span aria-hidden="true">↓</span></b>
+          </a>
+          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/SHA256SUMS.txt">
+            <span class="file-type">SHA</span>
+            <strong>SHA-256 清單</strong>
+            <span>SHA256SUMS.txt</span>
+            <b>下載 <span aria-hidden="true">↓</span></b>
+          </a>
+        </div>
+        <div class="hashes">
+          <h3>v0.1.0 SHA-256</h3>
+          <dl>
+            <div><dt>SCR</dt><dd>30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941</dd></div>
+            <div><dt>SETUP</dt><dd>2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="install section" id="install">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> INSTALL</p>
+          <h2>三個步驟開始使用</h2>
+        </div>
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <div><h3>核對檔案</h3><p>下載 Setup 與 SHA256SUMS.txt，以 PowerShell 的 <code>Get-FileHash</code> 核對 SHA-256。</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><h3>執行安裝</h3><p>Setup 需要系統管理員權限，並將唯一的 <code>.scr</code> 安裝到 64 位元 System32。</p></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><h3>選擇與設定</h3><p>在 Windows 螢幕保護程式設定選取本程式，再調整模式、顏色、字型與等待時間。</p></div>
+          </li>
+        </ol>
+        <div class="settings-shot">
+          <img src="assets/settings.png" alt="繁體中文設定對話框，包含顯示模式、主色、字型與即時預覽">
+          <div>
+            <h3>所有草稿先在預覽中確認</h3>
+            <p>按下「確定」才寫入目前使用者的設定；取消、Esc 或關閉視窗都不提交變更。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="compat section">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> COMPATIBILITY</p>
+          <h2>驗證範圍透明可查</h2>
+        </div>
+        <div class="compat-grid">
+          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、原生功能與非互動驗證。</p></div>
+          <div><span class="status pending">NOT TESTED</span><strong>UAC 安裝矩陣</strong><p>遠端測試刻意不顯示 UAC，也不寫入 System32。</p></div>
+          <div><span class="status pending">NOT TESTED</span><strong>Windows 11</strong><p>目前沒有 Windows 11 開發環境，保留為後續相容性驗證。</p></div>
+        </div>
+        <a class="text-link" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/docs/acceptance-report.md">
+          閱讀逐項驗收報告 <span aria-hidden="true">→</span>
+        </a>
+      </section>
+
+      <section class="source section">
+        <div>
+          <p class="eyebrow"><span></span> OPEN SOURCE</p>
+          <h2>完整規格、原始碼與測試都在 GitHub</h2>
+          <p>Rust 1.97.1、Win32/GDI、Inno Setup 6.7.3。遠端 CI 只執行不顯示 UI、不安裝、不觸發 UAC 的測試路徑。</p>
+        </div>
+        <div class="source-actions">
+          <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk">檢視原始碼</a>
+          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/MyDateTimeScreensaver_Codex_Spec.md">開發規格 v1.2</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>MyDateTimeScreensaver · MIT License · Copyright © 2026 kisaraki</p>
+      <div><a href="https://github.com/kisaraki/tools-screensaver-tzk/releases">Releases</a><a href="https://github.com/kisaraki/tools-screensaver-tzk/issues">Issues</a><a href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/LICENSE">License</a></div>
+    </footer>
+  </body>
+</html>

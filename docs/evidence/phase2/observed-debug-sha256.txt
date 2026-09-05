@@ -1,0 +1,6 @@
+
+Algorithm : SHA256
+Hash      : BB5E8A8DC850293B082C4B297B713EBFDB3A1DF0C81F5C87F8FFFC9544B848DE
+Path      : <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe
+
+

@@ -1,0 +1,1 @@
+PASS: fresh source copy with spaces and Chinese built offline and exited 0.

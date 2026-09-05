@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-09-05T16:34:04.6892350+08:00",
+  "unsafeBlocks": 166,
+  "unsafeExternCallbacks": 4,
+  "safetyComments": 146,
+  "staticMut": 0,
+  "productionExplicitPanicSites": 0,
+  "audit": "docs/phase4-ffi-audit.md",
+  "result": "PASS"
+}

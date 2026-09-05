@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-09-05T20:09:10.5331224+08:00",
+  "os": "Microsoft Windows 10 教育版",
+  "version": "10.0.19045",
+  "build": "19045.6456",
+  "architecture": "64 位元",
+  "computer": "test-host",
+  "memoryBytes": 25632235520,
+  "cpu": "Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz",
+  "cores": 4,
+  "logicalProcessors": 8,
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "target": "x86_64-pc-windows-msvc",
+  "msvcLinker": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\link.exe",
+  "msvcLinkerFileVersion": "14.51.36256.0",
+  "windowsSdkRc": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\rc.exe",
+  "innoSetup": "6.7.3",
+  "innoLocation": "<USERPROFILE>\\AppData\\Local\\Programs\\Inno Setup 6\\",
+  "monitors": "Two 3840x2160 at (-3840,0) and (0,0), both 144 DPI / 150%; inherited Phase 4 evidence",
+  "windows11": "NOT TESTED (deferred by user; no Windows 11 environment)"
+}

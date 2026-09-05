@@ -1,0 +1,2 @@
+   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+    Finished `release` profile [optimized] target(s) in 3.38s

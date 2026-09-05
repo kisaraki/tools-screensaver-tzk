@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-09-05T14:56:44.0929022+08:00",
+  "beforeProductKeyExisted": true,
+  "prunedEmptyTestsKey": true,
+  "prunedEmptyProductKey": true,
+  "afterProductKeyExists": false,
+  "afterValueNames": [],
+  "afterSubKeyNames": [],
+  "workspaceSaverProcessCount": 0
+}

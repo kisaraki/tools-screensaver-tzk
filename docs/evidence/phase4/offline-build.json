@@ -1,0 +1,8 @@
+{
+  "offline": true,
+  "freshTarget": "<PROJECT_ROOT>\\target\\phase4-offline-build",
+  "offlineSha256": "aee44b2a5c348d6bbea6accf9155d8e0faea24db482bd35c7997433c597a1cab",
+  "normalSha256": "d74a3221c4fcd02061378117ea3ade6680f796b779e3ca90be7b507e583246b0",
+  "hashesEqual": false,
+  "result": "OFFLINE BUILD PASS; REPRODUCIBILITY FAIL (superseded by /Brepro)"
+}

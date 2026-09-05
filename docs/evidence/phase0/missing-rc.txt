@@ -1,0 +1,17 @@
+   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+error: failed to run custom build command for `my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)`
+
+Caused by:
+  process didn't exit successfully: `<PROJECT_ROOT>\target\release\build\my_datetime_screensaver-c3f967f4b75e1ca6\build-script-build` (exit code: 1)
+  --- stdout
+  cargo:rerun-if-changed=Cargo.toml
+  cargo:rerun-if-changed=resources/resources.rc
+  cargo:rerun-if-changed=resources/resource.h
+  cargo:rerun-if-changed=resources/app.manifest
+  cargo:rerun-if-changed=assets/app.ico
+  cargo:rerun-if-env-changed=RC
+  cargo:rerun-if-env-changed=PATH
+  cargo:rerun-if-env-changed=INCLUDE
+
+  --- stderr
+  Windows resource build failed: cannot execute <PROJECT_ROOT>\target\phase0-missing-sdk\rc.exe: 系統找不到指定的路徑。 (os error 3). Open an x64 Developer Command Prompt with the Windows SDK, or set RC to the full path of rc.exe

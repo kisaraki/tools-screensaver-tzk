@@ -1,0 +1,146 @@
+{
+  "testedAt": "2026-09-05T05:39:17.8338956+08:00",
+  "specificationVersion": "1.2",
+  "phase": 2,
+  "productVersion": "0.1.0",
+  "sourceRevision": "UNCOMMITTED WORKTREE (no HEAD)",
+  "fileDescription": "日期時間螢幕保護程式（Phase 2 畫面與時間邏輯）",
+  "executable": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "bytes": 555520,
+  "sha256": "9729DC2F8131611CE6F79D83E7B52BAE027DE48F365EB24F4D84B6A56A1A22D6",
+  "debugExecutable": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\debug\\my_datetime_screensaver.exe",
+  "debugBytes": 857600,
+  "debugSha256": "1D71CA9FABBC14C23D2420120649D5A41A9914AEE577403C5CEF63684F77F0AD",
+  "machine": "0x8664",
+  "subsystem": 2,
+  "os": {
+    "product": "Windows 10 Education",
+    "version": "22H2",
+    "build": "19045",
+    "revision": 6456,
+    "architecture": "x64"
+  },
+  "cpu": {
+    "name": "Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz",
+    "logicalProcessors": 8
+  },
+  "gpu": {
+    "name": "Intel(R) Iris(R) Plus Graphics 655",
+    "driverVersion": "27.20.100.8681"
+  },
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "monitors": [
+    {
+      "x": -3840,
+      "y": 0,
+      "width": 3840,
+      "height": 2160,
+      "dpi": 144
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "width": 3840,
+      "height": 2160,
+      "dpi": 144
+    }
+  ],
+  "nonInteractiveTestsPassed": 25,
+  "visualFixturesPassed": 25,
+  "gdiObjectsAcrossFiftyRendererCycles": "1 -> 1",
+  "releaseIntegrationCasesPassed": 4,
+  "releaseIntegrationCasesWithUntestedBranch": 1,
+  "foregroundTransitions": {
+    "sameProcess": "PASS: both surfaces remained after grace",
+    "externalProcess": "NOT TESTED: SetForegroundWindow denied by Windows policy"
+  },
+  "developerEntrypoints": {
+    "debugTimeDateExitCode": 0,
+    "debugCountdownExitCode": 0,
+    "releaseTimeDateExitCode": 2,
+    "releaseCountdownExitCode": 2,
+    "measuredClientWidth": 938,
+    "measuredClientHeight": 544,
+    "measuredDpi": 144
+  },
+  "resourceObservation": {
+    "profile": "Debug",
+    "windowType": "developer normal window",
+    "durationSeconds": 600.44,
+    "logicalProcessors": 8,
+    "baselineAfterWarmupSeconds": 60,
+    "results": [
+      {
+        "mode": "time-date",
+        "samples": 11,
+        "baselineSeconds": 60.006,
+        "endSeconds": 600.033,
+        "averageWholeMachineCpuPercent": 0.0723,
+        "workingSetBytes": {
+          "baseline": 10817536,
+          "end": 10821632,
+          "delta": 4096,
+          "minimum": 10788864.0,
+          "maximum": 10821632.0
+        },
+        "privateBytes": {
+          "baseline": 1851392,
+          "end": 1818624,
+          "delta": -32768,
+          "minimum": 1794048.0,
+          "maximum": 1851392.0
+        },
+        "gdiObjects": {
+          "baseline": 26,
+          "end": 26,
+          "minimum": 26.0,
+          "maximum": 27.0
+        },
+        "userObjects": {
+          "baseline": 14,
+          "end": 14,
+          "minimum": 14.0,
+          "maximum": 14.0
+        }
+      },
+      {
+        "mode": "countdown",
+        "samples": 11,
+        "baselineSeconds": 60.006,
+        "endSeconds": 600.033,
+        "averageWholeMachineCpuPercent": 0.0275,
+        "workingSetBytes": {
+          "baseline": 10813440,
+          "end": 10821632,
+          "delta": 8192,
+          "minimum": 10784768.0,
+          "maximum": 10821632.0
+        },
+        "privateBytes": {
+          "baseline": 1859584,
+          "end": 1826816,
+          "delta": -32768,
+          "minimum": 1802240.0,
+          "maximum": 1859584.0
+        },
+        "gdiObjects": {
+          "baseline": 29,
+          "end": 30,
+          "minimum": 29.0,
+          "maximum": 30.0
+        },
+        "userObjects": {
+          "baseline": 14,
+          "end": 14,
+          "minimum": 14.0,
+          "maximum": 14.0
+        }
+      }
+    ],
+    "observedDebugSha256": "BB5E8A8DC850293B082C4B297B713EBFDB3A1DF0C81F5C87F8FFFC9544B848DE",
+    "postObservationChange": "Only test display names and one source comment changed before the final rebuild; measured hash retained separately."
+  },
+  "windows11": "Deferred per user instruction; non-blocking",
+  "installationOrSettingsChanged": false
+}

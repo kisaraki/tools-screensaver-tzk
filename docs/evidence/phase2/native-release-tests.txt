@@ -1,0 +1,56 @@
+   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+    Finished `release` profile [optimized] target(s) in 12.96s
+     Running tests\native_modes.rs (target\x86_64-pc-windows-msvc\release\deps\native_modes-0f0bbc6cf4220d2d.exe)
+
+running 5 tests
+test configure_default_invalid_and_real_owners ... configure: default/zero/stale/live owners, cancel/OK/owner destruction passed
+ok
+test fullscreen_covers_monitors_and_handles_exit_messages ... physical monitor rectangles: [(-3840, 0, 0, 2160), (0, 0, 3840, 2160)]
+starting fullscreen case 0, message 0x0100
+fullscreen surface (-3840, 0, 0, 2160), DPI 144
+fullscreen surface (0, 0, 3840, 2160), DPI 144
+fullscreen: exit message 0x0100, all 2 surfaces removed
+starting fullscreen case 1, message 0x0104
+fullscreen: exit message 0x0104, all 2 surfaces removed
+starting fullscreen case 2, message 0x0201
+fullscreen: exit message 0x0201, all 2 surfaces removed
+starting fullscreen case 3, message 0x0207
+fullscreen: exit message 0x0207, all 2 surfaces removed
+starting fullscreen case 4, message 0x0204
+fullscreen: exit message 0x0204, all 2 surfaces removed
+starting fullscreen case 5, message 0x020b
+fullscreen: exit message 0x020b, all 2 surfaces removed
+starting fullscreen case 6, message 0x020a
+fullscreen: exit message 0x020a, all 2 surfaces removed
+starting fullscreen case 7, message 0x020e
+fullscreen: exit message 0x020e, all 2 surfaces removed
+starting fullscreen case 8, message 0x007e
+fullscreen: exit message 0x007e, all 2 surfaces removed
+starting fullscreen case 9, message 0x0016
+fullscreen: exit message 0x0016, all 2 surfaces removed
+starting fullscreen case 10, message 0x0010
+fullscreen: exit message 0x0010, all 2 surfaces removed
+ok
+test fullscreen_foreground_transitions_when_windows_allows_activation ... foreground: same-process activation retained all 2 surfaces after grace
+NOT TESTED: external foreground activation denied by Windows policy
+ok
+test invalid_real_command_lines_exit_two_without_windows ... ok
+test preview_embeds_resizes_and_exits_in_three_dpi_contexts ... preview unaware: host DPI 96, child DPI 96
+preview unaware: resized to 480x270
+preview unaware: resized to 0x0
+preview unaware: resized to 1x1
+preview unaware: resized to 320x180
+preview system: host DPI 144, child DPI 144
+preview system: resized to 480x270
+preview system: resized to 0x0
+preview system: resized to 1x1
+preview system: resized to 320x180
+preview PMv2: host DPI 144, child DPI 144
+preview PMv2: resized to 480x270
+preview PMv2: resized to 0x0
+preview PMv2: resized to 1x1
+preview PMv2: resized to 320x180
+ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.05s
+

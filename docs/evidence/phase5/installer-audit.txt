@@ -1,0 +1,15 @@
+﻿PASS required: AppId={{E4D6978B-A2A2-4D9A-8FD8-8F0C3A4E94E1}
+PASS required: ArchitecturesAllowed=x64os
+PASS required: ArchitecturesInstallIn64BitMode=x64os
+PASS required: PrivilegesRequired=admin
+PASS required: MinVersion=10.0.15063
+PASS required: DefaultDirName={autopf}\MyDateTimeScreensaver
+PASS required: OutputBaseFilename=MyDateTimeScreensaver-Setup
+PASS required: DestDir: "{sys}"
+PASS required: Flags: unchecked
+PASS required: ExecAsOriginalUser
+PASS required: --install-set-current
+PASS required: function InitializeUninstall()
+PASS forbidden: no [Registry] section
+PASS forbidden: no visual reference asset
+PASS files: exactly one [Files] Source entry

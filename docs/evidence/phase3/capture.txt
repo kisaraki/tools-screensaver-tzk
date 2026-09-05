@@ -1,0 +1,4 @@
+{
+  "Configuration": "<PROJECT_ROOT>\\docs\\evidence\\phase3\\config-dialog-win10-150.png",
+  "Countdown": "<PROJECT_ROOT>\\docs\\evidence\\phase3\\countdown-dialog-win10-150.png"
+}

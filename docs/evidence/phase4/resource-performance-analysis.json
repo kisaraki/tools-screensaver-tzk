@@ -1,0 +1,24 @@
+{
+  "derivedFrom": "resource-performance.json",
+  "formula": "24 MiB + 1.5 * (4 * 1920 * 1080)",
+  "results": [
+    {
+      "mode": "TimeDate",
+      "maxWorkingSetBytes": 7880704,
+      "engineeringMemoryBudgetBytes": 37607424,
+      "withinMemoryBudget": true,
+      "handleRange": 0,
+      "withinHandleStabilityTarget": true,
+      "result": "PASS"
+    },
+    {
+      "mode": "Countdown",
+      "maxWorkingSetBytes": 7757824,
+      "engineeringMemoryBudgetBytes": 37607424,
+      "withinMemoryBudget": true,
+      "handleRange": 0,
+      "withinHandleStabilityTarget": true,
+      "result": "PASS"
+    }
+  ]
+}

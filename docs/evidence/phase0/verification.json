@@ -1,0 +1,29 @@
+{
+  "Time": "2026-09-04T22:21:53.3236356+08:00",
+  "Machine": "AMD64 (0x8664)",
+  "Subsystem": "Windows GUI (2)",
+  "Resources": [
+    "3:1",
+    "3:2",
+    "3:3",
+    "3:4",
+    "6:1",
+    "14:101",
+    "16:1",
+    "24:1"
+  ],
+  "Runs": [
+    {
+      "Profile": "debug",
+      "ExitCode": 0
+    },
+    {
+      "Profile": "release",
+      "ExitCode": 0
+    }
+  ],
+  "FileBytes": 485376,
+  "SHA256": "48A6AA0DD805C611726BCE55174CDCA18489560CD2A9CE905C1F85727842C65B",
+  "FileVersion": "0.1.0",
+  "ProductVersion": "0.1.0"
+}

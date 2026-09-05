@@ -1,0 +1,6 @@
+Microsoft (R) Manifest Tool
+
+Copyright (c) Microsoft Corporation. 
+
+All rights reserved.
+

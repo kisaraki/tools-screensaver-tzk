@@ -1,0 +1,5 @@
+elapsed_seconds,mode,pid,cpu_seconds,working_set_bytes,private_bytes,gdi_objects,user_objects,handle_count,resize_font_cycle
+0.006,TimeDate,34904,0.015625,7659520,1474560,21,6,132,0
+10.204,TimeDate,34904,0.15625,7823360,1622016,21,6,132,4
+0,Countdown,29480,0.078125,7651328,1601536,23,6,132,0
+10.19,Countdown,29480,0.09375,7782400,1478656,23,6,132,4

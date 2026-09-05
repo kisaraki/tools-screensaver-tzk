@@ -1,0 +1,30 @@
+[
+  {
+    "profile": "Debug",
+    "mode": "time-date",
+    "command": "cargo run --locked -- --dev-render=time-date",
+    "exitCode": 0,
+    "clientWidth": 938,
+    "clientHeight": 544,
+    "dpi": 144
+  },
+  {
+    "profile": "Debug",
+    "mode": "countdown",
+    "command": "cargo run --locked -- --dev-render=countdown",
+    "exitCode": 0,
+    "clientWidth": 938,
+    "clientHeight": 544,
+    "dpi": 144
+  },
+  {
+    "profile": "Release",
+    "mode": "time-date",
+    "exitCode": 2
+  },
+  {
+    "profile": "Release",
+    "mode": "countdown",
+    "exitCode": 2
+  }
+]

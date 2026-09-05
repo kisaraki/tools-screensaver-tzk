@@ -1,0 +1,49 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install pinned Rust toolchain
+        shell: pwsh
+        run: >
+          rustup toolchain install 1.97.1
+          --profile minimal
+          --component rustfmt
+          --component clippy
+          --target x86_64-pc-windows-msvc
+          --no-self-update
+
+      - name: Build and run non-interactive tests
+        shell: cmd
+        run: scripts\build.bat
+
+      - name: Run non-interactive smoke test
+        shell: pwsh
+        run: |
+          $smokeOutput = Join-Path $env:RUNNER_TEMP 'MyDateTimeScreensaver-smoke'
+          $process = Start-Process -FilePath 'powershell.exe' -Wait -PassThru -NoNewWindow -ArgumentList @(
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy', 'Bypass',
+            '-File', (Resolve-Path '.\scripts\smoke-test.ps1').Path,
+            '-ArtifactPath', (Resolve-Path '.\dist\MyDateTimeScreensaver.scr').Path,
+            '-OutputDirectory', $smokeOutput
+          )
+          if ($process.ExitCode -ne 0) {
+            throw "Smoke test failed with exit code $($process.ExitCode)."
+          }

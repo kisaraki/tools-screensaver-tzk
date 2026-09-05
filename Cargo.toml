@@ -1,0 +1,51 @@
+[package]
+name = "my_datetime_screensaver"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.97.1"
+description = "Native Win32 date, time, and countdown screensaver"
+license = "MIT"
+repository = "https://github.com/kisaraki/tools-screensaver-tzk"
+homepage = "https://kisaraki.github.io/tools-screensaver-tzk/"
+publish = false
+build = "build.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "my_datetime_screensaver"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+windows-sys = { version = "0.61.2", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_Security",
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_Environment",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Registry",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_UI_Controls",
+    "Win32_UI_Controls_Dialogs",
+    "Win32_UI_HiDpi",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"

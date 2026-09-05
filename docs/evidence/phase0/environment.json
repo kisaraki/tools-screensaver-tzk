@@ -1,0 +1,14 @@
+{
+  "Rust": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "Cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "Toolchain": "1.97.1-x86_64-pc-windows-msvc (overridden by '<PROJECT_ROOT>\\rust-toolchain.toml')",
+  "ProductName": "Windows 10 Education",
+  "DisplayVersion": "22H2",
+  "OSBuild": "19045",
+  "UBR": 6456,
+  "VisualStudioVersion": "17.0",
+  "VCToolsVersion": "14.44.35207",
+  "WindowsSDKVersion": "10.0.26100.0\\",
+  "RC": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\\\x64\\rc.exe",
+  "Linker": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe"
+}

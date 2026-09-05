@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests\phase3_native.rs (target\x86_64-pc-windows-msvc\debug\deps\phase3_native-6d8311415c0f8cec.exe)
+
+running 1 test
+test phase3_configuration_preview_and_countdown_flow ... Phase 3: cancel/no-write, ChooseFont cancel/accept, /p <=2 s refresh, countdown prefill, invalid input, 1/5/1800/359999 s and field isolation passed
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.63s
+

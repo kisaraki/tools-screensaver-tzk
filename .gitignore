@@ -1,0 +1,10 @@
+/target/
+/dist/
+/assets/references/
+*.pdb
+*.ilk
+*.res
+*.tmp
+*.pfx
+*.p12
+*.key

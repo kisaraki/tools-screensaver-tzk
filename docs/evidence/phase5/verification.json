@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-09-05T20:43:20.7317765+08:00",
+  "artifacts": [
+    {
+      "path": "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
+      "version": "0.1.0",
+      "bytes": 609792,
+      "sha256": "30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941",
+      "signature": "NotSigned"
+    },
+    {
+      "path": "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver-Setup.exe",
+      "version": "0.1.0.0",
+      "bytes": 2247540,
+      "sha256": "2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78",
+      "signature": "NotSigned"
+    }
+  ],
+  "sha256SumsMatches": true,
+  "build": "PASS",
+  "package": "PASS",
+  "smoke": "PASS",
+  "arbitraryWorkingDirectory": "PASS",
+  "installerSourceAudit": "PASS",
+  "powershellSyntax": "PASS",
+  "noninteractiveTestsPassed": 35,
+  "helperNonSystem32ExitCode": 4,
+  "protectedDesktopValuesUnchanged": true,
+  "installation": "NOT TESTED (UAC request cancelled; no install occurred)",
+  "system32ScrExists": false,
+  "productDirExists": false,
+  "uninstallEntryCount": 0,
+  "scrnsaveValue": null,
+  "officialProductSettingsKeyExists": false,
+  "packageStageDirectories": 0,
+  "workspaceSaverProcessCount": 0,
+  "windows11": "NOT TESTED (deferred by user)"
+}

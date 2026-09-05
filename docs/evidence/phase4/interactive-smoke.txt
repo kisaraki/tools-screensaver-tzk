@@ -1,0 +1,104 @@
+{
+  "capturedAt": "2026-09-05T16:29:38.7800418+08:00",
+  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "temporaryScr": "<TEMP>\\MyDateTimeScreensaver-smoke-508a9186221844e5860df88951f568db\\MyDateTimeScreensaver.scr",
+  "sha256": "88749e4c22e6b77a4a56c63989a4a609c3686aab6d7f6bad47f21c6535235829",
+  "bytes": 607232,
+  "machine": "0x8664 (x64)",
+  "optionalHeader": "PE32+",
+  "subsystem": "Windows GUI",
+  "version": "0.1.0",
+  "fileDescription": "日期時間螢幕保護程式（Phase 4 品質與相容性）",
+  "resources": [
+    {
+      "type": 14,
+      "id": 101,
+      "name": "group icon",
+      "bytes": 62
+    },
+    {
+      "type": 5,
+      "id": 2003,
+      "name": "configuration dialog",
+      "bytes": 840
+    },
+    {
+      "type": 5,
+      "id": 2004,
+      "name": "countdown dialog",
+      "bytes": 480
+    },
+    {
+      "type": 6,
+      "id": 1,
+      "name": "string table block",
+      "bytes": 52
+    },
+    {
+      "type": 16,
+      "id": 1,
+      "name": "version",
+      "bytes": 728
+    },
+    {
+      "type": 24,
+      "id": 1,
+      "name": "manifest",
+      "bytes": 1308
+    }
+  ],
+  "manifestChecks": "PASS",
+  "imports": [
+    "advapi32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "comdlg32.dll",
+    "gdi32.dll",
+    "kernel32.dll",
+    "ntdll.dll",
+    "shell32.dll",
+    "user32.dll"
+  ],
+  "staticCrtCheck": "PASS (no dynamic VC/UCRT import)",
+  "signatureStatus": "NotSigned",
+  "invalidArgumentCases": [
+    {
+      "arguments": "/p",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "/p:0",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "/s /c",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "--dev-render=time-date",
+      "exitCode": 2,
+      "uiExpected": false
+    }
+  ],
+  "interactive": true,
+  "interactiveCases": [
+    {
+      "arguments": "/c",
+      "exitCode": 0,
+      "windowObserved": true
+    },
+    {
+      "arguments": "/s",
+      "exitCode": 0,
+      "windowObserved": true
+    },
+    {
+      "arguments": "/p <test HWND>",
+      "exitCode": 0,
+      "boundedHostTest": true
+    }
+  ],
+  "result": "PASS"
+}

@@ -1,0 +1,35 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-d85810a74432ddf7.exe)
+
+running 1 test
+00-TimeDate-800x369-dpi96-p0-SevenSegment-palette.bmp: 9369 nonblack pixels; generation 1
+01-TimeDate-800x369-dpi96-p1-SevenSegment-palette.bmp: 9369 nonblack pixels; generation 1
+02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.bmp: 9369 nonblack pixels; generation 1
+03-TimeDate-800x369-dpi96-p3-SevenSegment-palette.bmp: 9369 nonblack pixels; generation 1
+04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.bmp: 62828 nonblack pixels; generation 1
+05-TimeDate-3840x2160-dpi144-p2-SevenSegment-size.bmp: 247708 nonblack pixels; generation 1
+06-TimeDate-1080x1920-dpi192-p2-SevenSegment-size.bmp: 53265 nonblack pixels; generation 1
+07-TimeDate-320x180-dpi144-p2-SevenSegment-size.bmp: 2231 nonblack pixels; generation 1
+08-TimeDate-120x80-dpi288-p2-SevenSegment-size.bmp: 344 nonblack pixels; generation 1
+09-TimeDate-800x369-dpi96-p2-Consolas-font.bmp: 8040 nonblack pixels; generation 1
+10-TimeDate-800x369-dpi96-p2-MingLiu-font.bmp: 6137 nonblack pixels; generation 1
+11-Countdown-800x369-dpi96-p0-SevenSegment-palette.bmp: 134071 nonblack pixels; generation 1
+12-Countdown-800x369-dpi96-p1-SevenSegment-palette.bmp: 134071 nonblack pixels; generation 1
+13-Countdown-800x369-dpi96-p2-SevenSegment-palette.bmp: 134071 nonblack pixels; generation 1
+14-Countdown-800x369-dpi96-p3-SevenSegment-palette.bmp: 134071 nonblack pixels; generation 1
+15-Countdown-1920x1080-dpi96-p2-SevenSegment-size.bmp: 778781 nonblack pixels; generation 1
+16-Countdown-3840x2160-dpi144-p2-SevenSegment-size.bmp: 3116855 nonblack pixels; generation 1
+17-Countdown-1080x1920-dpi192-p2-SevenSegment-size.bmp: 253281 nonblack pixels; generation 1
+18-Countdown-320x180-dpi144-p2-SevenSegment-size.bmp: 21305 nonblack pixels; generation 1
+19-Countdown-120x80-dpi288-p2-SevenSegment-size.bmp: 2884 nonblack pixels; generation 1
+20-Countdown-800x369-dpi96-p2-Consolas-font.bmp: 134071 nonblack pixels; generation 1
+21-Countdown-800x369-dpi96-p2-MingLiu-font.bmp: 134071 nonblack pixels; generation 1
+22-Countdown-800x369-dpi96-p2-SevenSegment-last-ten.bmp: 134060 nonblack pixels; generation 1
+23-Countdown-800x369-dpi96-p2-SevenSegment-dim.bmp: 134059 nonblack pixels; generation 1
+24-Countdown-800x369-dpi96-p2-SevenSegment-complete.bmp: 134059 nonblack pixels; generation 1
+test render::tests::export_visual_fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 9.93s
+
+PNG fixtures: <PROJECT_ROOT>\docs\evidence\phase2\fixtures
+Uncompressed GDI output: <PROJECT_ROOT>\target\phase2-fixtures-bmp

@@ -1,0 +1,1167 @@
+# MyDateTimeScreensaver 開發規格書
+
+> 文件版本：1.2（修訂版）  
+> 修訂日期：2026-09-05  
+> 用途：供 Codex 分階段開發、審查與驗收  
+> 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI  
+> 目前必要驗證平台：Windows 10 x64；Windows 11 延後驗證（依使用者 2026-09-04 指示）
+> 執行期原則：單一 `.scr`、無網路、無外部字型檔、無額外 Runtime 安裝  
+> 本文件描述應實作的產品；文件完成不代表程式已開發、編譯或通過實機驗收。
+
+## 0. 文件使用方式與修訂決策
+
+### 0.1 範圍與規範用語
+
+- 「必須／不得」是必要驗收條件；「應」是預設實作方式；「可」是選配，未實作不影響必要驗收。
+- 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
+- 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
+- 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
+- 原稿的需求、四種顏色、四種字型模式、兩種畫面及 Phase 0～5 均保留。以下表格列明修訂判定，避免開發者自行猜測。
+
+### 0.2 相較 v1.1 的主要修訂
+
+| 主題 | v1.2 明確決策 | 位置 |
+| --- | --- | --- |
+| 倒數每次先輸入 | 保留；補上系統閒置／安全桌面實機驗證，不能僅憑直接執行 `/s` 宣稱支援 | 6.2、17.3 |
+| 全螢幕顯示時機 | 先建立隱藏視窗，全部成功後才顯示；建立時不加 `WS_VISIBLE` | 6.1 |
+| 多螢幕同步 | 共用時基與每次更新的不可變快照；不得在各視窗繪圖時各自取時 | 5.2、8.3 |
+| 設定更新 | `/s` 使用啟動快照；`/p` 每秒重新讀取設定；`/c` 預覽直接讀取草稿 | 7、11 |
+| 小型倒數預覽 | `/p` 顯示上次時間與滿量沙漏；`/c` 固定 5 分鐘、半量沙漏，總時間視為 10 分鐘 | 7、11.3 |
+| 字型大小 | 保存使用者點數；實際顯示以角色比例及可用矩形適配，字體大小不能造成裁切 | 9.4 |
+| 畫面與參考圖差異 | 參考圖是亮紅色；產品仍保留亮綠預設與深紅選項，不宣稱逐像素相同 | 8.2、9.1 |
+| 記憶體門檻 | 以基礎開銷加各螢幕 buffer 預算計算，移除不適用於 4K 的固定 20 MB 上限 | 17.4 |
+| 安裝架構 | 第一版只接受原生 x64 Windows；排除 ARM64 模擬環境 | 2.1、15.1 |
+| 安裝使用者 | 系統檔案需提權；設定目前螢幕保護程式必須回到原啟動使用者身分 | 15.3 |
+| 階段停點 | 單階段任務完成後停止；明確授權全部階段時，可依序持續執行 | 19.1 |
+| 安裝內部入口 | 新增單用途 `--install-set-current`，供原使用者套用已勾選安裝工作，不新增畫面模式 | 15.3 |
+| 解除安裝的 HKCU | 採原稿允許的「提示」方式，避免提權後清除錯誤帳號的設定 | 15.4 |
+| 未驗證項目 | 必須逐項記錄；`NOT TESTED` 不能計為通過 | 18 |
+
+### 0.3 開發前固定事項
+
+- 文件版本與軟體版本分開；文件 1.2 不代表軟體必須發布為 1.2。新專案軟體版號可先用 `0.1.0`。
+- 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
+- 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
+
+### 0.4 目前平台驗收範圍
+
+- 依使用者 2026-09-04 指示，目前以 Windows 10 x64 進行開發與必要驗證；Windows 11 環境尚未具備，延後測試。
+- Windows 11 保留為未來相容性目標，記錄為 `NOT TESTED（延期，非目前必要驗收項）`，不阻擋目前各 Phase 的完成或 Windows 10 範圍的交付。
+- Windows 10 上原有功能、DPI、多螢幕、系統整合與各階段品質條件仍適用。後續取得 Windows 11 環境，再補做同等相容性驗證。
+- 報告須清楚區分「Windows 10 驗證通過」與「Windows 11 尚未驗證」，不得將延期寫成已通過。
+
+## 1. 專案目標與需求追蹤
+
+建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供時間日期與倒數計時兩種模式。全部畫面由 Rust 呼叫 Win32 GDI 繪製，離線執行。
+
+### 1.1 必要功能
+
+| ID | 需求 | 規格 | 主要階段 | 驗收 ID |
+| --- | --- | --- | --- | --- |
+| R01 | `/s` 全螢幕、`/p` 系統預覽、`/c` 設定 | 4、6、7、11 | 1、3 | AC02～AC04 |
+| R02 | 左指針鐘、右當月月曆；窄畫面改上下排列 | 8.2 | 2 | AC05 |
+| R03 | 倒數開始前輸入時、分、秒 | 6.2、11.5 | 3 | AC06 |
+| R04 | 七段數字、沙漏、LCD 面板、剩餘比例線 | 8.3 | 2 | AC07 |
+| R05 | 多螢幕、負座標、混合 DPI | 5～8 | 1、2、4 | AC08 |
+| R06 | 四種顏色、四種字型模式與系統選字型 | 9、11 | 3 | AC09 |
+| R07 | HKCU 保存、取消不提交、異常資料回退 | 10、11 | 3 | AC10 |
+| R08 | 全螢幕輸入退出、預覽不搶焦點 | 6.3、7 | 1 | AC03、AC11 |
+| R09 | 群組位移、雙緩衝與資源穩定 | 8.4、8.5、12 | 2、4 | AC12 |
+| R10 | 單一 `.scr` 與 Inno Setup 安裝 EXE | 13～15 | 0、5 | AC01、AC13 |
+| R11 | 安裝／移除不擅改安全設定、不影響其他帳號 | 15 | 5 | AC14 |
+| R12 | 實際測試紀錄、版本與雜湊可追溯 | 17～19、22 | 4、5 | AC15 |
+
+### 1.2 非目標
+
+- 不使用 egui、FLTK、Qt、GTK、WinUI、WPF、WebView、瀏覽器或遊戲引擎。
+- 不使用 Direct2D、DirectWrite、OpenGL、Vulkan；第一版固定 GDI。
+- 不加入 serde、rand、資料庫或執行期 JSON／TOML／INI 設定。Cargo 自身的 TOML 與測試報告不受此限制。
+- 不連線、遙測、檢查更新、下載字型或播放聲音。
+- 不加入暫停、續跑、歸零、快捷鍵操作、百分秒、背景常駐計時或重啟後恢復倒數。
+- 不自行驗證密碼、替代鎖定畫面、切換安全桌面或繞過 Windows 登入政策。
+- 不產生 MSI，不支援 Windows 7／8／8.1、32 位元 Windows 或 ARM64。
+- 位移只能降低固定畫面持續停留，不能宣稱保證避免 OLED 烙印。
+
+## 2. 技術與相依性
+
+### 2.1 平台及工具鏈
+
+- Rust stable、Edition 2021，目標 `x86_64-pc-windows-msvc`。
+- 最低 API 基線為 Windows 10 1703（build 15063）；目前主要實機驗收使用 Windows 10 22H2 x64，記錄確切 build。Windows 11 依第 0.4 節延後驗證。
+- Microsoft C++ Build Tools，含 x64 MSVC linker 與 Windows SDK；SDK 本身不能取代 linker。不要求完整 Visual Studio IDE。
+- Inno Setup 6.3 或以上的 6.x 穩定版為基準；若改用 7.x，必須固定實際版本並重跑安裝測試，不混用不同主版本的語法。
+- 建立專案時固定實際驗證成功的 Rust 版本至 `rust-toolchain.toml`，包含 `rustfmt`、`clippy` 與目標；後續升級另行驗證。
+- 元件安裝依使用者規則：Windows 優先 `winget`、其次官方工具；macOS 優先 Homebrew；Python 優先 `uv`、其次 `pip`。本專案建置不要求 Python。
+- 安裝命令中的套件 ID／版本先以工具實際查核，不在腳本偷偷安裝工具、接受授權或要求提權。
+
+### 2.2 Cargo 依賴基線
+
+只允許一項直接依賴 `windows-sys`；其必要傳遞依賴可保留，不加 build／dev dependencies。
+
+```toml
+[dependencies]
+windows-sys = { version = "0.61.2", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_Security",
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_Environment",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_Registry",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_UI_Controls",
+    "Win32_UI_Controls_Dialogs",
+    "Win32_UI_HiDpi",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+```
+
+- 版本與 feature 清單是實作起點；開發者以實際鎖定版本的 API／feature gate 編譯驗證，允許只為必要 API 作最小增減。
+- `GetCommandLineW` 的 Environment feature、登錄檔／token 使用的 Security feature 不得遺漏；不要只憑 API 的 C header 猜測 Rust 模組位置。
+- `Cargo.lock` 必須納入版控；建置、測試與 Clippy 使用 `--locked`。[windows-sys API 文件](https://docs.rs/windows-sys/0.61.2/windows_sys/)
+
+### 2.3 執行檔與 CRT
+
+GUI binary 使用 `#![windows_subsystem = "windows"]`，Debug／Release GUI 都不彈主控台。測試 harness 不套用 GUI subsystem。
+
+`.cargo/config.toml` 固定目標與靜態 CRT：
+
+```toml
+[build]
+target = "x86_64-pc-windows-msvc"
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+```
+
+因此正式來源檔案路徑統一為：
+
+```text
+target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+```
+
+靜態 CRT 是建置設定，仍須檢查成品 PE imports 並在未安裝開發工具／VC++ Redistributable 的乾淨系統測試。Windows 內建 DLL 與 API-set imports 合法，不要求完全無 DLL。[Rust：C runtime linkage](https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes)
+
+### 2.4 Unicode 與指標
+
+- 優先使用 `W` API；傳入 UTF-16 buffer 的 NUL、長度單位與生命週期必須正確。
+- `HWND`、`WPARAM`、`LPARAM`、指標以指標寬度處理；不可用 `u32` 存 HWND。
+- 只在 API 明訂字串長度時排除或包含 NUL，不把 bytes 與 UTF-16 code units 混用。
+- 對來自登錄檔或 UI 的資料先驗證，再傳給 FFI。
+
+## 3. 專案結構與模組責任
+
+```text
+MyDateTimeScreensaver/
+├─ .cargo/config.toml
+├─ .gitignore
+├─ rust-toolchain.toml
+├─ MyDateTimeScreensaver_Codex_Spec.md
+├─ assets/
+│  ├─ app.ico
+│  └─ generate-icon.ps1
+├─ docs/
+│  ├─ visual-reference.md
+│  └─ acceptance-report.md
+├─ installer/setup.iss
+├─ resources/
+│  ├─ app.manifest
+│  ├─ resource.h
+│  └─ resources.rc
+├─ scripts/
+│  ├─ build.bat
+│  ├─ package.bat
+│  └─ smoke-test.ps1
+├─ src/
+│  ├─ main.rs
+│  ├─ lib.rs
+│  ├─ app.rs
+│  ├─ cli.rs
+│  ├─ config.rs
+│  ├─ registry.rs
+│  ├─ countdown.rs
+│  ├─ calendar.rs
+│  ├─ layout.rs
+│  ├─ seven_segment.rs
+│  ├─ render.rs
+│  ├─ gdi.rs
+│  ├─ font.rs
+│  ├─ monitor.rs
+│  ├─ window.rs
+│  ├─ dialog.rs
+│  └─ utf16.rs
+├─ tests/
+│  ├─ cli_tests.rs
+│  ├─ config_tests.rs
+│  ├─ calendar_tests.rs
+│  ├─ countdown_tests.rs
+│  └─ layout_tests.rs
+├─ build.rs
+├─ Cargo.toml
+├─ Cargo.lock
+├─ LICENSE
+└─ README.md
+```
+
+- `main.rs` 只負責入口及結束碼；`lib.rs` 暴露可測試邏輯，解決 integration tests 無法匯入 binary 私有模組的問題。
+- `cli`、`calendar`、`countdown`、`layout` 與設定值驗證須能以純輸入資料測試；`IsWindow`、時間讀取與 registry I/O 留在 adapter。
+- `app` 持有程序狀態與更新協調；`window` 管理 HWND 生命週期；`gdi` 管理資源；`render` 只繪製快照。
+- 可以依職責合併小模組；不得一次建立大量 TODO 空檔或把全部功能塞進單一巨大檔案。
+- `.gitignore` 排除 `target/`、`dist/`、暫存與簽章秘密；交付 binary 不等於必須把 binary 納入 Git。
+
+## 4. 啟動模式與 Windows 契約
+
+### 4.1 命令列
+
+使用 `GetCommandLineW` → `CommandLineToArgvW`，完成複製後 `LocalFree`。忽略 argv[0]，不得以空白自行切割完整命令列。
+
+| 參數 | 行為 |
+| --- | --- |
+| 無參數 | 設定對話框 |
+| `/s`、`-s` | 全螢幕 |
+| `/p <HWND>`、`/p:<HWND>` | 指定 parent 的系統預覽 |
+| `/c` | 無指定 owner 的設定 |
+| `/c <HWND>`、`/c:<HWND>` | 指定 owner 的設定 |
+
+- 上表 `/p`、`/c` 同樣接受 `-` 前綴，模式字母不分大小寫。
+- HWND 只接受 ASCII 十進位非負整數；可有前導零，不接受正負號、十六進位、小數、空字串、尾隨垃圾或超出 `usize`。
+- `/p 0`、不存在或已失效的 parent：安靜結束、code `2`，不得改成全螢幕。
+- `/c 0` 或數值合法但 `IsWindow` 為假的 owner：退回無 owner；格式非法仍屬參數錯誤。
+- 拒絕額外參數、重複模式、`/s:123`、`/s /c` 等歧義，不採「最後一個勝出」。
+- Release 不接受 Debug 測試參數。第 15.3 節的安裝內部命令是唯一明列例外，不作公開使用模式。
+
+| 結束碼 | 意義 |
+| --- | --- |
+| `0` | 正常完成、使用者退出或取消 |
+| `2` | 命令列格式／預覽 parent 錯誤 |
+| `3` | 視窗、資源、timer 或訊息迴圈初始化／執行失敗 |
+| `4` | 安裝內部命令被拒絕或設定寫入失敗 |
+
+### 4.2 系統整合邊界
+
+- 系統設定按鈕呼叫 `/c`；小型顯示器區呼叫 `/p`；系統預覽按鈕或閒置啟動使用 `/s`。
+- 不把自訂控制項注入 Windows 主設定頁；顯示自己的原生 modal dialog。
+- 本專案自行實作入口及相容命令列，不連結 `Scrnsavw.lib`；因此不機械套用該 library 專屬的匯出函式／入口要求。
+- 保留名稱字串 resource ID `1`、圖示與版本資訊。Windows 清單可能顯示檔名；驗收是可識別及選取，不保證所有系統版本採用同一名稱來源。
+- `.scr` 更名不能代替真實系統整合驗證。參考文件包含歷史 API 與舊版範例，最終以目標 Windows 實測為準。[Microsoft：Handling Screen Savers](https://learn.microsoft.com/en-us/windows/win32/lwef/screen-saver-library)
+
+## 5. 程序、狀態與生命週期
+
+### 5.1 執行與所有權
+
+- 單一 UI 執行緒，無 async runtime、工作執行緒或 busy loop。
+- `GetMessageW(&mut msg, NULL, 0, 0)` 的結果分成 `>0` 派送、`0` 正常退出、`-1` 記錄錯誤並清理；不能只判斷非零。此處 `NULL` 表示依綁定型別傳入空 HWND。[GetMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessagew)
+- `AppState` 由入口持有，直到所有視窗銷毀才釋放；每個 `WindowState` 只擁有自己的繪圖資源。
+- `WM_NCCREATE` 從 `lpCreateParams` 接收狀態，存入 `GWLP_USERDATA`；`WM_NCDESTROY` 清空後回收一次。
+- 必須明訂 `CreateWindowExW` 失敗前／後的 ownership transfer，測試 `WM_NCCREATE` 拒絕與 `WM_CREATE` 失敗，避免 double free 或未回收。
+- 可能同步重入 callback 的 Win32 呼叫之前，結束 `&mut` 或 `RefCell` mutable borrow；不可跨 `DestroyWindow`、`SendMessageW`、modal dialog 等保留借用。
+- 關閉集中由 `request_shutdown(reason)` 處理；狀態只能首次由 Running 轉成 ShuttingDown，重複事件無額外作用。
+- 先停止更新，再關閉所有可見視窗，最後才銷毀更新 coordinator；最後一個必要視窗已回收才 `PostQuitMessage`。
+
+### 5.2 共用快照
+
+建議資料模型如下；命名可調整，責任不得混淆：
+
+| 資料 | 保存內容 | 可否在 paint 修改 |
+| --- | --- | --- |
+| `AppConfig` | 已驗證的模式、顏色、字型及上次時間 | 否 |
+| `ConfigDraft` | 設定對話框尚未提交的資料 | 由 UI 事件更新 |
+| `CountdownState` | total、deadline、完成狀態 | 只能由 coordinator 更新 |
+| `FrameSnapshot` | generation、本機年月日時分秒、remaining_ms、display_seconds、ratio、閃爍狀態 | 否 |
+| `WindowState` | DPI、client size、back buffer、font cache、anchor | 尺寸／設定事件更新 |
+
+- `/s` 只由一個 coordinator timer 取一次 `GetLocalTime`／`GetTickCount64`，更新同一份快照，再 invalidate 全部顯示器。
+- 各 renderer 不取系統時間、不讀 registry、不啟動 timer。初始快照必須先於第一個可見 paint 建立。
+- 畫面值按同一 generation 同步；不同螢幕的掃描／重繪不是硬體同步，不承諾同一微秒刷新，但不得出現獨立倒數累積漂移。
+
+### 5.3 `unsafe` 與 callback
+
+- 禁止 `static mut`；必要 `unsafe` 只用於 FFI、callback 與指標邊界，附具體 `// SAFETY:`。
+- 正常輸入、失效 HWND 或 API 失敗都不能觸發 `unwrap()`、`expect()`、索引越界或 borrow panic。
+- Rust panic 不得展開跨過 `extern "system"`；Release `panic=abort` 是最後保護，不是省略驗證的理由。
+- 模型測試涵蓋 shutdown 重入；真正 FFI 的錯誤路徑仍須 Windows 驗證。
+
+## 6. 全螢幕模式 `/s`
+
+### 6.1 建立與顯示
+
+1. 讀取並驗證一次設定；Countdown 先執行第 6.2 節輸入流程。
+2. 以 `EnumDisplayMonitors(NULL, NULL, ...)` 列舉有效桌面顯示區域，讀取 `MONITORINFO.rcMonitor`。鏡像／重複矩形須避免重複覆蓋。
+3. 每個有效矩形建立一個初始隱藏的 `WS_POPUP`，擴充樣式 `WS_EX_TOPMOST | WS_EX_TOOLWINDOW`。
+4. 採完整 `rcMonitor`，不用 work area；支援負 X／Y，不假設主螢幕位於 `(0,0)`。
+5. 全部視窗與必要資源準備完成後建立快照、顯示並開始更新；不得一開始就加 `WS_VISIBLE`。
+6. 任一必要視窗建立失敗，關閉已建立視窗並以 code `3` 結束，不留部分黑畫面。
+
+列舉失敗或無有效區域，才退回 virtual-screen metrics 建立單一視窗；fallback 仍檢查正尺寸、溢位及 allocation 上限。不得強制更換顯示解析度或獨佔顯示模式。
+
+### 6.2 倒數啟動流程
+
+```text
+/s → 讀取模式
+      ├─ TimeDate → 準備全部視窗 → 顯示
+      └─ Countdown → 輸入時間
+                       ├─ 取消／Esc／關閉 → 結束（0）
+                       ├─ 驗證不通過 → 留在輸入框
+                       └─ 開始 → 保存時間 → 準備全部視窗
+                                             ├─ 失敗 → 清理結束（3）
+                                             └─ 建立共用 deadline → 顯示並倒數
+```
+
+- 每次 `/s` 選用 Countdown 都顯示一次 `IDD_COUNTDOWN_INPUT`；多螢幕不能各問一次。
+- 三個欄位範圍：小時 `0–99`、分鐘 `0–59`、秒 `0–59`；總秒數 `1–359999`。
+- 預填上次按「開始」成功保存的值，首次 `00:05:00`。此值是上次接受的時間，不保證後續視窗一定建立成功。
+- 只接受 1～2 個 ASCII 數字；空白、空字串、符號、全形數字與黏貼的非法內容都拒絕。`ES_NUMBER` 不取代程式驗證。
+- 保存失敗：顯示明確錯誤、保留輸入、不建立全螢幕；使用者可重試或取消。
+- deadline 在視窗準備完成、正式顯示前建立；對話框停留及視窗準備時間不扣除倒數。
+- 輸入階段不套用一般滑鼠／鍵盤退出，不隱藏游標，也不先鋪黑全螢幕。
+
+**保留的產品限制：** Windows 閒置自動啟動 Countdown 也會要求輸入。`/s` 本身不能可靠區分手動與系統啟動，不能自行推定使用者正在一般互動桌面。必須測試「繼續執行時顯示登入畫面」開／關及實際閒置啟動；若目標環境阻止互動，將該情境列 `FAIL` 或 `NOT TESTED`，不得繞過系統保護、偷偷改成自動倒數或宣稱驗收完成。此限制列入 README。
+
+### 6.3 游標與退出
+
+- 正式顯示後記錄啟動 tick 與 `GetCursorPos` 的螢幕座標；500 ms 寬限期只忽略滑鼠移動及初始化造成的啟用切換。
+- `WM_MOUSEMOVE` 比較同一螢幕座標基準；任一軸位移嚴格大於 4 個實體像素即退出。未達門檻不更新基準，避免慢速滑動永遠不退出。
+- 按鍵 `WM_KEYDOWN`／`WM_SYSKEYDOWN`、任何滑鼠按鈕按下、垂直／水平滾輪立即退出，寬限期不忽略新按鍵。
+- 倒數輸入框結束後，消耗其結束事件，再啟動全螢幕輸入判定，避免「開始」那次 Enter／click 被誤當退出。
+- 同程序多螢幕視窗彼此切換焦點不退出；寬限後前景轉到外部程序才退出。不要把每個 `WA_INACTIVE` 一律判成全程結束。
+- 使用 `WM_SETCURSOR` 與空游標；若使用 `ShowCursor`，必須對稱恢復，不用無界迴圈操縱計數。
+- 不攔截系統安全快捷鍵、不反覆搶回前景。`WM_CLOSE` 與系統 session 結束採正常清理。
+
+### 6.4 顯示配置與電源事件
+
+- `WM_DISPLAYCHANGE`：第一版採安全退出全部全螢幕，下一次啟動重新列舉；不要求執行中無縫重建拓撲。
+- `WM_DPICHANGED`：更新該螢幕 DPI 與幾何；頂層全螢幕重新查 `rcMonitor` 保持覆蓋，不機械套用一般可移動視窗的尺寸。
+- `WM_TIMECHANGE`／時區變更：時間日期快照立即重新取本機時間；倒數不受影響。
+- 不阻止系統睡眠、不呼叫維持螢幕常亮的 API。若程序睡眠後仍存在，恢復時以原 deadline 重算；睡眠時間計入經過時間。
+- 若恢復時已逾期，顯示零；不把錯過的 timer 次數逐次補跑，不重播已過去的完整閃爍序列。
+- 收到 `WM_QUERYENDSESSION` 不阻止登出；`WM_ENDSESSION` 清理退出。
+
+## 7. 系統預覽 `/p <HWND>`
+
+### 7.1 視窗契約
+
+- 驗證 parent 後直接以 `WS_CHILD | WS_VISIBLE` 建立單一 child，不先建立 popup 再 `SetParent`。
+- client 起點 `(0,0)`，大小取 parent 的 client rect；不設 topmost、不搶焦點、不隱藏全域游標、不因滑鼠移入而退出。
+- 不注入、不 subclass 外部程序 parent。每秒檢查 `IsWindow`、parent 身分／尺寸與設定；parent 消失即清理退出。
+- parent 尺寸不會保證自動傳成 child 的 `WM_SIZE`，因此尺寸變更時主動 `SetWindowPos`；child 再處理自身 `WM_SIZE`。
+- 零尺寸／最小化時暫停實際繪圖，不配置 0×0 buffer；仍保留低頻率存活檢查。
+
+### 7.2 DPI 與設定更新
+
+- manifest 使用 Per-Monitor v2。建立 preview child 前，讀取 parent 的 DPI awareness context，必要時暫時以 `SetThreadDpiAwarenessContext` 匹配；建立後恢復原 thread context。
+- 尺寸、DPI 與座標必須在一致 awareness context 下查詢／使用，不將虛擬化座標當實體像素再次放大。
+- 跨程序 parenting 與 DPI 模式不同可能造成系統重設或錯誤；此流程是需實測的實作策略，不是免測保證。[SetParent DPI 注意事項](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setparent)、[SetThreadDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext)
+- `/p` 每 1,000 ms 讀取一份完整、驗證後的設定，只在內容變更時更新 cache。正常調度下保存成功後 2 秒內反映；Windows 若重建 preview process，新的程序立即使用最新設定。
+- 這是 `/s` 不動態讀設定的明確例外，不建立 registry watcher thread。
+
+### 7.3 預覽內容
+
+| 模式 | 畫面來源 | 是否倒數 | 是否位移 |
+| --- | --- | --- | --- |
+| TimeDate | 每秒更新的本機時間與當月月曆 | 不適用 | 否 |
+| Countdown | 上次保存時間，無效則 300 秒；`remaining=total`、ratio=1 | 否 | 否 |
+
+不得跳出倒數輸入框、發出聲音或觸發零點提示。小尺寸退化依第 8.1 節，不能改成獨立視窗。
+
+## 8. 視覺、幾何與倒數行為
+
+### 8.1 共用 layout 與繪圖輸入
+
+- renderer 接收 `RenderContext`：HDC、client rect、有效 DPI、字型／色彩、`FrameSnapshot`、preview 類型與位移。
+- 幾何先用浮點或定點比例算完，再統一轉成裝置像素；所有乘法／面積／轉型檢查溢位與有限值。
+- client rect 已是繪圖座標，不整張畫面再乘 `DPI/96`；DPI 主要用於筆寬、字型點數及對話框度量。
+- 一般內容最大 88% client 寬、82% client 高，居中；內容之外純黑。安全邊界每軸至少 2%。
+- layout 回傳完整群組 bounding rect，包含描邊、圓形、沙漏及警示光暈，供位移與裁切測試使用。
+- `WM_TIMER` 更新狀態及 invalidate；`WM_PAINT` 只畫快照。設定 owner-draw 的繪圖路徑見第 11.3 節。
+
+小型預覽使用分級，不以可讀性無限縮小所有細節：
+
+| client 大小（有效繪圖像素） | 要求 |
+| --- | --- |
+| 至少 320×180 | 正常細節；仍依 aspect ratio 決定排列 |
+| 至少 120×80，未達上一級 | 可省略分鐘次刻度、年份及鐘面部分數字；保留鐘針、月曆格局、今天標記；倒數保留完整 6 位數與沙漏輪廓 |
+| 小於 120×80，但寬高皆正 | 最佳努力顯示兩區輪廓／倒數字樣；不保證文字可讀，必須無 panic、負尺寸或越界 |
+| 任一邊為 0 | 不配置 buffer、不實際繪圖，待恢復 |
+
+### 8.2 時間日期模式
+
+#### 8.2.1 參考圖與可接受差異
+
+- 使用者提供的原圖為 800×369，只供本機開發視覺比對；因未取得公開再授權依據，不納入 Git repository、`.scr` 或安裝程式。
+- 必須保留黑底、左鐘右月曆、同色刻度與文字、今天實心圓反白數字。
+- 原圖頂部的小型圓形裝置狀態圖示不屬於產品，不能繪製。
+- 原圖紅色較亮、月標題沒有年份；產品色票及年月標題以第 9.1 節與下列規則為準。實機會顯示當下日期，不固定成附件日期。
+- 鐘面刻度外沿應呈接近附件的圓角方形輪廓，沒有實線外框；不能只看見「指針鐘」就改成有外圈的傳統圓鐘。
+- 平滑邊緣依 GDI 能力處理，不以逐像素或與瀏覽器相同反鋸齒作驗收。
+
+#### 8.2.2 版面
+
+- `W/H >= 1.35`：橫向排列，內容寬度分配約為鐘 48%、間距 8%、月曆 44%。
+- 鐘區保持正方形，使用 `min(分配寬, 可用高)`；月曆與鐘的可見群組垂直置中，不能拉伸鐘面。
+- `W/H < 1.35`：改為上鐘下月曆；在 88%W×82%H 安全範圍內，初始分配鐘高 48%、間距 6%、月曆高 46%，再等比適配。
+- 月曆永遠保留六個日期列的空間，未用列留白，避免月底／月初造成位置跳動。
+- 窄版以完整月曆及六位倒數不裁切優先；不使用固定最小字級把版面撐出畫面。
+
+#### 8.2.3 指針鐘
+
+- 以鐘區中心 `(cx,cy)`、半邊長 `R=0.45×鐘區邊長` 建立局部座標。
+- 60 刻度每隔 6°，12 點方向為 0°、順時針為正。外沿採圓角方形比例；建議使用 superellipse 指數 6：
+
+```text
+u = sin(theta), v = -cos(theta)
+r = R / (abs(u)^6 + abs(v)^6)^(1/6)
+外端 = (cx + r*u, cy + r*v)
+內端 = (cx + (r-L)*u, cy + (r-L)*v)
+主刻度 L = 0.18R；次刻度 L = 0.075R
+```
+
+- 每 5 分鐘主刻度較長較粗；其餘短刻度亮度可為主色的 45%，主刻度及指針為 100%。
+- 只顯示 `12`、`3`、`6`、`9`，數字中心約離鐘心 `0.62R`，以量測後矩形置中。
+- 時針長 `0.55R`、分針 `0.82R`、秒針 `0.94R`；筆寬約 `0.055R`、`0.035R`、`0.010R`，正尺寸下至少 1 px。
+- 時／分針可有短尾，秒針細長；最後繪製中心軸，主色外環、黑色內心。
+- 角度以同一個快照計算：
+
+```text
+時針角度 = 30 × ((hour mod 12) + minute/60 + second/3600)
+分針角度 = 6 × (minute + second/60)
+秒針角度 = 6 × second
+座標 = (cx + length×sin(angle), cy - length×cos(angle))
+```
+
+角度轉成 radians 才交給三角函式；秒針每秒跳動即可，不加 60 FPS 動畫。
+
+#### 8.2.4 月曆
+
+- 標題優先 `yyyy年 M月`，若量測後超出可用寬則改 `M月`，不是依月份字數硬編碼。
+- 星期由左至右固定「一、二、三、四、五、六、日」，不受作業系統每週起始日設定影響。
+- 使用 Gregorian calendar；只顯示當月數字，前後月位置留白。
+- 標題區、星期列、6×7 日期格各自計算 cell rect；所有數字中心對齊。
+- 今天用主色圓形與黑字。一般尺寸圓直徑至少字高 1.55 倍，且最多 `0.9×min(cell_width,cell_height)`；兩條件互斥時先縮小字型。極小預覽按第 8.1 節退化。
+- 日期／月份／年份均由同一份本機時間快照取值，跨午夜不能出現「新日期舊月份」。
+- 閏年：能被 400 整除，或能被 4 整除但不能被 100 整除。
+- 若星期函式用 Sunday=0，第一天 Monday-based offset 為 `(weekday+6)%7`；day 的格子索引為 `offset+day-1`。
+
+### 8.3 倒數模式
+
+#### 8.3.1 參考範圍與構圖
+
+原稿指定 [Classroom Timer 倒數畫面](https://kisaraki.github.io/classroom-timer-tzk/?tool=countdown) 與[主頁](https://kisaraki.github.io/classroom-timer-tzk/) 作視覺參考。本次修訂未能透過網頁讀取工具取得頁面內容，因此以下數值保留／細化原稿設計，不宣稱與網站當前版本已比對一致。開發時若能開啟網站，記錄比對日期；網站變動不能自動改寫本規格。
+
+- 純黑背景；中央極淡琥珀漸層為可選效果，失敗即退回純黑。
+- 上方沙漏，下方 LCD；全群組符合第 8.1 節安全矩形。
+- 沙漏寬約 client 短邊 10～14%、高 14～20%；若總高不足，與 LCD 一起縮小。
+- LCD 寬約 client 的 72～88%；內部留至少面板寬 4% 的左右 padding。
+- 面板底色 `RGB(201,207,191)`，外框 `RGB(48,54,61)`；中央顯示固定 `HH:MM:SS`，小時含前導零。
+- 不顯示工具列、按鈕、操作提示、百分秒或額外倒數文字。
+
+#### 8.3.2 七段數字與系統字型
+
+- 電子錶以 `Polygon` 等 GDI primitives 畫削角 segment，不使用 TTF、sprite 或 bitmap atlas。
+- segment 定義：a 上、b 右上、c 右下、d 下、e 左下、f 左上、g 中；bit 0～6 對應 a～g。
+
+| 數字 | mask（hex） | 數字 | mask（hex） |
+| --- | --- | --- | --- |
+| 0 | 3F | 5 | 6D |
+| 1 | 06 | 6 | 7D |
+| 2 | 5B | 7 | 07 |
+| 3 | 4F | 8 | 7F |
+| 4 | 66 | 9 | 6F |
+
+- digit 寬約 `0.56h`、冒號寬 `0.18h`、相鄰 8 個 glyph 間有 7 個 `0.025h` 間距；`HH:MM:SS` 預估總寬 `3.895h`。
+- 用可用內框求 h 的最大值，再驗證全部 glyph bounding boxes；不可只量數字而漏掉冒號／間距。
+- 冒號是兩個實心圓。第一版預設省略未點亮 segment，避免灰白模式在淺面板上難辨識。
+- Consolas、新細明體、自訂字型同樣繪製 `HH:MM:SS`，以文字量測適配；不能不論字型模式都強制畫七段。
+- 主色仍由使用者選擇；亮綠／灰白在淺色 LCD 上必須加深色描邊或陰影（`RGB(32,36,32)`），不能暗中改成另一種主色。GDI 文字可先畫小幅偏移的深色輪廓再畫主色。
+
+#### 8.3.3 沙漏與比例線
+
+- 沙漏包含上下端蓋、玻璃輪廓、上／下砂區及落砂細線，皆由 geometry 產生。
+- 上砂高度按 `ratio` 變少，下砂按 `1-ratio` 變多；屬原稿指定的線性高度效果，不要求真實物理沙量模擬。
+- 用玻璃形狀 clip 砂區，不能把矩形砂畫到外面；到零移除落砂細線。
+- 金屬／玻璃輪廓使用中性灰，砂使用主色；四種色票下都要可辨識。
+- LCD 內紅色垂直比例線由右往左，`x=inner_left+ratio×inner_width`；中心座標須縮進半個筆寬，確保線的外框也在內框內。
+- 主線 `RGB(255,32,32)`，寬度約 3 個 96-DPI 邏輯像素，再依內框可用尺寸限制；可加較寬暗紅底線。
+- 繪製順序：背景 → 沙漏 → LCD 底及框 → 比例線 → 數字 → 外框警示。比例線不能遮掉數字的主要筆畫。
+
+#### 8.3.4 時間模型
+
+全部計算以共用的毫秒數為準：
+
+```text
+total_ms = validated_total_seconds × 1000
+deadline_ms = start_tick_ms.checked_add(total_ms)
+remaining_ms = min(total_ms, deadline_ms.saturating_sub(now_tick_ms))
+display_seconds = remaining_ms / 1000 + (remaining_ms % 1000 != 0 ? 1 : 0)
+ratio = clamp(remaining_ms / total_ms, 0, 1)
+HH = display_seconds / 3600
+MM = (display_seconds % 3600) / 60
+SS = display_seconds % 60
+```
+
+- `total_ms>0` 才可開始；deadline 溢位屬初始化錯誤，不能 wrap。
+- 時基為 `GetTickCount64`；timer 只喚醒，不能當時間來源。[GetTickCount64](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64)
+- 不受手動校時、時區或夏令時間影響；睡眠恢復按第 6.4 節處理。
+- 純邏輯函式接受注入的 `now_tick_ms`，測試不得真的等待 99 小時。
+- 正常運行 100 ms 更新一次，數字到秒、比例連續採當次快照。不得提高系統 timer resolution 或忙等以追求毫秒畫面。
+
+#### 8.3.5 最後十秒與歸零
+
+- `0 < remaining_ms <= 10000` 才是最後十秒；LCD 外框加固定青藍色 `RGB(0,210,220)`，數字主色不改。
+- 到零後 ratio=0、上砂空、下砂滿、數字保持 `00:00:00`，停止落砂。
+- 定義 4 次閃爍為 8 個半週期，每個 420 ms、總長 3,360 ms：以 `elapsed=max(now-deadline,0)` 計算 `phase=floor(elapsed/420)`。
+- `phase<8` 且為奇數時數字降至 35% 亮度；偶數保持正常。`elapsed>=3360` 永久正常，移除最後十秒警示。沙漏與底色不整片熄滅。
+- phase 由經過時間算，不逐次累加。100 ms timer 允許最多約一個 tick 的顯示延遲；不為 420 ms 閃爍新增第二個高頻 timer。
+- 完成提示結束後把 coordinator 更新降為每秒，仍執行位移／退出等必要工作。不重新開始、不自動退出、不播放聲音。
+
+### 8.4 雙緩衝
+
+每個正式視窗維持一個 memory DC 與一張 client 尺寸 bitmap，依下列順序：
+
+1. `BeginPaint`；確認非零 client 尺寸。
+2. 按需建立／重用 memory DC、bitmap；compatible bitmap 由畫面 DC 建立，不能由初始僅有單色 bitmap 的 memory DC 推導色深。
+3. 保存 GDI 狀態；畫完整背景及快照內容。
+4. `BitBlt` 到 paint DC。
+5. 恢復選入物件／狀態；快取的 owned 資源保留到 resize 或 destroy。
+6. 所有返回路徑均 `EndPaint`。
+
+- `InvalidateRect(..., FALSE)`，`WM_ERASEBKGND` 回傳非零；paint 必須覆蓋整個 client，不留下前一幀殘影。
+- `WM_SIZE`／DPI 改變安全重建；刪除 bitmap／font 前先從 DC 選回原物件。
+- buffer 建立失敗可在有效 paint DC 直接填黑並嘗試簡化繪圖一次；不能讀取無效 handle 或無限重試。必要資源不可用時全螢幕清理退出，preview 安靜退出。
+- 字型、brush、pen 依尺寸／樣式快取；不要每個 frame 建立大量短命資源。設明確上限，不以日期字串逐秒新增 cache。
+
+### 8.5 防烙印位移
+
+- 純 std 實作 xorshift32，非零 seed；seed 可由啟動 tick 與螢幕索引混合，若結果為零用固定非零值替代。
+- 每滿 60,000 ms 計算一次新 anchor；時間跳過多個區間時只重算一次，不補跑所有歷史位置。
+- X／Y 位移上限為 client 寬／高的 ±5%，再與內容 bounding rect 可容納區間取交集。
+- 若某軸無位移空間，該軸用 0；不能產生負的亂數範圍。極小 client 以零位移退化。
+- 鐘與月曆一起移動；沙漏、LCD、光暈一起移動；不縮放、不隨機改顏色。
+- `/p`、設定預覽及視覺測試 fixture 固定 offset=(0,0)。不加每秒 2px 抖動。
+
+## 9. 顏色與字型
+
+### 9.1 色票
+
+| 識別值 | 名稱 | RGB | hex |
+| --- | --- | --- | --- |
+| 0 | 深紅 | 139, 0, 0 | `#8B0000` |
+| 1 | 深橘 | 255, 140, 0 | `#FF8C00` |
+| 2 | 亮綠（預設） | 0, 255, 0 | `#00FF00` |
+| 3 | 灰白 | 245, 245, 245 | `#F5F5F5` |
+
+`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅；四種色票都須在黑底及 LCD 上驗收。
+
+### 9.2 字型模式
+
+| 識別值 | UI 名稱 | 實作 |
+| --- | --- | --- |
+| 0 | 電子錶（預設） | 七段向量主數字；月曆中文／日期用清晰 GDI 字型 |
+| 1 | Consolas（打字機） | `Consolas` |
+| 2 | 新細明體 | `PMingLiU` |
+| 3 | 自訂字型 | `ChooseFontW` 選定的系統字型 |
+
+- 非電子錶模式套用於鐘面數字、月曆及倒數主數字；同一字型缺中文字形時，中文部分獨立 fallback。
+- 拉丁字形 fallback：指定字型 → Consolas → Microsoft JhengHei → DEFAULT_GUI_FONT。
+- 中文字形 fallback：指定字型（確有 glyph）→ Microsoft JhengHei → PMingLiU → 系統 fallback。
+- 字型 API 建立成功不代表所需 glyph 存在；以枚舉／glyph 檢查及實際畫面驗證，不只檢查 HFONT 非空。
+- 缺字型時不改寫保存的自訂選擇；只改本次有效繪圖字型。`DEFAULT_GUI_FONT` 是 borrowed stock object，不可刪除。
+
+### 9.3 選字型
+
+- 使用 `ChooseFontW`；`lStructSize`、owner、`LOGFONTW`、`iPointSize` 全部初始化。
+- 旗標包括 `CF_INITTOLOGFONTSTRUCT | CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_LIMITSIZE`；`nSizeMin=18`、`nSizeMax=240`。
+- 不使用 `CF_EFFECTS`，顏色由本程式管理；取消保持草稿不變。
+- 成功保存 `LOGFONTW` 與 1/10 pt 的 `iPointSize`，自動切至 Custom。`ChooseFontW` 回傳 false 時，以 `CommDlgExtendedError` 區分取消（0）與錯誤。[CHOOSEFONTW](https://learn.microsoft.com/en-us/windows/win32/api/commdlg/ns-commdlg-choosefontw)
+
+### 9.4 點數、適配與驗證
+
+- 保存點數範圍 `180–2400`（18–240 pt），預設 `480`。
+- 保存點數是設計基準的偏好，不是任何螢幕一律固定像素字高。先依 800×369 橫向／369×800 直向設計畫布求 layout scale，產生各角色候選字高，再縮小到實際可用矩形。
+- 每個角色（倒數、鐘面、月份、星期、日期）有獨立可用矩形；以 `GetTextExtentPoint32W`／對應量測結果求一致縮小比例，不能單獨把某一個日期縮得不同。
+- 全畫面採單一計算方式：`base_height_96=point_size_tenth×96/720`；`layout_scale=min(實際可用寬/設計寬,實際可用高/設計高)`；候選像素字高為 `base_height_96×layout_scale×role_scale`，再量測適配。角色初始比例可用倒數1.0、鐘面0.65、標題0.42、星期／日期0.32，依各角色可用矩形驗證。
+- 上式的可用寬高已是有效像素，因此不得再乘 `dpi/96`。最終 HFONT 的 `lfHeight` 是負的適配像素字高；DPI 改變後重新取得有效幾何並重算。
+- `lfHeight=-MulDiv(point_size_tenth,dpi,720)` 用於沒有畫布縮放的標準字型點數換算，例如選字型初始資料；不能把它再乘以上述實體像素 layout scale。
+- 保留 face、weight、italic；第一版正規化為水平字：`lfWidth=0`、`lfEscapement=0`、`lfOrientation=0`，不支援旋轉、直書、刪除線或底線。
+- 驗證完整 binary 大小、字串至少一字且 32 code units 內有 NUL、UTF-16 可解碼、weight `0–1000`、布林欄位 `0/1`、點數範圍。face name NUL 後清零。
+- 不直接沿用 registry 的 `lfHeight`／width 建字型；先驗證數值可安全處理，再以已驗證點數重建，拒絕 `i32::MIN` 等不合理值。
+- charset、precision、quality、pitch/family 只接受 SDK 定義的合法值；未知值以安全預設正規化，不自行把合法 CJK charset 限縮成 ASCII。
+- 畫面裁切規則優先於使用者大字級；對話框文字說明：「字型大小會依顯示空間自動縮放」。
+
+## 10. 設定資料與登錄檔
+
+### 10.1 路徑及 schema
+
+```text
+HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
+```
+
+`.scr` 本體以 `asInvoker` 執行，讀寫偏好不需要管理員權限。
+
+| 名稱 | 型別 | 有效範圍／內容 | 預設 |
+| --- | --- | --- | --- |
+| SchemaVersion | REG_DWORD | 目前為 2 | 2 |
+| DisplayMode | REG_DWORD | 0=TimeDate、1=Countdown | 0 |
+| ColorPreset | REG_DWORD | 0～3 | 2 |
+| FontMode | REG_DWORD | 0～3 | 0 |
+| CustomLogFont | REG_BINARY | 完整、已驗證 LOGFONTW | 無 |
+| CustomPointSizeTenth | REG_DWORD | 180～2400 | 480 |
+| LastCountdownDurationSeconds | REG_DWORD | 1～359999 | 300 |
+
+- key 不存在：全預設，讀取不建立 key。
+- SchemaVersion 缺失／1：按既有已知欄位個別驗證，新欄位取預設；使用者提交成功才寫 version 2。
+- SchemaVersion=2：正常驗證每欄。
+- schema 型別損壞／0：視為損壞資料，使用預設，允許下一次明確提交修復已知值。
+- SchemaVersion>2：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
+
+### 10.2 讀取
+
+- 使用最小權限 `KEY_QUERY_VALUE`，寫入才要求所需 write access；所有 owned HKEY 以 `RegCloseKey` 關閉。
+- `REG_DWORD` 必須恰為 4 bytes；binary 必須為 `size_of::<LOGFONTW>()`（本版 Windows ABI 預期 92 bytes，以編譯期／測試 assert 驗證）。
+- 先查型別與長度；第二次讀取可能遇值改變或 `ERROR_MORE_DATA`，只做有上限重試，仍失敗便 fallback。
+- 將 binary 複製到已初始化、對齊正確的結構後再逐欄驗證；不把任意 `Vec<u8>` 指標直接當已對齊 LOGFONTW。
+- 缺值、型別錯誤、非法 enum、超界倒數按欄位回退；不因一欄錯誤丟失所有有效顏色／模式。
+- Custom 資料缺失時有效繪圖模式回退電子錶，草稿可重新選字型；讀取不寫回任何修正值。
+
+### 10.3 寫入、取消與部分失敗
+
+- `/c` 只在 `IDOK` 全部驗證成功後提交模式／顏色／字型欄位，不能用載入時的舊副本覆蓋另一程序更新的 LastCountdownDurationSeconds。
+- 倒數輸入只提交 LastCountdownDurationSeconds 及必要 schema 初始化，不能重寫顏色或模式。
+- 點「取消」、Esc、關閉與 `ChooseFont` 取消都不發起寫入；「取消不變」驗收以未按過失敗的提交、沒有其他程序同時寫入為前提。
+- 寫入前保存本次會修改的值之原始型別／bytes／是否存在；依序寫入已驗證值，schema 最後寫。
+- 多個 `RegSetValueExW` 不具有交易原子性。中途失敗須停止並嘗試還原本次已改欄位，包含刪除本次新增值；不刪除未知值。
+- 若 rollback 也失敗，明確提示「部分設定可能已變更」，重讀實際值且保留草稿供重試；不能宣稱取消將還原整個對話框開啟前狀態。
+- 不對普通設定保存使用 `RegFlushKey`，不把 schema-last 宣稱為跨程序原子提交。
+- `/p` 讀取期間可能見到短暫中間狀態，仍須形成合法的完整 `AppConfig`；下次 poll 收斂至實際已保存值。第一版不提供跨程序交易隔離。
+
+## 11. 設定對話框
+
+### 11.1 RC 與控制項
+
+使用 `.rc` 的 `DIALOGEX`，`DS_SETFONT`／`DS_SHELLFONT`、繁體中文、系統 dialog 字型；以 `DialogBoxParamW` 顯示。
+
+```c
+#define IDD_CONFIG              2003
+#define IDD_COUNTDOWN_INPUT     2004
+#define IDC_MODE_TIME_DATE      1001
+#define IDC_MODE_COUNTDOWN      1002
+#define IDC_COLOR_DARK_RED      1101
+#define IDC_COLOR_DARK_ORANGE   1102
+#define IDC_COLOR_BRIGHT_GREEN  1103
+#define IDC_COLOR_OFF_WHITE     1104
+#define IDC_FONT_COMBO          1201
+#define IDC_CHOOSE_FONT         1202
+#define IDC_PREVIEW             1301
+#define IDC_COUNTDOWN_HOURS     1401
+#define IDC_COUNTDOWN_MINUTES   1402
+#define IDC_COUNTDOWN_SECONDS   1403
+```
+
+- 模式群組：時間日期／倒數計時 radio。
+- 顏色群組：四個 radio；各組正確設 `WS_GROUP`，不能兩组互相取消。
+- 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
+- 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
+- Tab 順序循序可用，radio 支援方向鍵，Enter 提交、Esc 取消；標籤有明確欄位關係，不只靠顏色表意。
+- 100%、150%、200% DPI 不重疊／截字；跨螢幕依 dialog DPI 機制更新，避免系統與程式各縮放一次。
+
+### 11.2 owner 與生命週期
+
+- 有效 owner 時設為 owned modal 並置中於 owner 所在 monitor 的 work area；沒有 owner 則置中於前景所在 monitor。
+- owner 可能跨程序且隨時消失；使用期間驗證，失效時以取消結束。不得把 HWND 有效性當成永久保證，也不對外部程序做 subclass。
+- `WM_INITDIALOG` 建立草稿、控制項及預覽 timer；`WM_COMMAND` 只更新草稿或處理明確提交。
+- `IDOK` 保存成功才 `EndDialog`；`IDCANCEL`／`WM_CLOSE` 不提交。
+- dialog procedure 未處理訊息回傳 FALSE；不能把一般 WNDPROC 的 `DefWindowProcW` 規則直接套到 DLGPROC。
+- `WM_DESTROY` 停 timer 並釋放 cache；所有 pointer 狀態依 dialog 專用生命週期回收一次。
+
+### 11.3 即時預覽
+
+- `IDC_PREVIEW` 用 `SS_OWNERDRAW`，在 `WM_DRAWITEM` 取得 `DRAWITEMSTRUCT.hDC`／`rcItem` 後呼叫共用 renderer；此 HDC 為 borrowed，不使用 `BeginPaint`／`EndPaint`／`ReleaseDC`。
+- 保存／恢復 HDC 狀態，不改變其他控制項的 clip、字型或座標原點。
+- 模式／顏色變更只更新草稿、必要 cache 並 invalidate；只有字型／尺寸／DPI 變更才重建 font cache。
+- TimeDate 每秒以目前本機時間更新；不能只在選項改變時更新時鐘。
+- Countdown 靜態示範：remaining=300 秒、total=600 秒、顯示 `00:05:00`、ratio=0.5、上下各半砂量，不播放落砂動畫或警示。
+- `/c` 預覽永遠採草稿，不由 `/p` 的 registry poll 蓋掉尚未保存的修改。
+- 所有預覽不位移；字型失敗時 fallback，不使對話框失去操作能力。
+
+### 11.4 系統字型操作
+
+- 字型選擇成功才更新草稿；取消與 error 區分處理，錯誤可顯示繁體中文訊息。
+- 單純改變 ColorPreset 不丟失自訂 font；由 Custom 切回預設 font 不刪除上次自訂資料。
+- 選到缺字／字形與目標尺寸不合時，按照第 9 節逐角色適配，不能讓文字超出 preview 控制項。
+
+### 11.5 倒數輸入對話框
+
+- 標題「設定倒數時間」；說明「請輸入本次倒數時間」。
+- 依序「小時」「分鐘」「秒」，3 個 Edit 設 `ES_NUMBER` 與 `EM_SETLIMITTEXT=2`，仍完整驗證讀回文字。
+- 初始小時欄選取全部內容；按開始失敗時聚焦並選取第一個錯誤欄位，以短文字說明有效範圍。
+- `IDOK` 顯示為「開始」、`IDCANCEL` 為「取消」；接受／保存／取消流程依第 6.2 節。
+- `/p`、`/c`、安裝內部命令都不顯示此輸入框。
+
+## 12. GDI／Win32 資源管理
+
+| 資源來源 | 正確釋放／恢復 |
+| --- | --- |
+| BeginPaint | EndPaint |
+| GetDC | ReleaseDC |
+| CreateCompatibleDC | DeleteDC |
+| CreateFontIndirectW、CreatePen、CreateBrush、CreateCompatibleBitmap、CreateDIBSection、建立的 HRGN | 選回舊物件後 DeleteObject |
+| GetStockObject／DEFAULT_GUI_FONT | borrowed，不刪除 |
+| SelectObject | 保存舊 handle，使用後選回；失敗按該 API 回傳規則判斷 |
+| SaveDC | 配對 RestoreDC，包含錯誤路徑 |
+| SetTimer | KillTimer，使用回傳的有效 timer ID |
+| RegOpenKeyExW／RegCreateKeyExW | RegCloseKey |
+| CommandLineToArgvW | LocalFree |
+| OpenProcessToken 等 owned kernel handle | CloseHandle；不套用 HWND／HMONITOR |
+| HWND | DestroyWindow／EndDialog，依視窗種類與 UI 執行緒規則 |
+| HMONITOR | borrowed，不釋放 |
+
+- 最小 RAII wrapper 區分 owned／borrowed 與清理函式，不用一個不透明通用 handle wrapper 包全部類型。
+- bitmap 選入 DC 的順序與 Drop 順序要有明確設計，不能依欄位宣告順序碰運氣。
+- 重複 resize、DPI 改變、字型切換後 GDI 數量應回到穩定範圍；不只觀察正常關閉路徑。
+- 正式 callback 不做網路、磁碟檔案操作、sleep 或長工作；短小且有界的 registry 讀寫可在已規定的 poll／提交事件執行。
+
+## 13. 資源與 manifest
+
+- `resources.rc` 使用 UTF-8 與明確 code page（如 `#pragma code_page(65001)`），驗證繁體中文不亂碼。
+- 包含 app icon、兩個 dialog、resource ID 1 名稱、VERSIONINFO、application manifest。
+- 圖示使用有權使用的素材或自行產生的簡單原生圖形；不從參考圖抽取作業系統圖示。
+- manifest 宣告 `asInvoker`、Per-Monitor v2 及必要 Common Controls v6；需要 Common Controls 時正確初始化。
+- Windows 10／11 共用相應相容性宣告，不虛構 Windows 11 專用 supportedOS GUID。
+- application manifest 使用正確 `RT_MANIFEST`／ID，避免 linker 另嵌預設 manifest 蓋掉資源版；以成品擷取驗證只有預期設定。
+- 版本資訊包含 ProductName、FileDescription、FileVersion、ProductVersion、CompanyName、LegalCopyright；最後兩項遵守第 0.3 節。
+- Cargo SemVer `a.b.c` 對應 RC 數值版 `a,b,c,0`；若含 prerelease，字串可保留標籤，數值版仍是合法四整數。
+
+## 14. 可重現建置與封裝
+
+### 14.1 `build.rs`
+
+- 僅用 Rust std；驗證 target 是指定 MSVC x64，不在不支援的 host 上假裝已完成 Windows 資源編譯。
+- 使用 `std::process::Command` 與分離參數呼叫 `rc.exe`，不拼接經 shell 解釋的命令。
+- `.rc`、header、manifest、icon 輸出 `cargo:rerun-if-changed`；若版本由 Cargo 產生，也追蹤相關來源。
+- `.res` 寫入 `OUT_DIR`；資源 include 路徑從 `CARGO_MANIFEST_DIR` 明確解析，支援空白與中文。
+- `rc.exe /nologo /fo <res_path> <rc_path>` 回傳失敗即停止，保留工具診斷。
+- 以指定 binary 的 Cargo linker arg 連結 `.res`，避免把 GUI resource／入口旗標誤加到測試 harness。
+- 不加 `embed-resource`、`cc` 或其他 build crate。
+
+### 14.2 `scripts/build.bat`
+
+從任意工作目錄啟動都可用：`setlocal`、以 `%~dp0` 找 repository root、對路徑加引號，確保所有返回路徑 `popd`／正確回傳 exit code。
+
+執行順序：
+
+1. 檢查 rustup、cargo、rustc、鎖定工具鏈、MSVC target、rustfmt、clippy。
+2. 確認 `rc.exe`、x64 MSVC `link.exe`。避免誤用其他軟體同名的 `link.exe`；找不到時提示開啟 x64 Developer Command Prompt／官方 `VsDevCmd.bat`。
+3. 執行以下 gates，失敗立即停止：
+
+```bat
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
+cargo build --release --locked
+```
+
+4. 確認 `target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe` 是本次成功產物。
+5. 建立 `dist`，先複製至暫存名稱，成功後替換 `dist\MyDateTimeScreensaver.scr`。
+6. 回報完整路徑、版本、檔案 bytes、SHA-256、工具版本及原始碼 revision（若有 Git）。
+
+- 不自動安裝缺失元件，不直接寫入 System32，不啟動 `/s` 或改使用者 screen saver 設定。
+- 已有產物可保留供比對，但失敗時必須清楚標成前次產物，不能打印本次成功訊息。
+- 依賴首次下載可使用網路；「無網路」限制指交付程式執行期，已快取依賴後應可離線 build。
+
+### 14.3 `scripts/package.bat`
+
+- 以 `call` 執行 `build.bat` 並檢查 errorlevel；固定實際 ISCC 版本，不能找到任意版本就默默編譯。
+- Inno Source 及 Output 路徑以腳本位置解析，避免 `installer/dist` 與根目錄 `dist` 混淆。
+- 輸出先放本次 staging 目錄，只有編譯、版本及成品存在檢查通過後，才更新 `dist\MyDateTimeScreensaver-Setup.exe`。
+- 任何清理只限 repository 內已解析的本次 staging 路徑，不遞迴刪除使用者任意目錄。
+- 記錄 `.scr` 與 Setup 的版本、大小、雜湊及未簽章／已簽章狀態；不能把舊 Setup 當成本次交付。
+
+## 15. Inno Setup 安裝與解除安裝
+
+### 15.1 架構、目錄與權限
+
+第一版以原生 x64 為範圍：
+
+```ini
+[Setup]
+ArchitecturesAllowed=x64os
+ArchitecturesInstallIn64BitMode=x64os
+PrivilegesRequired=admin
+MinVersion=10.0.15063
+DefaultDirName={autopf}\MyDateTimeScreensaver
+OutputBaseFilename=MyDateTimeScreensaver-Setup
+```
+
+- 固定 AppId，版本升級不更換；uninstaller 放產品目錄，不能把解除安裝 metadata 任意散落 System32。
+- `.scr` 安裝到 `{sys}\MyDateTimeScreensaver.scr`，明確使用 64-bit install mode 的實體 System32。
+- `x64compatible` 也接受部分 ARM64 Windows，因此不符合本版限定範圍；這是產品支援範圍的選擇，不是聲稱 x64 程式技術上不能模擬執行。[Inno architecture identifiers](https://jrsoftware.org/ishelp/topic_archidentifiers.htm)
+- 安裝成功建立標準解除安裝項目；不安裝字型、runtime、參考截圖或額外常駐程序。
+- `.scr` 與 installer 的權限分開：installer 提權不代表日後 `.scr` 提權。
+
+### 15.2 使用者系統設定
+
+預設不勾選「將它設為目前的螢幕保護程式」；只在明確勾選時執行第 15.3 節。
+
+```ini
+[Tasks]
+Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flags: unchecked
+```
+
+- 成功操作只更新原使用者的 `HKCU\Control Panel\Desktop\SCRNSAVE.EXE`，值為安裝後 `.scr` 完整路徑。
+- 不修改 `ScreenSaveTimeOut`、`ScreenSaverIsSecure` 或 `ScreenSaveActive`；不新增其他開啟螢幕保護的安裝工作。
+- 因不強制開啟 ScreenSaveActive，選定本程式不保證使用者目前已啟用閒置啟動；UI／README 應清楚說明可到 Windows 設定頁自行啟用。
+- 靜默安裝未明確選定 task 時不修改 HKCU；不能在無互動情境彈倒數輸入框。
+
+### 15.3 提權後的帳號歸屬
+
+**必要修正：** UAC 使用另一個管理員帳號時，installer 的 HKCU 不一定是發起安裝者；不得直接在提權 installer 的 `[Registry]` 寫 HKCU 來完成 setcurrent。
+
+本版採同一 `.scr` 的單用途內部命令：
+
+```text
+MyDateTimeScreensaver.scr --install-set-current
+```
+
+- 此命令只接受完整的一個旗標，不接受任意 registry key、檔案路徑或外部程式參數。
+- installer 只有在 setcurrent 被選取時，以 `ExecAsOriginalUser` 執行已安裝 `.scr` 並等待結果；正常成功 code `0`，拒絕／失敗 code `4`。
+- helper 先檢查自身為預期 System32 安裝路徑、token 非 elevated；不符合就拒絕，不降權猜帳號、不修改別人的 hive。
+- helper 只依自身實際完整路徑寫入本 token 的 HKCU，查核成功後以有逾時的系統設定變更通知更新 shell。不得改安全／逾時／啟用值。
+- 此路徑不載入畫面模式、不顯示設定或倒數對話框、不啟動 renderer、不需要額外 helper EXE／PowerShell runtime。
+- 如果 installer 一開始就以管理員身分啟動、無法還原原使用者，或 helper 拒絕，安裝本體可成功，但必須明確顯示「尚未設為目前螢幕保護程式」，引導使用者在自己帳號的 Windows 設定頁選取；不得宣稱 task 成功。
+- `ExecAsOriginalUser` 用於安裝階段且不支援 uninstall，不能直接把同一方案複製到解除安裝。[Inno：ExecAsOriginalUser](https://jrsoftware.org/ishelp/topic_isxfunc_execasoriginaluser.htm)、[runasoriginaluser 限制](https://jrsoftware.org/ishelp/topic_runsection.htm)
+
+### 15.4 升級與解除安裝
+
+- 相同 AppId 升級，保留 HKCU 偏好；不產生重複解除安裝項目。
+- `.scr` 被使用中鎖住時，提示先關閉或依 installer 標準機制延後替換；不任意終止其他帳號／其他螢幕保護程序。
+- 只移除本產品擁有的 `.scr`、uninstaller 與安裝檔案，禁止 System32 wildcard 清理。
+- 第一版預設保留各帳號偏好，不枚舉、載入或清理其他使用者 hive。
+- 原稿允許「提示或清除失效路徑」；本版採提示路徑：移除前明確說明仍選用本產品的帳號，移除後須在 Windows 螢幕保護設定改選其他項目／無。
+- 提權 uninstaller 不假設自己 HKCU 是原使用者，因此不自動清除 `SCRNSAVE.EXE`。此限制列 README，靜默解除安裝列入 log。
+- 使用者已選其他 screen saver 時其設定必須原封不動；不改逾時、安全、啟用值，不刪系統字型。
+
+### 15.5 簽章與發布
+
+- 開發交付可未簽章，須標示發行者驗證狀態；不要以「無 SmartScreen 提示」作未簽章版驗收要求。
+- 公開發布：先簽 `.scr` → 封入 installer → 簽 Setup → 記錄最終已簽檔案雜湊。
+- 憑證、私鑰、密碼不進 repository；公開上傳／發布不因完成 package 自動取得授權。
+
+## 16. 錯誤處理與診斷
+
+| 情境 | 必要行為 |
+| --- | --- |
+| `/s` 視窗／必要資源失敗 | 清理後 code 3；不另彈阻塞錯誤框 |
+| 倒數輸入／保存失敗 | 留在已存在的輸入 dialog，指出原因，可重試／取消 |
+| `/p` parent 無效 | 靜默 code 2；不退回 popup |
+| `/c` 保存失敗 | 保留草稿，按第 10.3 節說明實際保存狀態 |
+| 單一 registry 值損壞／缺字型 | 按已定 fallback，不 panic |
+| 字型 dialog 取消 | 無錯誤提示、不修改草稿 |
+| `GetMessageW=-1` | 記錄原始錯誤、清理所有視窗 |
+| 安裝 helper 被拒絕 | code 4，installer 不宣稱已選為目前項目 |
+
+- 有 `GetLastError` 契約的 API 失敗後立即保存 error，避免 cleanup 蓋掉。
+- Registry API 使用其回傳 `LSTATUS`；ChooseFont 使用 `CommDlgExtendedError`；不對所有 API 一律讀 GetLastError。
+- Debug 使用 `OutputDebugStringW`，記錄階段、API、錯誤碼；正式程式不逐幀寫 log、不記錄不必要的帳號資訊。
+- `SetWindowLongPtrW` 等「0 也可能成功」API 依文件清除／檢查 last error，不能一律把零當失敗。
+
+## 17. 測試計畫
+
+### 17.1 自動測試案例
+
+所有純邏輯測試可不建立視窗；Win32 部分使用同一套 Windows target 測試，不要求未安裝 SDK 的非 Windows 主機直接編譯 GUI。
+
+| ID | 輸入／情境 | 預期 |
+| --- | --- | --- |
+| UT01 | 無參數、`/S`、`-s`、`/c 0` | Configure、Fullscreen、Fullscreen、Configure(None) |
+| UT02 | `/p:4294967296`（只測 parser） | 數值不截斷；是否有效 HWND 由 adapter 另驗 |
+| UT03 | `/p`、`/p -1`、`/p 0x20`、`/s /c`、溢位整數 | 明確 error，無意外 Fullscreen |
+| UT04 | 2024-02、1900-02、2000-02 | 29、28、29 天 |
+| UT05 | 2021-02-01（一）、2023-10-01（日） | offset=0／6；需要 4／6 週，layout 均預留 6 週 |
+| UT06 | 2023-12-31（日） | 今日在第 5 個日期列、第 7 欄；不是固定附件圖像 |
+| UT07 | 00:00:00、03:00:00、12:30:00 | 時針角度 0°、90°、15°；分針 0°、0°、180° |
+| UT08 | 倒數 `00:00:00`、空白、`1a`、全形 `１`、分=60 | 拒絕；欄位錯誤可識別 |
+| UT09 | 倒數 `00:00:01`、`00:59:59`、`99:59:59` | 1、3599、359999 秒；拆解重組相等 |
+| UT10 | total=5000，now-start=0／1／1000／4999／5000／9000 ms | 顯示秒 5／5／4／1／0／0，ratio 限於 [0,1] |
+| UT11 | remaining=10001／10000／1／0 ms | 最後十秒 false／true／true／false |
+| UT12 | deadline 後 419／420／3359／3360 ms | 正常／變暗／變暗／永久正常；只 4 個暗半週期 |
+| UT13 | 時間調整±1日，tick 不變 | 倒數值不變；TimeDate 由新快照更新 |
+| UT14 | 一次跳過 10 秒／睡眠後已逾期 | 不逐 tick 補跑；依 deadline 算值，逾期=0 |
+| UT15 | 0～9 segments | mask 與第 8.3.2 節一致；未點亮段不誤畫 |
+| UT16 | xorshift 固定非零 seed、零 seed fallback | 可重現，無永遠輸出零的錯誤 seed |
+| UT17 | 16:9、16:10、4:3、直向、超寬；比例 1.349／1.350 | 不裁切；明確切換上下／左右 |
+| UT18 | 320×180、120×80、1×1、0×0；96／144／192／288 DPI | 合法退化、無除零／溢位／負尺寸 |
+| UT19 | ±5% 位移、內容已滿安全區、最大字級 | bounding rect 含描邊後仍在界內，無空間軸位移=0 |
+| UT20 | 缺值、錯誤型別、DWORD 非4 bytes、LOGFONT 非92 bytes | 按欄 fallback、不讀越界 |
+| UT21 | schema 缺失／1／2／較新版 | 對應第 10.1 節，較新版不能被降版寫入 |
+| UT22 | 點數 179／180／2400／2401、face 未終止／非法UTF-16 | 明確合法或 fallback，不直接傳不可信資料給 GDI |
+| UT23 | 取消、ChooseFont 取消 | 保存呼叫次數=0 |
+| UT24 | 模擬第 N 次寫入失敗，rollback 成功／失敗 | 顯示對應保存狀態，未修改未知值 |
+| UT25 | 多視窗同 generation、連續 shutdown request | 共用秒數／ratio，關閉一次，最後才 quit |
+
+- Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
+- 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
+- 純幾何測試不能取代實際 GDI 文字量測與截圖檢查。
+
+### 17.2 Windows smoke test
+
+`scripts/smoke-test.ps1` 預設非互動，只驗證本次成品、架構、資源、版本、hash 及明確無 UI 的錯誤參數。互動模式需顯式 `-Interactive`。
+
+- 使用唯一暫存目錄及 `.scr` 副本，不安裝、不改正式 screen saver 系統設定。
+- 以 Process 物件保存 PID／開始時間，退出清理只作用於本次啟動的程序；不得按名稱廣泛結束所有 `.scr`。
+- 設定有界 timeout，不留下測試視窗或永遠等待使用者。
+- `/c`、`/s` 列互動驗證；測試 parent 可用小型 Win32 host。若未實作 host，`/p` 列人工 `NOT TESTED`，不能判成功。
+- 故意設定 registry 損壞或改系統安全設定只能在隔離測試帳號／VM，預設腳本不得執行。
+
+### 17.3 人工／實機矩陣
+
+| ID | 情境 | 必驗內容 |
+| --- | --- | --- |
+| MT01 | Windows 10 22H2 x64（目前必要平台） | 安裝、列舉、設定、小預覽、系統預覽、解除安裝；記錄 build |
+| MT02 | 單螢幕 1920×1080／100% | 構圖、退出、色票、60分鐘內跨分鐘／日期 fixture |
+| MT03 | 雙螢幕同 DPI、次螢幕左／上方 | 負座標、全覆蓋、同 generation 值、內部焦點切換不退出 |
+| MT04 | 混合 100%／150%／200%、4K、直向 | 字型與 dialog 可讀、preview DPI、月底六列不裁切 |
+| MT05 | Windows 設定頁保持開啟，`/c` 保存後返回 | 小預覽正常調度下 2秒內更新；取消無新設定 |
+| MT06 | preview parent resize／關閉 | child 跟隨尺寸、parent 消失後程序結束 |
+| MT07 | 倒數1秒、5秒、30分鐘、最大值 | 輸入、保存、預填、ceil、最後十秒、零點四次閃爍；最大值可僅驗初始顯示 |
+| MT08 | 閒置自動啟動，兩種模式，恢復登入選項開／關 | 實際能啟動／輸入／退出；安全流程由 Windows 掌控 |
+| MT09 | 睡眠／恢復、校時、跨午夜 | 倒數按 deadline；月曆正確更新；不重播過期動畫 |
+| MT10 | 斷開螢幕、變更拓撲、外部前景、登出 | 依第6節清理，不留黑窗／隱藏游標 |
+| MT11 | 標準帳號用別的管理員通過 UAC | 系統檔案成功安裝；setcurrent 只作用於原使用者或明確報未套用 |
+| MT12 | Setup 直接「以系統管理員身分執行」 | helper 拒絕不合條件操作，安裝不假報已切換 |
+| MT13 | 升級、同版覆蓋、正在使用、解除安裝 | 固定 AppId、偏好保留、其他 saver 設定不變 |
+| MT14 | 每種模式30分鐘；設定反覆切字型／DPI／resize | GDI／USER／記憶體穩定與完整釋放 |
+| MT15 | 未安裝開發工具／VC++ Redistributable 的乾淨 Windows 10 x64 目標機 | `.scr` 離線可用，無額外 DLL 缺失 |
+
+MT08 是必要產品相容性 gate：手動 `Start-Process /s` 通過不能代替它。如果缺硬體或 VM，一律記錄未測與缺少條件。
+
+Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述矩陣，期間依第 0.4 節記錄延期，不因缺少 Windows 11 環境阻擋 Windows 10 開發與交付。
+
+### 17.4 效能與記憶體
+
+- 時間日期更新 1 Hz；倒數進行／完成閃爍 10 Hz；完成後 1 Hz；不得存在未受事件節制的 loop。
+- 基準環境：單螢幕 1920×1080、100% DPI、Release、無 debugger、預熱1分鐘後量測5分鐘。記錄 CPU 型號、邏輯核心數、解析度、DPI 及工具。
+- CPU 目標：相對全機總能力平均 <1%。計算口徑為 `100×程序CPU秒增量/(牆鐘秒×邏輯核心數)`，不能把單核心百分比與工作管理員數值混用。
+- 4K／多螢幕另報，不憑「一般桌面」宣稱通過。超標須記錄可重現原因及是否需優化。
+- 記憶體規劃：32bpp full-screen buffer 約 `4×W×H` bytes；3840×2160 一張約31.6 MiB，雙4K約63.3 MiB，因此不採固定20MB總上限。
+- 初始目標預算為 `24 MiB + 1.5×所有視窗預估 buffer bytes`，記錄 working set 與 private bytes；GDI bitmap 的實際計帳可能跨程序／系統，所以此公式是工程預算，不冒充精確實體 RAM 上限。
+- 兩種模式各跑30分鐘：預熱後每5分鐘記錄 CPU、working set、private bytes、GDI objects、USER objects。後20分鐘 GDI／USER 波動各以±10內且無持續上升趨勢為目標；private bytes 不應持續累積，超過 `max(4 MiB,預熱值10%)` 需查明。
+- 重複建立／釋放50次視窗資源及font cache，資源計數回到穩定基線範圍；以所有權檢查與實測共同判斷 leak，不要求 allocator 立即把所有記憶體還給 OS。
+- 不為達效能數字移除必要畫面、關閉高 DPI 或繞過雙緩衝。
+
+### 17.5 視覺驗證產物
+
+至少保留：800×369 參考比例、1920×1080、3840×2160、1080×1920、小型 Windows preview 及150%／200%設定 dialog 截圖。
+
+- TimeDate fixture 可用 2023-12-31、12:15:40 比對附件日曆與指針；產品正常模式仍使用真實時間。
+- 每種色票在兩種模式至少各檢查一次；特別確認灰白／亮綠 LCD 輪廓可讀與深紅黑底可辨。
+- 截圖標示版本、尺寸、DPI、模式、色彩、字型、fixture／真實時間，不能用參考圖冒充實作截圖。
+
+## 18. 驗收與完成定義
+
+### 18.1 必要驗收清單
+
+| ID | 通過條件 | 證據 |
+| --- | --- | --- |
+| AC01 | fmt、Clippy、tests、locked Release build 全通過；x64 GUI PE、正確manifest／資源／imports | 指令、exit code、PE檢查、MT15 |
+| AC02 | `/s`、`/c`、無參數及錯誤參數契約正確 | UT01～UT03、MT01 |
+| AC03 | `/p` 真正嵌入、resize／退出／DPI／設定刷新正確，無搶焦點或倒數輸入 | MT04～MT06 |
+| AC04 | 原生設定可載入／預覽／選字型／提交／取消 | MT01、MT05 |
+| AC05 | 指針、六列月曆、今天標示、左右／上下版面符合規格 | UT04～UT07、UT17～UT19、截圖 |
+| AC06 | 倒數每次輸入一次，有效值開始、取消無全螢幕，真實閒置流程可用 | UT08～UT09、MT07～MT08 |
+| AC07 | 六位數、沙漏、比例線、最後十秒／四次閃爍／保持零皆正確 | UT10～UT15、MT07、MT09 |
+| AC08 | 多螢幕共用快照、負座標／混合 DPI 正確、拓撲變化清理 | UT25、MT03～MT04、MT10 |
+| AC09 | 四色／四字型可用、缺字fallback、LCD對比與極端點數不裁切 | UT18～UT22、視覺證據 |
+| AC10 | 設定型別／schema／取消／部分失敗符合契約，不破壞未知值 | UT20～UT24、隔離registry測試 |
+| AC11 | 所有指定輸入可退出；4px／500ms、同程序焦點、游標恢復正確 | MT02～MT03、MT10 |
+| AC12 | 無busy loop／已知handle leak；雙模式30分鐘及resize循環有紀錄 | MT14、效能報告 |
+| AC13 | Setup安裝至64位元System32、可由Windows選取、版本一致 | MT01、MT13、成品hash |
+| AC14 | setcurrent身分正確／失敗可辨；不改安全／逾時／啟用及其他帳號設定 | MT11～MT13、前後值比較 |
+| AC15 | README、原始碼、測試、必要成品及逐項驗收報告完整 | 第22節清單 |
+
+### 18.2 報告格式
+
+`docs/acceptance-report.md` 至少包含：版本、source revision、工具版本、OS build、硬體、執行日期、每個 AC／UT／MT 狀態、證據路徑及限制。
+
+```markdown
+| ID | 狀態 | 環境／實際操作 | 證據 | 失敗原因或缺少條件 |
+| --- | --- | --- | --- | --- |
+| AC01 | NOT TESTED | 尚未執行 | — | 待 Windows 建置 |
+```
+
+- `PASS`：實際執行並符合；`FAIL`：已測不符合；`NOT TESTED`：未測；`NOT APPLICABLE`：確實不適用且附理由。
+- 兩種模式、Windows 10、系統閒置／登入恢復與UAC帳號測試不能以 `NOT APPLICABLE` 逃避必要驗收。Windows 11 是使用者明確延後的項目，按第 0.4 節記錄。
+- 目前 Windows 10 範圍內所有必要 AC 均 PASS，才能稱「Windows 10 完整驗收完成」。範圍內仍有未測項時可交付原始碼或標註限制的候選安裝包；Windows 11 延期不阻擋這項判定，也不能因此宣稱所有平台已通過。
+- 編譯成功、幾何單元測試、程式碼審查不等於實機畫面、安裝及安全桌面驗證通過。
+
+## 19. Codex 分階段實作計畫
+
+### 19.1 執行規則
+
+Phase 0 → 1 → 2 → 3 → 4 → 5；每階段保留可建置成果。
+
+- 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
+- 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
+- 小步完成可編譯功能，針對變更執行必要檢查；階段末執行完整相關 gates。
+- 不關閉警告、刪失敗測試或以 blanket `allow` 掩蓋問題；必要例外須具體說明。
+- 功能驗收若受環境阻擋，先完成不受阻擋的工作、記錄缺口；不能把缺少實機當成所有開發都必須停下。
+- 每階段回報：完成內容、修改檔案、實際指令及結果、已知限制、未測項與下一步。
+
+### Phase 0：工程基礎
+
+**目標：** 證明 Rust／MSVC／RC／manifest／靜態CRT可以產生可執行成品。
+
+1. 建立 Cargo binary＋library，固定 toolchain、target、lockfile、Release profile。
+2. 建立最小入口與 UTF-16／error 邊界，避免空模組。
+3. 加入合法圖示、名稱／版本resource、manifest與build.rs。
+4. 完成 README 工具準備與從含空白／中文路徑建置說明。
+5. 執行 fmt、`cargo check --locked --all-targets`、Release build，檢查 PE 資源及 imports。
+
+**產出／完成：** 最小 x64 GUI exe、可追溯建置、RC變更會觸發重建；此階段不假裝已完成螢幕保護功能。
+
+### Phase 1：命令列與視窗生命週期
+
+1. 完成純 parser＋Win32 HWND驗證；測試 UT01～UT03。
+2. 建立隱藏多螢幕視窗、統一顯示、共用shutdown及錯誤清理。
+3. 完成 `/p` 的 child、parent檢查、resize、DPI context。
+4. `/c` 可先以明確標示的暫時 Win32入口驗證 owner；Phase 3必須取代。
+5. 完成鍵鼠退出、游標、同程序焦點規則、拓撲／session退出。
+
+**驗證：** fmt、Clippy、tests、Release；單／雙螢幕黑畫面、負座標、真正parent preview、失敗不殘留視窗。
+
+**完成：** 三條路徑正確；尚不要求正式renderer或registry。
+
+### Phase 2：畫面與純時間邏輯
+
+1. 建立 `FrameSnapshot`、layout、GDI雙緩衝、快取與ownership。
+2. 完成鐘面／Gregorian月曆；七段／LCD／沙漏／進度線。
+3. 完成deadline、ceil、最後十秒、4次閃爍、恢復時重算。
+4. 完成DPI、窄版、極小預覽、位移與共用coordinator。
+5. Debug限定 `--dev-render=time-date`／`--dev-render=countdown`，使用固定設定及正常window cleanup；Release拒絕。
+6. 固定日期／now輸入以fixture注入，可保留在tests或Debug helper，不增正式使用者功能。
+7. 執行 UT04～UT19、UT25與必要視覺比對；至少10分鐘初步資源觀察。
+
+**驗證：** 通用gates，加：
+
+```bat
+cargo run --locked -- --dev-render=time-date
+cargo run --locked -- --dev-render=countdown
+```
+
+**完成：** 可獨立驗證兩種畫面；不讀寫正式偏好、不以Debug入口冒充正式倒數輸入。
+
+### Phase 3：設定、字型與倒數輸入
+
+1. 完成 AppConfig／ConfigDraft、schema、registry讀寫／rollback。
+2. 加入正式 RC dialogs、繁體中文標籤、tab order、owner管理。
+3. 完成ChooseFont、逐角色適配、CJK fallback及四色contrast。
+4. `/c`草稿即時preview；`/p`每秒設定刷新；`/s`維持啟動快照。
+5. 完成每次倒數輸入、上次值、只保存所屬欄位、取消與保存失敗。
+6. 執行 UT20～UT24、MT05～MT08；移除暫時設定MessageBox。
+
+**完成：** 模式切換→保存→系統preview→fullscreen形成完整流程；實際閒置互動如有問題須於此階段揭露，不拖到發布才發現。
+
+### Phase 4：品質與相容性
+
+1. 稽核所有FFI、ownership、CreateWindow失敗／重入、GDI選入與釋放。
+2. 完成有界smoke-test，不改正式使用者系統設定。
+3. 跑必要Windows／DPI／多螢幕／安全桌面矩陣，記錄確切環境。
+4. 各模式30分鐘與反覆resize／font循環，記錄資源和效能。
+5. 驗證離線、靜態CRT結果、Release無Debug入口、成品manifest及版本。
+6. 完成報告；不在本階段加入新功能或更換繪圖技術。
+
+**完成：** 已有環境的必要項通過、無已知資源洩漏；缺環境則明列未驗證，不稱完整平台驗收。
+
+### Phase 5：封裝與交付
+
+1. 完成build／package腳本、固定版本與暫存產物處理。
+2. 建立Inno Setup、穩定AppId、64位System32安裝與原使用者setcurrent helper。
+3. 驗證乾淨安裝、同版覆蓋／升級、檔案使用中、解除安裝。
+4. 測試task未勾／已勾、標準使用者跨帳號UAC、直接提權與helper失敗。
+5. 輸出README、視覺證據、AC逐項報告、`.scr`／Setup及hash。
+6. 發布候選若有 NOT TESTED 必須明確標示；公開版本依 MIT License 發布，未簽章成品須保留 NotSigned 說明。
+
+**驗證：**
+
+```bat
+scripts\build.bat
+scripts\package.bat
+powershell -NoProfile -File scripts\smoke-test.ps1
+```
+
+**完成：** 同一source state可產生本次成品，使用單一Setup安裝／移除，目前 Windows 10 範圍的所有必要AC有實際結果；只有這些項目全PASS才宣稱 Windows 10 完整驗收。Windows 11 依第 0.4 節延期。
+
+### 19.2 可直接交給 Codex 的任務範本
+
+以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
+
+```text
+請依 MyDateTimeScreensaver_Codex_Spec.md v1.2 實作 Phase 0。
+先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
+只完成本階段，執行文件要求且環境可執行的驗證。
+回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
+```
+
+若要完整交辦，可明寫「依序完成 Phase 0～5，在已授權範圍內持續執行；缺實機情境時完成其他工作並列出缺口」。
+
+## 20. 明確禁止事項
+
+- 以高階GUI／WebView或新crate代替已指定Win32／GDI實作。
+- 直接複製網站HTML／CSS／JavaScript或將執行期連到參考網站。
+- 讓每螢幕建立自己的deadline、按timer次數遞減或paint時各取不同時間。
+- 在preview中顯示輸入框、topmost、隱藏全域游標或啟用fullscreen退出規則。
+- 倒數輸入未完成便鋪全螢幕、吞掉使用者輸入或由保存失敗直接開始。
+- 刪除仍選入DC的GDI object、刪stock object、混用CloseHandle／DeleteObject／DestroyWindow。
+- 把HWND截斷32位元、把registry bytes直接當可信結構或讓panic跨FFI。
+- 強制改螢幕保護逾時／密碼／啟用，或由提權installer猜測並修改別的帳號HKCU。
+- 為通過效能門檻省略畫面，或把無法取得硬體／安全桌面環境的項目寫成PASS。
+- 把授權不明字型、私鑰、憑證密碼或參考截圖放進交付安裝程式。
+- 宣稱Inno Setup直接產生MSI、單純更名就完成系統整合，或編譯成功即代表產品驗收成功。
+
+## 21. 參考資料與來源限制
+
+本次查核日期為2026-09-04；連結用於API契約與既有設計來源，實作仍須以鎖定工具版本編譯及Windows實測。
+
+| 來源 | 用途 |
+| --- | --- |
+| [Microsoft：Handling Screen Savers](https://learn.microsoft.com/en-us/windows/win32/lwef/screen-saver-library) | 系統整合、資源與傳統library背景；留意歷史範例適用範圍 |
+| [Microsoft：GetTickCount64](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64) | 毫秒tick與解析度 |
+| [Microsoft：GetMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessagew) | 訊息迴圈三種返回值 |
+| [Microsoft：SetParent](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setparent) | 跨程序parent與DPI差異 |
+| [Microsoft：SetThreadDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext) | 暫時thread DPI context |
+| [Microsoft：CHOOSEFONTW](https://learn.microsoft.com/en-us/windows/win32/api/commdlg/ns-commdlg-choosefontw) | 點數、flags與限制 |
+| [windows-sys 0.61.2](https://docs.rs/windows-sys/0.61.2/windows_sys/) | Rust Win32 API版本入口 |
+| [Rust Reference：Linkage](https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes) | 靜態CRT及成品檢查 |
+| [Inno：Architecture identifiers](https://jrsoftware.org/ishelp/topic_archidentifiers.htm) | x64os與x64compatible區別 |
+| [Inno：ArchitecturesAllowed](https://jrsoftware.org/ishelp/topic_setup_architecturesallowed.htm) | 安裝架構限制 |
+| [Inno：ExecAsOriginalUser](https://jrsoftware.org/ishelp/topic_isxfunc_execasoriginaluser.htm) | 原使用者執行與uninstall限制 |
+| [Inno：Run section](https://jrsoftware.org/ishelp/topic_runsection.htm) | runasoriginaluser及執行結果處理 |
+| 使用者提供的私有圖片 | 已檢視；時間日期構圖參考，不納入公開 repository 或交付素材 |
+| [Classroom Timer](https://kisaraki.github.io/classroom-timer-tzk/?tool=countdown) | 原稿指定；本次未取得網頁內容，未聲稱當前畫面驗證 |
+
+## 22. 完成交付清單
+
+完成開發後應交付下列成果；本規格編修階段不要求已產生它們：
+
+1. 可維護的Rust原始碼、Cargo.lock、固定toolchain及`.cargo/config.toml`。
+2. 指針鐘、月曆、七段數字、沙漏、倒數與共用GDI renderer。
+3. 原生RC dialogs、manifest、icon、版本與名稱resource。
+4. 純邏輯測試、隔離registry測試與有界Windows smoke script。
+5. build／package腳本與Inno Setup安裝腳本。
+6. `dist\MyDateTimeScreensaver.scr`。
+7. `dist\MyDateTimeScreensaver-Setup.exe`。
+8. `dist\SHA256SUMS.txt` 或等價本次成品hash紀錄。
+9. `docs/acceptance-report.md`，逐項AC／UT／MT、環境及真實結果。
+10. `docs/visual-reference.md` 與實作截圖，說明參考範圍、色彩差異及fixture條件。
+11. README：安裝工具、build/test/package、`/s`／`/p`／`/c`、兩種模式、字型fallback、registry、倒數閒置互動限制、原使用者setcurrent、解除安裝提示、已知未測項與簽章狀態。
+12. MIT License 與素材來源說明；使用者附件只留在已忽略的本機開發參考目錄，不進公開 repository 或 installer。
+
+交付說明應區分「原始碼／封裝完成」與「全部必要環境驗收通過」。任何不可重現、未執行或只經推測的結果都不能記為完成。

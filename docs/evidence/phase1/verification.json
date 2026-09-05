@@ -1,0 +1,43 @@
+{
+  "testedAt": "2026-09-04T22:58:57.7285859+08:00",
+  "specificationVersion": "1.2",
+  "phase": 1,
+  "productVersion": "0.1.0",
+  "fileDescription": "日期時間螢幕保護程式（Phase 1 視窗生命週期）",
+  "executable": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "bytes": 505344,
+  "sha256": "C30C03472586533CBC99066C4C08AB7EAA03186C2746FADCD2CAD9C498828D9D",
+  "machine": "0x8664",
+  "subsystem": 2,
+  "os": {
+    "product": "Windows 10 Education",
+    "version": "22H2",
+    "build": "19045",
+    "revision": 6456
+  },
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "monitors": [
+    {
+      "x": -3840,
+      "y": 0,
+      "width": 3840,
+      "height": 2160,
+      "dpi": 144
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "width": 3840,
+      "height": 2160,
+      "dpi": 144
+    }
+  ],
+  "monitorEvidence": "native-release-tests.txt (GetMonitorInfoW / GetDpiForWindow)",
+  "nonInteractiveTestsPassed": 14,
+  "releaseIntegrationCasesPassed": 4,
+  "releaseIntegrationCasesWithUntestedBranch": 1,
+  "foregroundTransitions": "NOT TESTED: SetForegroundWindow denied by Windows policy",
+  "windows11": "Deferred per user instruction; non-blocking",
+  "installationOrSettingsChanged": false
+}

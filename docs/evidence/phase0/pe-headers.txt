@@ -1,0 +1,185 @@
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+
+PE signature found
+
+File Type: EXECUTABLE IMAGE
+
+FILE HEADER VALUES
+            8664 machine (x64)
+               7 number of sections
+        6A9AD400 time date stamp Fri Sep  4 22:21:52 2026
+               0 file pointer to symbol table
+               0 number of symbols
+              F0 size of optional header
+              22 characteristics
+                   Executable
+                   Application can handle large (>2GB) addresses
+
+OPTIONAL HEADER VALUES
+             20B magic # (PE32+)
+           14.44 linker version
+           1EA00 size of code
+           58C00 size of initialized data
+               0 size of uninitialized data
+           10E30 entry point (0000000140010E30) mainCRTStartup
+            1000 base of code
+       140000000 image base (0000000140000000 to 000000014007BFFF)
+            1000 section alignment
+             200 file alignment
+            6.00 operating system version
+            0.00 image version
+            6.00 subsystem version
+               0 Win32 version
+           7C000 size of image
+             400 size of headers
+               0 checksum
+               2 subsystem (Windows GUI)
+            8160 DLL characteristics
+                   High Entropy Virtual Addresses
+                   Dynamic base
+                   NX compatible
+                   Terminal Server Aware
+          100000 size of stack reserve
+            1000 size of stack commit
+          100000 size of heap reserve
+            1000 size of heap commit
+               0 loader flags
+              10 number of directories
+               0 [       0] RVA [size] of Export Directory
+           2D834 [      78] RVA [size] of Import Directory
+           34000 [   46560] RVA [size] of Resource Directory
+           31000 [    18D8] RVA [size] of Exception Directory
+               0 [       0] RVA [size] of Certificates Directory
+           7B000 [     7D8] RVA [size] of Base Relocation Directory
+           2AD00 [      54] RVA [size] of Debug Directory
+               0 [       0] RVA [size] of Architecture Directory
+               0 [       0] RVA [size] of Global Pointer Directory
+           2AF00 [      28] RVA [size] of Thread Storage Directory
+           2ABC0 [     140] RVA [size] of Load Configuration Directory
+               0 [       0] RVA [size] of Bound Import Directory
+           20000 [     320] RVA [size] of Import Address Table Directory
+               0 [       0] RVA [size] of Delay Import Directory
+               0 [       0] RVA [size] of COM Descriptor Directory
+               0 [       0] RVA [size] of Reserved Directory
+
+
+SECTION HEADER #1
+   .text name
+   1E8B0 virtual size
+    1000 virtual address (0000000140001000 to 000000014001F8AF)
+   1EA00 size of raw data
+     400 file pointer to raw data (00000400 to 0001EDFF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+60000020 flags
+         Code
+         Execute Read
+
+SECTION HEADER #2
+  .rdata name
+    E36E virtual size
+   20000 virtual address (0000000140020000 to 000000014002E36D)
+    E400 size of raw data
+   1EE00 file pointer to raw data (0001EE00 to 0002D1FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+  Debug Directories
+
+        Time Type        Size      RVA  Pointer
+    -------- ------- -------- -------- --------
+    6A9AD400 cv            34 0002B190    29F90    Format: RSDS, {2CCDA18A-44F6-4628-B8CB-56D0E9763A4F}, 1, my_datetime_screensaver.pdb
+    6A9AD400 feat          14 0002B1C4    29FC4    Counts: Pre-VC++ 11.00=1, C/C++=210, /GS=210, /sdl=0, guardN=210
+    6A9AD400 coffgrp      3E0 0002B1D8    29FD8
+
+SECTION HEADER #3
+   .data name
+    1C98 virtual size
+   2F000 virtual address (000000014002F000 to 0000000140030C97)
+     C00 size of raw data
+   2D200 file pointer to raw data (0002D200 to 0002DDFF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+C0000040 flags
+         Initialized Data
+         Read Write
+
+SECTION HEADER #4
+  .pdata name
+    18D8 virtual size
+   31000 virtual address (0000000140031000 to 00000001400328D7)
+    1A00 size of raw data
+   2DE00 file pointer to raw data (0002DE00 to 0002F7FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+SECTION HEADER #5
+.fptable name
+     100 virtual size
+   33000 virtual address (0000000140033000 to 00000001400330FF)
+     200 size of raw data
+   2F800 file pointer to raw data (0002F800 to 0002F9FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+C0000040 flags
+         Initialized Data
+         Read Write
+
+SECTION HEADER #6
+   .rsrc name
+   46560 virtual size
+   34000 virtual address (0000000140034000 to 000000014007A55F)
+   46600 size of raw data
+   2FA00 file pointer to raw data (0002FA00 to 00075FFF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+SECTION HEADER #7
+  .reloc name
+     7D8 virtual size
+   7B000 virtual address (000000014007B000 to 000000014007B7D7)
+     800 size of raw data
+   76000 file pointer to raw data (00076000 to 000767FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+42000040 flags
+         Initialized Data
+         Discardable
+         Read Only
+
+  Summary
+
+        2000 .data
+        1000 .fptable
+        2000 .pdata
+        F000 .rdata
+        1000 .reloc
+       47000 .rsrc
+       1F000 .text

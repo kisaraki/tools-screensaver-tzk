@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-09-05T16:34:05.0720261+08:00",
+  "releaseExe": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "releaseExeBytes": 607232,
+  "releaseExeSha256": "88749e4c22e6b77a4a56c63989a4a609c3686aab6d7f6bad47f21c6535235829",
+  "reproducibleOfflineHashMatch": true,
+  "smokeResult": "PASS",
+  "noninteractiveTestsPassed": 33,
+  "phase3NativePassed": 1,
+  "releaseNativePassed": 4,
+  "officialSettingsKeyExists": false,
+  "workspaceSaverProcessCount": 0,
+  "windows11": "NOT TESTED (deferred by user; no Windows 11 environment)"
+}

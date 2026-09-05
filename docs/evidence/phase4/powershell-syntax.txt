@@ -1,0 +1,2 @@
+scripts/smoke-test.ps1 syntax PASS
+scripts/observe-phase4.ps1 syntax PASS

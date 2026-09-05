@@ -1,0 +1,139 @@
+{
+    "capturedAt":  "2026-09-05T20:15:16.1186927+08:00",
+    "artifact":  "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
+    "temporaryScr":  "<TEMP>\\MyDateTimeScreensaver-smoke-1a2890978eb9471b917af4bfbb3e4278\\MyDateTimeScreensaver.scr",
+    "sha256":  "4e9d7fd62e6b4dedf265474a1d8a48b630e0cae533ddd828f9419b0e647ab0f2",
+    "bytes":  609792,
+    "machine":  "0x8664 (x64)",
+    "optionalHeader":  "PE32+",
+    "subsystem":  "Windows GUI",
+    "version":  "0.1.0",
+    "fileDescription":  "日期時間螢幕保護程式",
+    "resources":  [
+                      {
+                          "type":  14,
+                          "id":  101,
+                          "name":  "group icon",
+                          "bytes":  62
+                      },
+                      {
+                          "type":  5,
+                          "id":  2003,
+                          "name":  "configuration dialog",
+                          "bytes":  840
+                      },
+                      {
+                          "type":  5,
+                          "id":  2004,
+                          "name":  "countdown dialog",
+                          "bytes":  480
+                      },
+                      {
+                          "type":  6,
+                          "id":  1,
+                          "name":  "string table block",
+                          "bytes":  52
+                      },
+                      {
+                          "type":  16,
+                          "id":  1,
+                          "name":  "version",
+                          "bytes":  692
+                      },
+                      {
+                          "type":  24,
+                          "id":  1,
+                          "name":  "manifest",
+                          "bytes":  1308
+                      }
+                  ],
+    "manifestChecks":  "PASS",
+    "imports":  [
+                    "advapi32.dll",
+                    "api-ms-win-core-synch-l1-2-0.dll",
+                    "comdlg32.dll",
+                    "gdi32.dll",
+                    "kernel32.dll",
+                    "ntdll.dll",
+                    "shell32.dll",
+                    "user32.dll"
+                ],
+    "staticCrtCheck":  "PASS (no dynamic VC/UCRT import)",
+    "signatureStatus":  "NotSigned",
+    "invalidArgumentCases":  [
+                                 {
+                                     "arguments":  "/p",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/p:0",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/s /c",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "--dev-render=time-date",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 }
+                             ],
+    "installHelperRefusal":  {
+                                 "arguments":  "--install-set-current",
+                                 "exitCode":  4,
+                                 "uiExpected":  false
+                             },
+    "protectedRegistryBefore":  {
+                                    "SCRNSAVE.EXE":  {
+                                                         "exists":  false,
+                                                         "kind":  null,
+                                                         "value":  null
+                                                     },
+                                    "ScreenSaveTimeOut":  {
+                                                              "exists":  false,
+                                                              "kind":  null,
+                                                              "value":  null
+                                                          },
+                                    "ScreenSaverIsSecure":  {
+                                                                "exists":  false,
+                                                                "kind":  null,
+                                                                "value":  null
+                                                            },
+                                    "ScreenSaveActive":  {
+                                                             "exists":  true,
+                                                             "kind":  "String",
+                                                             "value":  "0"
+                                                         }
+                                },
+    "protectedRegistryAfter":  {
+                                   "SCRNSAVE.EXE":  {
+                                                        "exists":  false,
+                                                        "kind":  null,
+                                                        "value":  null
+                                                    },
+                                   "ScreenSaveTimeOut":  {
+                                                             "exists":  false,
+                                                             "kind":  null,
+                                                             "value":  null
+                                                         },
+                                   "ScreenSaverIsSecure":  {
+                                                               "exists":  false,
+                                                               "kind":  null,
+                                                               "value":  null
+                                                           },
+                                   "ScreenSaveActive":  {
+                                                            "exists":  true,
+                                                            "kind":  "String",
+                                                            "value":  "0"
+                                                        }
+                               },
+    "interactive":  false,
+    "interactiveCases":  [
+
+                         ],
+    "result":  "PASS"
+}

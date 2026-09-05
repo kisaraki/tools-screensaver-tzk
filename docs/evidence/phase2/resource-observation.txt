@@ -1,0 +1,33 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running tests\resource_observation.rs (target\x86_64-pc-windows-msvc\debug\deps\resource_observation-7154861310c85380.exe)
+
+running 1 test
+time-date: PID 14896, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe
+countdown: PID 32344, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe
+0.0s time-date: GDI 26, USER 15, private 1871872, CPU 0.000%
+0.0s countdown: GDI 19, USER 11, private 2002944, CPU 0.000%
+test observe_two_debug_modes_for_ten_minutes has been running for over 60 seconds
+60.0s time-date: GDI 26, USER 14, private 1851392, CPU 0.033%
+60.0s countdown: GDI 29, USER 14, private 1859584, CPU 0.046%
+120.1s time-date: GDI 26, USER 14, private 1851392, CPU 0.036%
+120.1s countdown: GDI 29, USER 14, private 1859584, CPU 0.007%
+180.0s time-date: GDI 26, USER 14, private 1794048, CPU 0.068%
+180.0s countdown: GDI 29, USER 14, private 1802240, CPU 0.046%
+240.1s time-date: GDI 26, USER 14, private 1794048, CPU 0.023%
+240.1s countdown: GDI 29, USER 14, private 1802240, CPU 0.003%
+300.1s time-date: GDI 26, USER 14, private 1826816, CPU 0.134%
+300.1s countdown: GDI 30, USER 14, private 1830912, CPU 0.104%
+360.1s time-date: GDI 27, USER 14, private 1826816, CPU 0.137%
+360.1s countdown: GDI 30, USER 14, private 1830912, CPU 0.029%
+420.1s time-date: GDI 26, USER 14, private 1794048, CPU 0.059%
+420.1s countdown: GDI 30, USER 14, private 1802240, CPU 0.023%
+480.0s time-date: GDI 26, USER 14, private 1794048, CPU 0.013%
+480.0s countdown: GDI 30, USER 14, private 1802240, CPU 0.003%
+540.0s time-date: GDI 26, USER 14, private 1794048, CPU 0.088%
+540.0s countdown: GDI 30, USER 14, private 1802240, CPU 0.023%
+600.0s time-date: GDI 26, USER 14, private 1818624, CPU 0.094%
+600.0s countdown: GDI 30, USER 14, private 1826816, CPU 0.010%
+test observe_two_debug_modes_for_ten_minutes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 600.44s
+

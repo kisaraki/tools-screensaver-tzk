@@ -1,0 +1,104 @@
+TimeDate     0.0s: CPU 0.016s, private 1.4 MiB, GDI 21, USER 6, cycles 0
+TimeDate    10.2s: CPU 0.156s, private 1.5 MiB, GDI 21, USER 6, cycles 4
+Countdown     0.0s: CPU 0.078s, private 1.5 MiB, GDI 23, USER 6, cycles 0
+Countdown    10.2s: CPU 0.094s, private 1.4 MiB, GDI 23, USER 6, cycles 4
+{
+  "capturedAt": "2026-09-05T15:21:22.6089339+08:00",
+  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "artifactSha256": "d74a3221c4fcd02061378117ea3ade6680f796b779e3ca90be7b507e583246b0",
+  "tool": ".NET Process counters and Win32 GetGuiResources",
+  "controllerPid": 29340,
+  "requestedSecondsPerMode": 10,
+  "results": [
+    {
+      "mode": "TimeDate",
+      "durationSeconds": 10.204,
+      "releaseProcess": true,
+      "previewDpi": 96,
+      "qualifying30MinuteRun": false,
+      "resizeAndFontCycles": 4,
+      "logicalProcessors": 8,
+      "wholeMachineCpuPercentAfterWarmup": 0.1724,
+      "baselinePrivateBytes": 1474560,
+      "finalPrivateBytes": 1622016,
+      "allowedPrivateGrowthBytes": 4194304,
+      "lateGdiRange": 0.0,
+      "lateUserRange": 0.0,
+      "samples": [
+        {
+          "elapsedSeconds": 0.006,
+          "mode": "TimeDate",
+          "pid": 34904,
+          "cpuSeconds": 0.015625,
+          "workingSetBytes": 7659520,
+          "privateBytes": 1474560,
+          "gdiObjects": 21,
+          "userObjects": 6,
+          "handleCount": 132,
+          "controllerWorkingSetBytes": 187068416,
+          "cycle": 0
+        },
+        {
+          "elapsedSeconds": 10.204,
+          "mode": "TimeDate",
+          "pid": 34904,
+          "cpuSeconds": 0.15625,
+          "workingSetBytes": 7823360,
+          "privateBytes": 1622016,
+          "gdiObjects": 21,
+          "userObjects": 6,
+          "handleCount": 132,
+          "controllerWorkingSetBytes": 187068416,
+          "cycle": 4
+        }
+      ],
+      "result": "HARNESS PASS (short run)"
+    },
+    {
+      "mode": "Countdown",
+      "durationSeconds": 10.19,
+      "releaseProcess": true,
+      "previewDpi": 96,
+      "qualifying30MinuteRun": false,
+      "resizeAndFontCycles": 4,
+      "logicalProcessors": 8,
+      "wholeMachineCpuPercentAfterWarmup": 0.0192,
+      "baselinePrivateBytes": 1601536,
+      "finalPrivateBytes": 1478656,
+      "allowedPrivateGrowthBytes": 4194304,
+      "lateGdiRange": 0.0,
+      "lateUserRange": 0.0,
+      "samples": [
+        {
+          "elapsedSeconds": 0.0,
+          "mode": "Countdown",
+          "pid": 29480,
+          "cpuSeconds": 0.078125,
+          "workingSetBytes": 7651328,
+          "privateBytes": 1601536,
+          "gdiObjects": 23,
+          "userObjects": 6,
+          "handleCount": 132,
+          "controllerWorkingSetBytes": 187068416,
+          "cycle": 0
+        },
+        {
+          "elapsedSeconds": 10.19,
+          "mode": "Countdown",
+          "pid": 29480,
+          "cpuSeconds": 0.09375,
+          "workingSetBytes": 7782400,
+          "privateBytes": 1478656,
+          "gdiObjects": 23,
+          "userObjects": 6,
+          "handleCount": 132,
+          "controllerWorkingSetBytes": 187068416,
+          "cycle": 4
+        }
+      ],
+      "result": "HARNESS PASS (short run)"
+    }
+  ],
+  "registryCleanup": "PASS: removed only the leased observation key",
+  "scope": "Release /p at a 96-DPI host; full-screen 10-Hz countdown performance is reported separately as not tested"
+}
