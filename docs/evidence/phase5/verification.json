@@ -1,18 +1,19 @@
 {
-  "capturedAt": "2026-09-05T20:43:20.7317765+08:00",
+  "capturedAt": "2026-09-06T11:27:09.2601900+08:00",
+  "sourceRevision": "ef12e37213ce1964cedc2ab97e37b7b3836c7db4",
   "artifacts": [
     {
       "path": "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bytes": 609792,
-      "sha256": "30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941",
+      "sha256": "02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a",
       "signature": "NotSigned"
     },
     {
       "path": "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver-Setup.exe",
-      "version": "0.1.0.0",
-      "bytes": 2247540,
-      "sha256": "2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78",
+      "version": "0.1.1.0",
+      "bytes": 2247614,
+      "sha256": "6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712",
       "signature": "NotSigned"
     }
   ],
@@ -20,13 +21,19 @@
   "build": "PASS",
   "package": "PASS",
   "smoke": "PASS",
-  "arbitraryWorkingDirectory": "PASS",
+  "arbitraryWorkingDirectory": "PASS (earlier Phase 5 evidence; path logic unchanged)",
   "installerSourceAudit": "PASS",
   "powershellSyntax": "PASS",
   "noninteractiveTestsPassed": 35,
   "helperNonSystem32ExitCode": 4,
   "protectedDesktopValuesUnchanged": true,
-  "installation": "NOT TESTED (UAC request cancelled; no install occurred)",
+  "configurationLabels": [
+    "標準桌曆暨時鐘模式(&T)",
+    "離機作業番茄鐘模式(&C)",
+    "KOMSMOS TOOLKIT",
+    "探真拓知酷"
+  ],
+  "installation": "NOT TESTED (interactive UAC install intentionally skipped for this remote release; no install occurred)",
   "system32ScrExists": false,
   "productDirExists": false,
   "uninstallEntryCount": 0,

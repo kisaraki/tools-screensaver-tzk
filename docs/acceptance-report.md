@@ -69,7 +69,7 @@ Windows 11：`NOT TESTED`，依使用者指示延期，沒有當成 Windows 10 �
 
 | 成品 | SHA-256 | 狀態 |
 | --- | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | `__SCR_SHA256__` | Build／smoke PASS；NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | `__SETUP_SHA256__` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
+| `dist/MyDateTimeScreensaver.scr` | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` | Build／smoke PASS；NotSigned |
+| `dist/MyDateTimeScreensaver-Setup.exe` | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
 
 Phase 5 的封裝原始碼與 v0.1.1 候選成品已交付，並依專案擁有者指示採 MIT License 公開發布。完成 Windows 10 完整驗收仍需在可互動的本機環境執行 `scripts/test-installation.ps1` 並補做本表列出的必要實機情境；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，成品維持 NotSigned。

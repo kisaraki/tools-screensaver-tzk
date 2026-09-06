@@ -1,139 +1,143 @@
 {
-    "capturedAt":  "2026-09-05T20:42:53.3003284+08:00",
-    "artifact":  "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
-    "temporaryScr":  "<TEMP>\\MyDateTimeScreensaver-smoke-3d52f4697f1a48b3959fdc447b003aad\\MyDateTimeScreensaver.scr",
-    "sha256":  "30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941",
-    "bytes":  609792,
-    "machine":  "0x8664 (x64)",
-    "optionalHeader":  "PE32+",
-    "subsystem":  "Windows GUI",
-    "version":  "0.1.0",
-    "fileDescription":  "日期時間螢幕保護程式",
-    "resources":  [
-                      {
-                          "type":  14,
-                          "id":  101,
-                          "name":  "group icon",
-                          "bytes":  62
-                      },
-                      {
-                          "type":  5,
-                          "id":  2003,
-                          "name":  "configuration dialog",
-                          "bytes":  840
-                      },
-                      {
-                          "type":  5,
-                          "id":  2004,
-                          "name":  "countdown dialog",
-                          "bytes":  480
-                      },
-                      {
-                          "type":  6,
-                          "id":  1,
-                          "name":  "string table block",
-                          "bytes":  52
-                      },
-                      {
-                          "type":  16,
-                          "id":  1,
-                          "name":  "version",
-                          "bytes":  748
-                      },
-                      {
-                          "type":  24,
-                          "id":  1,
-                          "name":  "manifest",
-                          "bytes":  1308
-                      }
-                  ],
-    "manifestChecks":  "PASS",
-    "imports":  [
-                    "advapi32.dll",
-                    "api-ms-win-core-synch-l1-2-0.dll",
-                    "comdlg32.dll",
-                    "gdi32.dll",
-                    "kernel32.dll",
-                    "ntdll.dll",
-                    "shell32.dll",
-                    "user32.dll"
-                ],
-    "staticCrtCheck":  "PASS (no dynamic VC/UCRT import)",
-    "signatureStatus":  "NotSigned",
-    "invalidArgumentCases":  [
-                                 {
-                                     "arguments":  "/p",
-                                     "exitCode":  2,
-                                     "uiExpected":  false
-                                 },
-                                 {
-                                     "arguments":  "/p:0",
-                                     "exitCode":  2,
-                                     "uiExpected":  false
-                                 },
-                                 {
-                                     "arguments":  "/s /c",
-                                     "exitCode":  2,
-                                     "uiExpected":  false
-                                 },
-                                 {
-                                     "arguments":  "--dev-render=time-date",
-                                     "exitCode":  2,
-                                     "uiExpected":  false
-                                 }
-                             ],
-    "installHelperRefusal":  {
-                                 "arguments":  "--install-set-current",
-                                 "exitCode":  4,
-                                 "uiExpected":  false
-                             },
-    "protectedRegistryBefore":  {
-                                    "SCRNSAVE.EXE":  {
-                                                         "exists":  false,
-                                                         "kind":  null,
-                                                         "value":  null
-                                                     },
-                                    "ScreenSaveTimeOut":  {
-                                                              "exists":  false,
-                                                              "kind":  null,
-                                                              "value":  null
-                                                          },
-                                    "ScreenSaverIsSecure":  {
-                                                                "exists":  false,
-                                                                "kind":  null,
-                                                                "value":  null
-                                                            },
-                                    "ScreenSaveActive":  {
-                                                             "exists":  true,
-                                                             "kind":  "String",
-                                                             "value":  "0"
-                                                         }
-                                },
-    "protectedRegistryAfter":  {
-                                   "SCRNSAVE.EXE":  {
-                                                        "exists":  false,
-                                                        "kind":  null,
-                                                        "value":  null
-                                                    },
-                                   "ScreenSaveTimeOut":  {
-                                                             "exists":  false,
-                                                             "kind":  null,
-                                                             "value":  null
-                                                         },
-                                   "ScreenSaverIsSecure":  {
-                                                               "exists":  false,
-                                                               "kind":  null,
-                                                               "value":  null
-                                                           },
-                                   "ScreenSaveActive":  {
-                                                            "exists":  true,
-                                                            "kind":  "String",
-                                                            "value":  "0"
-                                                        }
-                               },
-    "interactive":  false,
-    "interactiveCases":  [
-
-                         ],
-    "result":  "PASS"
+  "capturedAt": "2026-09-06T11:27:09.2601900+08:00",
+  "artifact": "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
+  "temporaryScr": "<TEMP>\\MyDateTimeScreensaver-smoke-04ed04e5be89477ab2de55d583b59856\\MyDateTimeScreensaver.scr",
+  "sha256": "02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a",
+  "bytes": 609792,
+  "machine": "0x8664 (x64)",
+  "optionalHeader": "PE32+",
+  "subsystem": "Windows GUI",
+  "version": "0.1.1",
+  "fileDescription": "日期時間螢幕保護程式",
+  "resources": [
+    {
+      "type": 14,
+      "id": 101,
+      "name": "group icon",
+      "bytes": 62
+    },
+    {
+      "type": 5,
+      "id": 2003,
+      "name": "configuration dialog",
+      "bytes": 1008
+    },
+    {
+      "type": 5,
+      "id": 2004,
+      "name": "countdown dialog",
+      "bytes": 480
+    },
+    {
+      "type": 6,
+      "id": 1,
+      "name": "string table block",
+      "bytes": 52
+    },
+    {
+      "type": 16,
+      "id": 1,
+      "name": "version",
+      "bytes": 748
+    },
+    {
+      "type": 24,
+      "id": 1,
+      "name": "manifest",
+      "bytes": 1308
+    }
+  ],
+  "configurationLabels": [
+    "標準桌曆暨時鐘模式(&T)",
+    "離機作業番茄鐘模式(&C)",
+    "KOMSMOS TOOLKIT",
+    "探真拓知酷"
+  ],
+  "manifestChecks": "PASS",
+  "imports": [
+    "advapi32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "comdlg32.dll",
+    "gdi32.dll",
+    "kernel32.dll",
+    "ntdll.dll",
+    "shell32.dll",
+    "user32.dll"
+  ],
+  "staticCrtCheck": "PASS (no dynamic VC/UCRT import)",
+  "signatureStatus": "NotSigned",
+  "invalidArgumentCases": [
+    {
+      "arguments": "/p",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "/p:0",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "/s /c",
+      "exitCode": 2,
+      "uiExpected": false
+    },
+    {
+      "arguments": "--dev-render=time-date",
+      "exitCode": 2,
+      "uiExpected": false
+    }
+  ],
+  "installHelperRefusal": {
+    "arguments": "--install-set-current",
+    "exitCode": 4,
+    "uiExpected": false
+  },
+  "protectedRegistryBefore": {
+    "SCRNSAVE.EXE": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaveTimeOut": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaverIsSecure": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaveActive": {
+      "exists": true,
+      "kind": "String",
+      "value": "0"
+    }
+  },
+  "protectedRegistryAfter": {
+    "SCRNSAVE.EXE": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaveTimeOut": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaverIsSecure": {
+      "exists": false,
+      "kind": null,
+      "value": null
+    },
+    "ScreenSaveActive": {
+      "exists": true,
+      "kind": "String",
+      "value": "0"
+    }
+  },
+  "interactive": false,
+  "interactiveCases": [],
+  "result": "PASS"
 }

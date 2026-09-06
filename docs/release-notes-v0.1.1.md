@@ -15,8 +15,8 @@
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `__SCR_SHA256__` |
-| `MyDateTimeScreensaver-Setup.exe` | `__SETUP_SHA256__` |
+| `MyDateTimeScreensaver.scr` | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` |
+| `MyDateTimeScreensaver-Setup.exe` | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` |
 
 ## 驗證狀態與限制
 

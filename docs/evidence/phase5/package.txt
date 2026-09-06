@@ -1,46 +1,48 @@
 [1/4] cargo fmt --check
 [2/4] cargo clippy --locked --all-targets -- -D warnings
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.23s
+   Compiling my_datetime_screensaver v0.1.1 (<PROJECT_ROOT>)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.82s
 [3/4] cargo test --locked
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
-     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-34f8925e8200c955.exe)
+   Compiling my_datetime_screensaver v0.1.1 (<PROJECT_ROOT>)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.41s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-de910b8cdae1b885.exe)
 
 running 17 tests
-test config::tests::every_enum_registry_value_round_trips_and_rejects_out_of_range ... ok
-test config::tests::custom_font_binary_and_fields_are_validated_and_normalized ... ok
 test config::tests::invalid_or_cancelled_drafts_do_not_write ... ok
+test config::tests::custom_font_binary_and_fields_are_validated_and_normalized ... ok
 test config::tests::malformed_values_fall_back_per_field ... ok
-test config::tests::rollback_failure_is_distinct_and_countdown_touches_only_its_fields ... ok
+test config::tests::every_enum_registry_value_round_trips_and_rejects_out_of_range ... ok
 test config::tests::transactions_preserve_unknown_values_and_restore_on_failure ... ok
+test config::tests::rollback_failure_is_distinct_and_countdown_touches_only_its_fields ... ok
 test config::tests::schema_states_and_future_write_protection ... ok
-test lifecycle::tests::mouse_grace_and_strict_threshold_use_original_baseline ... ok
-test lifecycle::tests::shutdown_is_idempotent_and_quits_after_last_window ... ok
-test monitor::tests::bounds_preserve_negative_coordinates_and_reject_overflow ... ok
 test render::tests::export_visual_fixtures ... ignored, writes real GDI fixture BMP files to PHASE2_FIXTURES
+test lifecycle::tests::shutdown_is_idempotent_and_quits_after_last_window ... ok
+test lifecycle::tests::mouse_grace_and_strict_threshold_use_original_baseline ... ok
 test utf16::tests::empty_string_is_a_valid_terminated_buffer ... ok
+test monitor::tests::bounds_preserve_negative_coordinates_and_reject_overflow ... ok
 test utf16::tests::preserves_chinese_and_surrogate_pairs ... ok
 test utf16::tests::rejects_nul_including_a_caller_supplied_terminator ... ok
 test config::tests::actual_registry_adapter_uses_only_a_dedicated_test_subkey ... ok
 test window::tests::real_creation_failures_and_partial_group_cleanup_drop_each_state_once ... ok
 test render::tests::gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects ... ok
 
-test result: ok. 16 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.26s
+test result: ok. 16 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.52s
 
-     Running tests\cli_tests.rs (target\x86_64-pc-windows-msvc\debug\deps\cli_tests-89b6a80b48641f64.exe)
+     Running tests\cli_tests.rs (target\x86_64-pc-windows-msvc\debug\deps\cli_tests-c2872b18e814fac4.exe)
 
 running 8 tests
-test developer_modes_are_compiled_only_into_debug ... ok
 test accepts_case_prefix_and_both_handle_separators ... ok
+test developer_modes_are_compiled_only_into_debug ... ok
 test install_helper_accepts_only_its_exact_single_flag ... ok
-test no_arguments_opens_configuration ... ok
-test keeps_all_64_handle_bits_and_rejects_overflow ... ok
 test rejects_malformed_handles_for_both_modes ... ok
+test keeps_all_64_handle_bits_and_rejects_overflow ... ok
+test no_arguments_opens_configuration ... ok
 test rejects_missing_unknown_duplicate_and_debug_arguments ... ok
 test zero_owner_is_allowed_but_zero_preview_is_not ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests\native_modes.rs (target\x86_64-pc-windows-msvc\debug\deps\native_modes-fa828aeadde4dbde.exe)
+     Running tests\native_modes.rs (target\x86_64-pc-windows-msvc\debug\deps\native_modes-1b455e8facf83f6d.exe)
 
 running 6 tests
 test configure_default_invalid_and_real_owners ... ignored, shows the Phase 3 configuration dialog; run explicitly and serially
@@ -50,33 +52,33 @@ test preview_embeds_resizes_and_exits_in_three_dpi_contexts ... ignored, shows a
 test install_helper_refuses_a_non_system32_copy ... ok
 test invalid_real_command_lines_exit_two_without_windows ... ok
 
-test result: ok. 2 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.28s
+test result: ok. 2 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.41s
 
-     Running tests\phase3_native.rs (target\x86_64-pc-windows-msvc\debug\deps\phase3_native-6d8311415c0f8cec.exe)
+     Running tests\phase3_native.rs (target\x86_64-pc-windows-msvc\debug\deps\phase3_native-e9d42dfd4438953b.exe)
 
 running 1 test
 test phase3_configuration_preview_and_countdown_flow ... ignored, opens native config/font/countdown UI and fullscreen surfaces; run serially
 
 test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests\resource_observation.rs (target\x86_64-pc-windows-msvc\debug\deps\resource_observation-5b26262f6b51f829.exe)
+     Running tests\resource_observation.rs (target\x86_64-pc-windows-msvc\debug\deps\resource_observation-8bf71aeb94e4e192.exe)
 
 running 1 test
 test observe_two_debug_modes_for_ten_minutes ... ignored, two visible Debug windows, real 600-second observation; set PHASE2_OBSERVATION
 
 test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests\time_layout.rs (target\x86_64-pc-windows-msvc\debug\deps\time_layout-9652ccb5f326f635.exe)
+     Running tests\time_layout.rs (target\x86_64-pc-windows-msvc\debug\deps\time_layout-a291f7d452d33d92.exe)
 
 running 9 tests
 test clock_angles_are_continuous_in_minutes_and_seconds ... ok
 test countdown_ceil_ratio_and_deadline_overflow ... ok
-test layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling ... ok
-test gregorian_centuries_and_monday_first_cells ... ok
+test drift_stays_inside_safety_bounds_and_skips_missed_intervals ... ok
 test duration_fields_reject_bad_input_and_round_trip_extremes ... ok
+test gregorian_centuries_and_monday_first_cells ... ok
+test layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling ... ok
 test last_ten_seconds_and_exactly_four_dim_half_cycles ... ok
 test segment_mapping_and_seeded_random_sequence ... ok
-test drift_stays_inside_safety_bounds_and_skips_missed_intervals ... ok
 test shared_generation_clock_adjustment_and_resume_do_not_change_deadline ... ok
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
@@ -88,30 +90,32 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 [4/4] cargo build --release --locked
-    Finished `release` profile [optimized] target(s) in 0.07s
+   Compiling my_datetime_screensaver v0.1.1 (<PROJECT_ROOT>)
+    Finished `release` profile [optimized] target(s) in 7.86s
 
 [PASS] Phase 5 build completed.
 Artifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver.scr
-Version: 0.1.0
+Version: 0.1.1
 Bytes: 609792
-SHA-256: 30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941
+SHA-256: 02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a
 Rust:
 rustc 1.97.1 (8bab26f4f 2026-07-14)
 cargo 1.97.1 (c980f4866 2026-06-30)
 RC: C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\rc.exe
 Linker: C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\link.exe
-Source revision: unavailable (repository has no commit)
+Source revision: ef12e37213ce1964cedc2ab97e37b7b3836c7db4
 [package] Inno Setup 6.7.3
 
-PreprocessingArtifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver.scr
-Version: 0.1.0
+
+PreprocessingArtifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver.scr
+Version: 0.1.1
 Bytes: 609792
-SHA-256: 30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941
+SHA-256: 02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a
 Signature: NotSigned
 Artifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver-Setup.exe
-Version: 0.1.0.0             
-Bytes: 2247540
-SHA-256: 2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78
+Version: 0.1.1.0
+Bytes: 2247614
+SHA-256: 6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712
 Signature: NotSigned
 SHA-256 list: <PROJECT_ROOT>\dist\SHA256SUMS.txt
 [PASS] Phase 5 package completed with Inno Setup 6.7.3.

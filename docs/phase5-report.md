@@ -25,8 +25,8 @@ Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、�
 
 | 檔案 | 版本 | Bytes | SHA-256 | Authenticode |
 | --- | --- | ---: | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | 0.1.1 | __SCR_BYTES__ | `__SCR_SHA256__` | NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | 0.1.1.0 | __SETUP_BYTES__ | `__SETUP_SHA256__` | NotSigned |
+| `dist/MyDateTimeScreensaver.scr` | 0.1.1 | 609,792 | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` | NotSigned |
+| `dist/MyDateTimeScreensaver-Setup.exe` | 0.1.1.0 | 2,247,614 | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` | NotSigned |
 
 `dist/SHA256SUMS.txt` 由成功 package 產生。專案擁有者已指定 MIT License 並授權建立公開 GitHub repository、Release 與 Pages；v0.1.0 保留既有成品，這次模式改名與設定畫面品牌更新另以 v0.1.1 未簽章開發候選版發布。若日後取得憑證，須依序簽 `.scr`、重封 Setup、簽 Setup，再重建最終雜湊。
 

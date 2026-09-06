@@ -2,7 +2,7 @@ Microsoft (R) COFF/PE Dumper Version 14.51.36256.0
 Copyright (C) Microsoft Corporation.  All rights reserved.
 
 
-Dump of file <TEMP>\MyDateTimeScreensaver-smoke-3d52f4697f1a48b3959fdc447b003aad\MyDateTimeScreensaver.scr
+Dump of file <USERPROFILE>\AppData\Local\Temp\MyDateTimeScreensaver-smoke-04ed04e5be89477ab2de55d583b59856\MyDateTimeScreensaver.scr
 
 PE signature found
 
@@ -11,7 +11,7 @@ File Type: EXECUTABLE IMAGE
 FILE HEADER VALUES
             8664 machine (x64)
                7 number of sections
-        3F4DB6E0 time date stamp
+        44C02FA6 time date stamp
                0 file pointer to symbol table
                0 number of symbols
               F0 size of optional header
@@ -51,7 +51,7 @@ OPTIONAL HEADER VALUES
               10 number of directories
                0 [       0] RVA [size] of Export Directory
            4A034 [      C8] RVA [size] of Import Directory
-           52000 [   46B10] RVA [size] of Resource Directory
+           52000 [   46BB8] RVA [size] of Resource Directory
            4E000 [    20E8] RVA [size] of Exception Directory
                0 [       0] RVA [size] of Certificates Directory
            99000 [     884] RVA [size] of Base Relocation Directory
@@ -99,10 +99,10 @@ SECTION HEADER #2
 
         Time Type        Size      RVA  Pointer
     -------- ------- -------- -------- --------
-    3F4DB6E0 cv            34 00046EE8    460E8    Format: RSDS, {A46D3469-47D0-CE8B-5B3E-0E289CF9A0D0}, 1, my_datetime_screensaver.pdb
-    3F4DB6E0 feat          14 00046F1C    4611C    Counts: Pre-VC++ 11.00=1, C/C++=216, /GS=216, /sdl=0, guardN=216
-    3F4DB6E0 coffgrp      3E0 00046F30    46130
-    3F4DB6E0 repro         24 00047338    46538    69 34 6D A4 D0 47 8B CE 5B 3E 0E 28 9C F9 A0 D0 4A F6 5B F4 6C 82 EE 22 7C A3 47 84 E0 B6 4D 3F
+    44C02FA6 cv            34 00046EE8    460E8    Format: RSDS, {DEB383B5-1749-045E-A11D-9CF32877EBF5}, 1, my_datetime_screensaver.pdb
+    44C02FA6 feat          14 00046F1C    4611C    Counts: Pre-VC++ 11.00=1, C/C++=216, /GS=216, /sdl=0, guardN=216
+    44C02FA6 coffgrp      3E0 00046F30    46130
+    44C02FA6 repro         24 00047338    46538    B5 83 B3 DE 49 17 5E 04 A1 1D 9C F3 28 77 EB F5 92 A7 61 EC 8F B4 7F 49 43 FC 48 96 A6 2F C0 44
 
   Section contains the following imports:
 
@@ -399,8 +399,8 @@ C0000040 flags
 
 SECTION HEADER #6
    .rsrc name
-   46B10 virtual size
-   52000 virtual address (0000000140052000 to 0000000140098B0F)
+   46BB8 virtual size
+   52000 virtual address (0000000140052000 to 0000000140098BB7)
    46C00 size of raw data
    4D800 file pointer to raw data (0004D800 to 000943FF)
        0 file pointer to relocation table
