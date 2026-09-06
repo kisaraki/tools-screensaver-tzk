@@ -151,6 +151,37 @@ impl Layout {
                 };
                 result.inner = result.panel.inset(pw * 0.04, ph * 0.12);
             }
+            DisplayMode::JapanTravel => {
+                // Reserve a complete, unobscured 16:9 player rectangle. The
+                // surrounding panel and the lower plaque form the aircraft-window
+                // suggestion without clipping third-party video or its controls.
+                let plaque = group.h * 0.14;
+                let available_h = (group.h - plaque).max(f64::EPSILON);
+                let player_w = (group.w / 1.12).min((available_h / 1.16) * 16.0 / 9.0);
+                let player_h = player_w * 9.0 / 16.0;
+                let frame = (player_w * 0.055)
+                    .min((available_h - player_h) / 2.0)
+                    .min((group.w - player_w) / 2.0)
+                    .max(0.0);
+                result.inner = Rect {
+                    x: group.cx() - player_w / 2.0,
+                    y: group.y + (available_h - player_h) / 2.0,
+                    w: player_w,
+                    h: player_h,
+                };
+                result.panel = Rect {
+                    x: result.inner.x - frame,
+                    y: result.inner.y - frame,
+                    w: result.inner.w + frame * 2.0,
+                    h: result.inner.h + frame * 2.0,
+                };
+                result.calendar = Rect {
+                    x: group.x,
+                    y: group.y + available_h,
+                    w: group.w,
+                    h: plaque,
+                };
+            }
         }
         Some(result)
     }

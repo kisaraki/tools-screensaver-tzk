@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$ArtifactPath,
     [string]$OutputDirectory,
@@ -240,6 +240,8 @@ try {
     $expectedDialogLabels = @(
         '標準桌曆暨時鐘模式(&T)',
         '離機作業番茄鐘模式(&C)',
+        '日本旅行模式(&J)',
+        '需要網路；全螢幕時連線至 tw.live 與 YouTube，影片靜音。',
         'KOMSMOS TOOLKIT',
         '探真拓知酷'
     )

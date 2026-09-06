@@ -93,7 +93,7 @@ fn rejects_missing_unknown_duplicate_and_debug_arguments() {
 
 #[test]
 fn developer_modes_are_compiled_only_into_debug() {
-    for mode in ["time-date", "countdown"] {
+    for mode in ["time-date", "countdown", "japan-travel"] {
         let argument = format!("--dev-render={mode}");
         assert_eq!(parse(&[&argument]).is_ok(), cfg!(debug_assertions));
         assert!(parse(&[&argument, "/s"]).is_err());

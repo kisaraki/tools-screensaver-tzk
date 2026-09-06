@@ -165,7 +165,11 @@ fn segment_mapping_and_seeded_random_sequence() {
 
 #[test]
 fn layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling() {
-    for mode in [DisplayMode::TimeDate, DisplayMode::Countdown] {
+    for mode in [
+        DisplayMode::TimeDate,
+        DisplayMode::Countdown,
+        DisplayMode::JapanTravel,
+    ] {
         for (width, height) in [
             (1920, 1080),
             (1920, 1200),
@@ -194,10 +198,16 @@ fn layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling() {
                     if rect.w == 0.0 {
                         continue;
                     }
-                    assert!(rect.x + 1e-8 >= layout.group.x && rect.y + 1e-8 >= layout.group.y);
+                    assert!(
+                        rect.x + 1e-8 >= layout.group.x && rect.y + 1e-8 >= layout.group.y,
+                        "{mode:?} {width}x{height}: {rect:?} starts outside {:?}",
+                        layout.group
+                    );
                     assert!(
                         rect.right() <= layout.group.right() + 1e-8
-                            && rect.bottom() <= layout.group.bottom() + 1e-8
+                            && rect.bottom() <= layout.group.bottom() + 1e-8,
+                        "{mode:?} {width}x{height}: {rect:?} ends outside {:?}",
+                        layout.group
                     );
                     assert!(rect.w > 0.0 && rect.h > 0.0);
                 }

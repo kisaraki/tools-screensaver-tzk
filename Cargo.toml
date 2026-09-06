@@ -1,9 +1,9 @@
 [package]
 name = "my_datetime_screensaver"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.97.1"
-description = "Native Win32 calendar clock and away-work Pomodoro screensaver"
+description = "Windows calendar clock, away-work Pomodoro, and Japan live-travel screensaver"
 license = "MIT"
 repository = "https://github.com/kisaraki/tools-screensaver-tzk"
 homepage = "https://kisaraki.github.io/tools-screensaver-tzk/"
@@ -20,6 +20,12 @@ test = false
 bench = false
 
 [dependencies]
+webview2-com = "0.39.1"
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_UI_WindowsAndMessaging",
+] }
 windows-sys = { version = "0.61.2", features = [
     "Win32_Foundation",
     "Win32_Graphics_Gdi",
@@ -28,6 +34,7 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Environment",
     "Win32_System_LibraryLoader",
     "Win32_System_Memory",
+    "Win32_Networking_WinHttp",
     "Win32_System_ProcessStatus",
     "Win32_System_Registry",
     "Win32_System_SystemInformation",

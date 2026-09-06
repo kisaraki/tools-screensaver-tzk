@@ -380,7 +380,8 @@ impl Renderer {
                 "SetViewportOrgEx(origin)",
             )?;
         }
-        if self.fonts.is_none() && layout.detail != Detail::Tiny {
+        if self.fonts.is_none() && layout.detail != Detail::Tiny && mode != DisplayMode::JapanTravel
+        {
             self.fonts = Some(Fonts::new(dc, layout, style)?);
         }
         let mut canvas = Canvas {
@@ -421,8 +422,102 @@ impl Renderer {
             DisplayMode::Countdown => {
                 countdown(&mut canvas, layout, self.fonts.as_ref(), frame, style, dpi)
             }
+            DisplayMode::JapanTravel => japan_travel(&mut canvas, layout, style),
         }
     }
+}
+
+fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result<(), AppError> {
+    let accent = style.color();
+    let outer = layout.panel;
+    let player = layout.inner;
+    let radius = (outer.w * 0.075).min(outer.h * 0.16).max(2.0);
+    canvas.rounded(
+        outer,
+        Some(rgb(28, 34, 38)),
+        dim(accent, 0.55),
+        (outer.w * 0.008).max(1.0),
+        radius,
+    )?;
+    let middle = outer.inset(outer.w * 0.018, outer.h * 0.028);
+    canvas.rounded(
+        middle,
+        Some(rgb(168, 177, 180)),
+        rgb(72, 82, 87),
+        (outer.w * 0.006).max(1.0),
+        radius * 0.82,
+    )?;
+
+    // A calm built-in scene is shown while checking the live source, in previews,
+    // and when WebView2 or the network is unavailable. The real player replaces
+    // the entire surface and remains a complete, unobscured 16:9 rectangle.
+    canvas.fill(player, rgb(21, 54, 76))?;
+    let horizon = Rect {
+        x: player.x,
+        y: player.y + player.h * 0.58,
+        w: player.w,
+        h: player.h * 0.42,
+    };
+    canvas.fill(horizon, rgb(9, 23, 34))?;
+    if layout.detail != Detail::Tiny {
+        for (x, y, w, h) in [
+            (0.15, 0.31, 0.20, 0.075),
+            (0.48, 0.22, 0.26, 0.085),
+            (0.72, 0.41, 0.18, 0.065),
+        ] {
+            canvas.ellipse(
+                Rect {
+                    x: player.x + player.w * x,
+                    y: player.y + player.h * y,
+                    w: player.w * w,
+                    h: player.h * h,
+                },
+                rgb(196, 210, 217),
+            )?;
+        }
+        let plaque = layout.calendar;
+        let title_rect = Rect {
+            x: plaque.x,
+            y: plaque.y,
+            w: plaque.w,
+            h: plaque.h * 0.52,
+        };
+        let status_rect = Rect {
+            x: plaque.x,
+            y: plaque.y + plaque.h * 0.48,
+            w: plaque.w,
+            h: plaque.h * 0.52,
+        };
+        let title = Font::fit(
+            canvas.dc,
+            FontMode::MingLiu,
+            None,
+            "日本旅行模式",
+            title_rect.w * 0.92,
+            title_rect.h * 0.82,
+            title_rect.h * 0.65,
+            true,
+        )?;
+        let status = Font::fit(
+            canvas.dc,
+            FontMode::MingLiu,
+            None,
+            "連線中或影像來源暫時無法使用",
+            status_rect.w * 0.92,
+            status_rect.h * 0.72,
+            status_rect.h * 0.5,
+            false,
+        )?;
+        canvas.text(&title, "日本旅行模式", title_rect, accent, true)?;
+        canvas.text(
+            &status,
+            "連線中或影像來源暫時無法使用",
+            status_rect,
+            rgb(190, 202, 196),
+            false,
+        )?;
+    }
+    Ok(())
 }
 
 fn centered(cx: f64, cy: f64, width: f64, height: f64) -> Rect {
@@ -904,7 +999,11 @@ mod tests {
     #[test]
     fn gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects() {
         let screen = Screen::new();
-        let modes = [DisplayMode::TimeDate, DisplayMode::Countdown];
+        let modes = [
+            DisplayMode::TimeDate,
+            DisplayMode::Countdown,
+            DisplayMode::JapanTravel,
+        ];
         for mode in modes {
             for (w, h) in [(1, 1), (120, 80), (320, 180)] {
                 for dpi in [96, 144, 192, 288] {
@@ -989,7 +1088,11 @@ mod tests {
         fs::create_dir_all(directory).unwrap();
         let screen = Screen::new();
         let mut cases = Vec::new();
-        for mode in [DisplayMode::TimeDate, DisplayMode::Countdown] {
+        for mode in [
+            DisplayMode::TimeDate,
+            DisplayMode::Countdown,
+            DisplayMode::JapanTravel,
+        ] {
             for palette in [
                 ColorPreset::DarkRed,
                 ColorPreset::DarkOrange,

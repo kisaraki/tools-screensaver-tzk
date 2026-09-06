@@ -4,6 +4,7 @@
 pub enum DisplayMode {
     TimeDate,
     Countdown,
+    JapanTravel,
 }
 
 impl DisplayMode {
@@ -11,6 +12,7 @@ impl DisplayMode {
         match value {
             0 => Some(Self::TimeDate),
             1 => Some(Self::Countdown),
+            2 => Some(Self::JapanTravel),
             _ => None,
         }
     }
@@ -19,6 +21,7 @@ impl DisplayMode {
         match self {
             Self::TimeDate => 0,
             Self::Countdown => 1,
+            Self::JapanTravel => 2,
         }
     }
 }

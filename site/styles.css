@@ -300,7 +300,7 @@ h1 em {
 
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -340,6 +340,20 @@ h1 em {
 .mode-copy p:last-child {
   margin-bottom: 0;
   color: var(--muted);
+}
+
+.mode-copy .mode-note {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: #75867b;
+  font-size: 0.78rem;
+}
+
+.travel-card .mode-image {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(39, 245, 93, 0.08), transparent 55%),
+    #020403;
 }
 
 .feature-grid {
@@ -597,6 +611,14 @@ h1 em {
   font-size: 0.92rem;
 }
 
+.mode-labels small {
+  max-width: 520px;
+  padding-left: 25px;
+  color: #819087;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
 .radio {
   width: 14px;
   height: 14px;
@@ -705,7 +727,14 @@ footer div {
     max-width: 750px;
   }
 
-  .mode-grid,
+  .mode-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .travel-card {
+    grid-column: 1 / -1;
+  }
+
   .download-grid {
     grid-template-columns: 1fr;
   }
@@ -770,6 +799,14 @@ footer div {
   .steps,
   .compat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-card {
+    grid-column: auto;
   }
 
   .feature-grid article {

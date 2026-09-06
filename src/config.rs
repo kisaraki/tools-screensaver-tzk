@@ -6,7 +6,7 @@ use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode};
 
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const REG_BINARY_KIND: u32 = REG_BINARY;
 pub const REG_DWORD_KIND: u32 = REG_DWORD;
@@ -170,6 +170,9 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
     let schema_version = schema.unwrap_or(SCHEMA_VERSION);
     let display_mode = dword(get(store, DISPLAY_MODE))
         .and_then(DisplayMode::from_registry)
+        .filter(|mode| {
+            *mode != DisplayMode::JapanTravel || schema.is_some_and(|version| version >= 3)
+        })
         .unwrap_or(DisplayMode::TimeDate);
     let color_preset = dword(get(store, COLOR_PRESET))
         .and_then(ColorPreset::from_registry)
@@ -392,11 +395,15 @@ mod tests {
 
     #[test]
     fn every_enum_registry_value_round_trips_and_rejects_out_of_range() {
-        for (raw, expected) in [(0, DisplayMode::TimeDate), (1, DisplayMode::Countdown)] {
+        for (raw, expected) in [
+            (0, DisplayMode::TimeDate),
+            (1, DisplayMode::Countdown),
+            (2, DisplayMode::JapanTravel),
+        ] {
             assert_eq!(DisplayMode::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(DisplayMode::from_registry(2), None);
+        assert_eq!(DisplayMode::from_registry(3), None);
 
         for (raw, expected) in [
             (0, ColorPreset::DarkRed),
@@ -463,7 +470,7 @@ mod tests {
 
     #[test]
     fn schema_states_and_future_write_protection() {
-        for schema in [None, Some(1), Some(2)] {
+        for schema in [None, Some(1), Some(2), Some(3)] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
                 store.values.insert(SCHEMA.into(), RawValue::dword(schema));
@@ -471,8 +478,16 @@ mod tests {
             store.values.insert(DISPLAY_MODE.into(), RawValue::dword(1));
             assert_eq!(load(&store).display_mode, DisplayMode::Countdown);
         }
+        let mut legacy = MemoryStore::default();
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(2));
+        legacy
+            .values
+            .insert(DISPLAY_MODE.into(), RawValue::dword(2));
+        assert_eq!(load(&legacy).display_mode, DisplayMode::TimeDate);
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(3));
+        assert_eq!(load(&legacy).display_mode, DisplayMode::JapanTravel);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(3));
+        future.values.insert(SCHEMA.into(), RawValue::dword(4));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -480,9 +495,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(3))
+            Err(SaveError::FutureSchema(4))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(3));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(4));
 
         for broken_schema in [
             RawValue::dword(0),

@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#070a08">
     <meta
       name="description"
-      content="MyDateTimeScreensaver：Windows x64 的標準桌曆暨時鐘與離機作業番茄鐘螢幕保護程式。下載 v0.1.1 開發候選版。"
+      content="MyDateTimeScreensaver：Windows 10 x64 的桌曆時鐘、離機作業番茄鐘與日本旅行螢幕保護程式。下載 v0.2.0 開發候選版。"
     >
-    <title>MyDateTimeScreensaver — 桌曆時鐘與離機作業番茄鐘</title>
+    <title>MyDateTimeScreensaver — 桌曆時鐘、離機作業番茄鐘與日本旅行</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -33,24 +33,24 @@
     <main id="top">
       <section class="hero section">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span> Windows x64 · v0.1.1</p>
+          <p class="eyebrow"><span></span> Windows 10 x64 · v0.2.0</p>
           <h1>讓時間在黑色畫布上<br><em>安靜地運行。</em></h1>
           <p class="lead">
-            原生 Win32/GDI 螢幕保護程式，提供標準桌曆暨時鐘與離機作業番茄鐘。
-            不需要網路、遙測、外部字型或額外 Runtime。
+            Windows 螢幕保護程式，提供標準桌曆暨時鐘、離機作業番茄鐘與日本旅行三種模式。
+            前兩種模式完全離線；日本旅行模式透過 WebView2 顯示經健康檢查的即時影像。
           </p>
           <div class="actions">
-            <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver-Setup.exe">
+            <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/MyDateTimeScreensaver-Setup.exe">
               下載安裝程式
             </a>
-            <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.1.1">
-              查看 v0.1.1
+            <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.2.0">
+              查看 v0.2.0
             </a>
           </div>
           <ul class="facts" aria-label="版本摘要">
-            <li><strong>2</strong><span>顯示模式</span></li>
+            <li><strong>3</strong><span>顯示模式</span></li>
             <li><strong>4</strong><span>主色選擇</span></li>
-            <li><strong>35</strong><span>非互動測試</span></li>
+            <li><strong>45</strong><span>非互動測試</span></li>
           </ul>
         </div>
         <figure class="hero-visual">
@@ -67,7 +67,7 @@
         <div>
           <h2>開發候選版，成品尚未簽章</h2>
           <p>
-            Windows 10 x64 的建置、原生功能與非互動 smoke test 已通過。
+            Windows 10 x64 的建置、來源探測與非互動 smoke test 已通過；即時播放器的長時間人工觀察尚未在遠端工作階段執行。
             需要 UAC 的完整安裝矩陣未在遠端工作階段執行，Windows 11 也尚未驗證。
             下載後請先核對 SHA-256；Windows 可能顯示未驗證發行者或 SmartScreen 提示。
           </p>
@@ -77,7 +77,7 @@
       <section class="section" id="features">
         <div class="section-heading">
           <p class="eyebrow"><span></span> DISPLAY MODES</p>
-          <h2>兩種畫面，一套原生引擎</h2>
+          <h2>三種畫面，依情境切換</h2>
         </div>
         <div class="mode-grid">
           <article class="mode-card">
@@ -100,6 +100,17 @@
               <p>六位七段數字搭配沙漏與進度線，最後十秒顯示警示，歸零後以四次閃爍完成。</p>
             </div>
           </article>
+          <article class="mode-card travel-card">
+            <div class="mode-image">
+              <img src="assets/japan-travel.svg" alt="自製 A380 客機艙窗風格的日本旅行模式靜態示意，畫面標示京都地區">
+            </div>
+            <div class="mode-copy">
+              <p class="index">03</p>
+              <h3>日本旅行模式</h3>
+              <p>以 A380 客艙窗框包覆即時影像並標示目前地區；播放開始後預抓下一來源，滿 60 秒時隨機切換。</p>
+              <p class="mode-note">本站僅顯示專案自製 SVG 示意，不載入第三方影片。</p>
+            </div>
+          </article>
         </div>
         <div class="feature-grid">
           <article>
@@ -109,13 +120,13 @@
           </article>
           <article>
             <span class="feature-mark">B</span>
-            <h3>四色與字型</h3>
-            <p>深紅、深橘、亮綠、灰白，以及三種內建選項與自訂系統字型。</p>
+            <h3>離線與連線分流</h3>
+            <p>桌曆時鐘與番茄鐘不連網；只有全螢幕日本旅行模式會連線至 tw.live 與 YouTube。</p>
           </article>
           <article>
             <span class="feature-mark">C</span>
-            <h3>Windows 原生</h3>
-            <p>支援 <code>/s</code>、<code>/p HWND</code> 與 <code>/c</code>；設定對話框和預覽均使用原生 Win32。</p>
+            <h3>單播放器與安全回退</h3>
+            <p>主螢幕只建立一個 WebView2 播放器；來源失效時切換或稍後重試，Runtime 不可用時保留本機靜態畫面。</p>
           </article>
         </div>
       </section>
@@ -123,24 +134,24 @@
       <section class="download-section section" id="download">
         <div class="section-heading">
           <p class="eyebrow"><span></span> DOWNLOAD</p>
-          <h2>下載 v0.1.1</h2>
+          <h2>下載 v0.2.0</h2>
           <p>選擇安裝程式，或直接取得獨立 <code>.scr</code> 與校驗清單。</p>
         </div>
         <div class="download-grid">
-          <a class="download-card recommended" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver-Setup.exe">
+          <a class="download-card recommended" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/MyDateTimeScreensaver-Setup.exe">
             <span class="tag">建議</span>
             <span class="file-type">EXE</span>
             <strong>Windows 安裝程式</strong>
-            <span>MyDateTimeScreensaver-Setup.exe</span>
+            <span>MyDateTimeScreensaver-Setup.exe · 2,319,263 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver.scr">
+          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/MyDateTimeScreensaver.scr">
             <span class="file-type">SCR</span>
             <strong>獨立程式檔</strong>
-            <span>MyDateTimeScreensaver.scr</span>
+            <span>MyDateTimeScreensaver.scr · 802,816 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/SHA256SUMS.txt">
+          <a class="download-card" href="https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/SHA256SUMS.txt">
             <span class="file-type">SHA</span>
             <strong>SHA-256 清單</strong>
             <span>SHA256SUMS.txt</span>
@@ -148,10 +159,10 @@
           </a>
         </div>
         <div class="hashes">
-          <h3>v0.1.1 SHA-256</h3>
+          <h3>v0.2.0 SHA-256</h3>
           <dl>
-            <div><dt>SCR</dt><dd>02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a</dd></div>
-            <div><dt>SETUP</dt><dd>6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712</dd></div>
+            <div><dt>SCR</dt><dd>73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d</dd></div>
+            <div><dt>SETUP</dt><dd>ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372</dd></div>
           </dl>
         </div>
       </section>
@@ -172,11 +183,11 @@
           </li>
           <li>
             <span>03</span>
-            <div><h3>選擇與設定</h3><p>在 Windows 螢幕保護程式設定選取本程式，再調整模式、顏色、字型與等待時間。</p></div>
+            <div><h3>選擇與設定</h3><p>在 Windows 螢幕保護程式設定選取本程式，再調整模式、顏色、字型與等待時間。旅行模式需已安裝 Microsoft Edge WebView2 Runtime。</p></div>
           </li>
         </ol>
         <div class="settings-shot">
-          <div class="toolkit-card" role="img" aria-label="設定畫面中的 KOMSMOS TOOLKIT 探真拓知酷標示與兩個顯示模式">
+          <div class="toolkit-card" role="img" aria-label="設定畫面中的 KOMSMOS TOOLKIT 探真拓知酷標示與三個顯示模式">
             <div class="toolkit-mark">
               <img src="favicon.svg" alt="" aria-hidden="true">
               <div><strong>KOMSMOS TOOLKIT</strong><span>探真拓知酷</span></div>
@@ -184,11 +195,13 @@
             <div class="mode-labels" aria-hidden="true">
               <p><i class="radio checked"></i>標準桌曆暨時鐘模式</p>
               <p><i class="radio"></i>離機作業番茄鐘模式</p>
+              <p><i class="radio"></i>日本旅行模式</p>
+              <small>需要網路；全螢幕時連線至 tw.live 與 YouTube，影片靜音。</small>
             </div>
           </div>
           <div>
             <h3>設定畫面加入專案識別</h3>
-            <p>原生設定對話框顯示「KOMSMOS TOOLKIT 探真拓知酷」小圖形標示；按下「確定」才寫入目前使用者的設定。</p>
+            <p>原生設定對話框顯示「KOMSMOS TOOLKIT 探真拓知酷」小圖形標示；按下「確定」才寫入目前使用者的設定。設定與預覽畫面本身不連網。</p>
           </div>
         </div>
       </section>
@@ -199,7 +212,7 @@
           <h2>驗證範圍透明可查</h2>
         </div>
         <div class="compat-grid">
-          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、原生功能與非互動驗證。</p></div>
+          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、來源探測與非互動驗證。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>UAC 安裝矩陣</strong><p>遠端測試刻意不顯示 UAC，也不寫入 System32。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>Windows 11</strong><p>目前沒有 Windows 11 開發環境，保留為後續相容性驗證。</p></div>
         </div>
@@ -212,11 +225,11 @@
         <div>
           <p class="eyebrow"><span></span> OPEN SOURCE</p>
           <h2>完整規格、原始碼與測試都在 GitHub</h2>
-          <p>Rust 1.97.1、Win32/GDI、Inno Setup 6.7.3。遠端 CI 只執行不顯示 UI、不安裝、不觸發 UAC 的測試路徑。</p>
+          <p>Rust 1.97.1、Win32/GDI、WebView2、Inno Setup 6.7.3。遠端驗證只執行不顯示 UI、不安裝、不觸發 UAC 的測試路徑。</p>
         </div>
         <div class="source-actions">
           <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk">檢視原始碼</a>
-          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/MyDateTimeScreensaver_Codex_Spec.md">開發規格 v1.2</a>
+          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/MyDateTimeScreensaver_Codex_Spec.md">開發規格 v1.3</a>
         </div>
       </section>
     </main>

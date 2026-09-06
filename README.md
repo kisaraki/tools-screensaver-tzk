@@ -5,51 +5,62 @@
 [![Release](https://img.shields.io/github/v/release/kisaraki/tools-screensaver-tzk?include_prereleases&sort=semver)](https://github.com/kisaraki/tools-screensaver-tzk/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-17d98b.svg)](LICENSE)
 
-MyDateTimeScreensaver 是以 Rust、原生 Win32 與 GDI 製作的 Windows x64 螢幕保護程式。它提供「標準桌曆暨時鐘模式」與「離機作業番茄鐘模式」，不需要網路、外部字型檔或額外執行階段。
+MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.1.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.1.1) · [完整開發規格](MyDateTimeScreensaver_Codex_Spec.md)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.2.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.2.0) · [完整開發規格](MyDateTimeScreensaver_Codex_Spec.md)
 
 ![標準桌曆暨時鐘模式：左側指針鐘與右側六列月曆](docs/evidence/phase2/fixtures/02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.png)
 
-> **v0.1.1 是未簽章的開發候選版。** Windows 10 x64 的建置、原生功能測試與非互動 smoke test 已通過；需要 UAC 的完整安裝／升級／解除安裝矩陣尚未在遠端工作階段執行。Windows 11 尚未驗證。下載後請先比對 SHA-256。
+> **v0.2.0 是未簽章的開發候選版。** Windows 10 x64 的非互動建置、45 個預設自動測試、WebView2 Runtime 無視窗探測、產品解析器即時來源測試、來源 HTTP 健康檢查、smoke 與封裝已通過；實際 YouTube player `PLAYING`、連續 60 秒輪換、多螢幕旅行畫面、斷網情境與 30 分鐘資源觀察仍為 `NOT TESTED`。需要 UAC 的安裝／升級／解除安裝矩陣沒有在遠端工作階段執行，Windows 11 也尚未驗證。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [MyDateTimeScreensaver-Setup.exe](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式 |
-| [MyDateTimeScreensaver.scr](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查 |
-| [SHA256SUMS.txt](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/SHA256SUMS.txt) | 兩個成品的 SHA-256 |
+| [MyDateTimeScreensaver-Setup.exe](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式 |
+| [MyDateTimeScreensaver.scr](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查 |
+| [SHA256SUMS.txt](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.2.0/SHA256SUMS.txt) | 兩個成品的 SHA-256 |
 
-目前成品：
+目前 v0.2.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` |
-| `MyDateTimeScreensaver-Setup.exe` | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` |
+| `MyDateTimeScreensaver.scr` | `73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d` |
+| `MyDateTimeScreensaver-Setup.exe` | `ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372` |
 
 ## 安裝與使用
 
 1. 下載 Setup 與 `SHA256SUMS.txt`，先以 `Get-FileHash -Algorithm SHA256` 比對檔案。
 2. 執行 Setup。安裝程式需要系統管理員權限，會將唯一的 `.scr` 安裝到 64 位元 Windows 的 System32。
 3. 「將它設為目前的螢幕保護程式」預設不勾；需要時可在安裝時勾選，或稍後從 Windows 的螢幕保護程式設定選取。
-4. 以 `/c` 開啟設定，選擇畫面、主色與字型。按「確定」才會保存個人設定。
+4. 以 `/c` 開啟設定，選擇畫面、主色與字型。按「確定」才會保存個人設定；選取日本旅行模式不會立即連網。
 
-成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。這是目前發行狀態，不代表已完成簽章驗證。
+日本旅行模式需要目標電腦已安裝 Microsoft Edge WebView2 Evergreen Runtime。程式與 Setup 不會自行下載或安裝 Runtime，也不會為此再觸發 UAC；Runtime 缺少或 player 建立失敗時，螢幕保護程式會保留可退出的靜態 fallback。Microsoft 提供 [WebView2 Runtime 官方下載與部署說明](https://developer.microsoft.com/microsoft-edge/webview2/)。
 
-解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\MyDateTimeScreensaver`。
+成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\MyDateTimeScreensaver`。
 
 ## 功能
 
 - **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。
 - **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
+- **日本旅行模式**：自製 A380 客艙風格窗框、目前城市／地區與鏡頭名稱，以及 tw.live 所整理的 YouTube 即時影像。player 實際回報 `PLAYING` 後即在背景預抓不同候選，滿 60 秒時切換；來源仍在檢查時保留目前畫面，待成功後切換。
+- **來源復原**：內建 8 個 tw.live camera ID 候選，每輪最多檢查 3 個；目錄、來源解析或 player 失敗時有界重試，沒有可用來源時顯示靜態 fallback。
+- **多螢幕旅行畫面**：主螢幕只建立一個自動播放 player；其他螢幕顯示靜態伴隨畫面，避免同時建立多個直播 player。
 - **個人化**：深紅、深橘、亮綠、灰白四色；電子錶、Consolas、新細明體及自訂系統字型。
 - **設定識別**：原生設定畫面以程式圖示搭配「KOMSMOS TOOLKIT 探真拓知酷」小型標示。
 - **Windows 整合**：支援 `/s` 全螢幕、`/p HWND` 系統預覽與 `/c` 原生設定對話框。
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
-- **離線與精簡**：純 Win32/GDI、靜態 CRT，沒有網路請求、遙測、常駐服務或額外 VC++ Runtime 需求。
+- **執行邊界**：前兩種模式、`/p` 系統預覽及 `/c` 設定預覽不建立 WebView2，也不連公開網站；程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
 
 ![離機作業番茄鐘模式：七段數字、沙漏與進度線](docs/evidence/phase2/fixtures/13-Countdown-800x369-dpi96-p2-SevenSegment-palette.png)
+
+## 日本旅行模式的網路與隱私
+
+主要目錄是 [tw.live 日本旅行即時影像](https://tw.live/japan/)，影片以 YouTube 官方嵌入播放器呈現。程式不嵌入 tw.live 整頁，不下載、錄製、轉碼、代理、保存或重新託管影片。A380 風格框、地名與狀態位於完整 player 矩形外，不遮蔽影片、品牌、廣告或控制項。
+
+啟動此模式會向 tw.live、YouTube／Google 與影片來源使用的 CDN 傳送正常連線所需的 IP 位址、User-Agent、時間與播放器資料。tw.live、YouTube、攝影機提供者及影片內容不受本專案 MIT License 授權；來源可能改址、下線、限制地區或撤回嵌入。最新候選、探測結果與權利邊界見 [日本旅行模式來源、網路與授權紀錄](docs/japan-travel-sources.md)。
+
+WebView2 的 per-user profile 與本機 player shell 位於 `%LOCALAPPDATA%\KOMSMOS\MyDateTimeScreensaver\`。其中不保存影片、音訊或歷史影格。
 
 ## 命令列模式
 
@@ -59,9 +70,9 @@ MyDateTimeScreensaver.scr /p <HWND>
 MyDateTimeScreensaver.scr /c
 ```
 
-- `/s`：每台螢幕建立無邊框視窗；標準桌曆暨時鐘模式直接開始，離機作業番茄鐘模式會先要求本次時、分、秒。
-- `/p <HWND>` 或 `/p:<HWND>`：嵌入 Windows 提供的預覽父視窗。
-- `/c` 或無參數：開啟原生設定對話框。
+- `/s`：每台螢幕建立無邊框視窗；標準桌曆暨時鐘模式直接開始，離機作業番茄鐘模式先要求本次時、分、秒，日本旅行模式則在主螢幕初始化 player 並於背景檢查來源。
+- `/p <HWND>` 或 `/p:<HWND>`：嵌入 Windows 提供的預覽父視窗；日本旅行模式只顯示無網路靜態示意。
+- `/c` 或無參數：開啟原生設定對話框；設定預覽不連網。
 
 正常取消或退出回傳 code `0`；命令列／preview parent 錯誤為 `2`；Win32 初始化或執行期錯誤為 `3`；安裝專用 helper 拒絕或失敗為 `4`。
 
@@ -94,7 +105,7 @@ rustup toolchain install 1.97.1 --profile minimal `
 
 ## 遠端與 CI 測試
 
-預設驗證路徑全程非互動，不顯示設定視窗、不啟動全螢幕保護程式、不安裝成品、不觸發 UAC，也不變更 Windows 目前的螢幕保護程式設定：
+預設驗證路徑全程非互動，不顯示設定視窗、不啟動全螢幕螢幕保護程式、不建立 WebView2 player、不安裝成品、不觸發 UAC，也不變更 Windows 目前的螢幕保護程式設定：
 
 ```powershell
 .\scripts\build.bat
@@ -102,27 +113,38 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'MyDateTimeScreensaver-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、35 個非互動測試與 locked Release build。預設 smoke test 驗證 PE 架構、resources、manifest、版本、imports、靜態 CRT、無 UI 的錯誤參數，以及安裝 helper 從非 System32 路徑拒絕時不改系統設定。GitHub Actions 只使用這條非互動路徑。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.2.0 本次預設測試共 45 個通過，另有 9 個互動、長時間或環境測試維持 ignored；其中 WebView2 Runtime 與產品解析器即時來源測試另行明確執行並通過。預設 smoke test 已通過 PE 架構、resources、manifest、版本、imports、靜態 CRT、第三模式與網路說明字串、無 UI 的錯誤參數，以及安裝 helper 從非 System32 路徑拒絕時不改系統設定。
 
-下列項目只供有本機桌面、可接受視窗／UAC 且已安排復原措施的人工驗收，不由遠端工作階段或 CI 執行：
+公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
+
+```powershell
+powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
+```
+
+2026-09-06T22:34:09.5322337+08:00 的結果為 tw.live 日本目錄正常、8／8 內建候選可解析，詳見 [source-health.json](docs/evidence/phase6/source-health.json)。同一輪也以產品實際使用的 WinHTTP 與 HTML parser 明確執行即時來源測試並通過；這些結果仍不代表影片已進入 `PLAYING`。
+
+下列項目只供有本機桌面且可接受視窗／UAC、並已安排復原措施的人工驗收，不由遠端工作階段或 CI 執行：
 
 - `smoke-test.ps1 -Interactive`
 - ignored native UI tests
 - `observe-phase4.ps1`
 - `test-installation.ps1`（會安裝到 System32 並顯示 UAC）
+- 日本旅行模式實際播放、至少 5 次 60 秒輪換、多螢幕／DPI、斷網與 30 分鐘資源觀察
 
-缺少可互動環境時，相關驗收維持 `NOT TESTED`，不以編譯成功代替。現有 Windows 10 驗證邊界與逐項狀態見 [驗收報告](docs/acceptance-report.md)。
+缺少可互動環境時，相關驗收維持 `NOT TESTED`。Windows 10 驗證邊界與逐項狀態見 [驗收報告](docs/acceptance-report.md)。
 
 ## 專案文件
 
-- [Codex 開發規格 v1.2](MyDateTimeScreensaver_Codex_Spec.md)
+- [Codex 開發規格 v1.3](MyDateTimeScreensaver_Codex_Spec.md)
+- [Phase 6 日本旅行模式實作與驗證報告](docs/phase6-report.md)
+- [日本旅行模式來源、網路與授權紀錄](docs/japan-travel-sources.md)
 - [Phase 5 封裝與交付報告](docs/phase5-report.md)
 - [AC／UT／MT 逐項驗收報告](docs/acceptance-report.md)
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～4 報告保留各階段當時的版本、hash 與限制；目前下載成品以 v0.1.1 Release 與 `SHA256SUMS.txt` 為準。文字 evidence 中的本機路徑與主機名稱已在公開前匿名化。
+Phase 0～5 報告保留各階段當時的版本、hash 與限制；它們不是日本旅行模式的驗證證據。目前下載成品以 v0.2.0 Release 與該 Release 的 `SHA256SUMS.txt` 為準。
 
 ## 授權
 
-原始碼以 [MIT License](LICENSE) 發布，Copyright (c) 2026 kisaraki。程式圖示由本專案自行繪製；使用者提供的私有視覺參考沒有納入公開 repository 或成品。
+原始碼及本專案自製圖形以 [MIT License](LICENSE) 發布，Copyright (c) 2026 kisaraki。MIT License 不涵蓋 tw.live、YouTube、攝影機提供者或第三方影片。程式圖示由本專案自行繪製；使用者提供的私有視覺參考沒有納入公開 repository 或成品。

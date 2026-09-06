@@ -240,10 +240,11 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_MODE_TIME_DATE),
-            i32::from(resource_ids::IDC_MODE_COUNTDOWN),
+            i32::from(resource_ids::IDC_MODE_JAPAN_TRAVEL),
             i32::from(match draft.display_mode {
                 DisplayMode::TimeDate => resource_ids::IDC_MODE_TIME_DATE,
                 DisplayMode::Countdown => resource_ids::IDC_MODE_COUNTDOWN,
+                DisplayMode::JapanTravel => resource_ids::IDC_MODE_JAPAN_TRAVEL,
             }),
         ) == 0
         {
@@ -302,6 +303,7 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
     draft.display_mode = match id {
         value if value == resource_ids::IDC_MODE_TIME_DATE => DisplayMode::TimeDate,
         value if value == resource_ids::IDC_MODE_COUNTDOWN => DisplayMode::Countdown,
+        value if value == resource_ids::IDC_MODE_JAPAN_TRAVEL => DisplayMode::JapanTravel,
         _ => draft.display_mode,
     };
     if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE).contains(&id) {
@@ -475,7 +477,7 @@ unsafe extern "system" fn config_proc(
         }
         WM_COMMAND
             if notification == BN_CLICKED as u16
-                && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_COUNTDOWN)
+                && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
                     .contains(&id)
                     || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE)
                         .contains(&id)) =>

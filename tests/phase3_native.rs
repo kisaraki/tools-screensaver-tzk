@@ -20,6 +20,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::*;
 const TEST_KEY_ENV: &str = "MYDATETIME_SCREENSAVER_TEST_KEY";
 const IDC_MODE_TIME_DATE: i32 = 1001;
 const IDC_MODE_COUNTDOWN: i32 = 1002;
+const IDC_MODE_JAPAN_TRAVEL: i32 = 1003;
 const IDC_COLOR_DARK_RED: i32 = 1101;
 const IDC_COLOR_DARK_ORANGE: i32 = 1102;
 const IDC_COLOR_BRIGHT_GREEN: i32 = 1103;
@@ -346,6 +347,7 @@ fn phase3_configuration_preview_and_countdown_flow() {
         &[
             IDC_MODE_TIME_DATE,
             IDC_MODE_COUNTDOWN,
+            IDC_MODE_JAPAN_TRAVEL,
             IDC_COLOR_DARK_RED,
             IDC_COLOR_DARK_ORANGE,
             IDC_COLOR_BRIGHT_GREEN,
@@ -367,6 +369,8 @@ fn phase3_configuration_preview_and_countdown_flow() {
         click(dialog, control);
         assert_eq!(config_draft(dialog), [0, preset, 0]);
     }
+    click(dialog, IDC_MODE_JAPAN_TRAVEL);
+    assert_eq!(config_draft(dialog), [2, 3, 0]);
     click(dialog, IDC_MODE_COUNTDOWN);
     click(dialog, IDC_COLOR_DARK_ORANGE);
     select_combo(dialog, 2);

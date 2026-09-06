@@ -1,7 +1,12 @@
 use std::{
     cell::{Cell, RefCell},
+    env, fs,
+    mem::size_of,
+    path::PathBuf,
     ptr,
     rc::Rc,
+    sync::mpsc,
+    thread,
 };
 
 use windows_sys::Win32::Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, POINT, SYSTEMTIME, WPARAM};
@@ -11,7 +16,7 @@ use windows_sys::Win32::Graphics::Gdi::{
 use windows_sys::Win32::System::SystemInformation::{GetLocalTime, GetTickCount64};
 use windows_sys::Win32::System::Threading::GetCurrentProcessId;
 use windows_sys::Win32::UI::HiDpi::GetDpiForWindow;
-use windows_sys::Win32::UI::Input::KeyboardAndMouse::SetFocus;
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, SetFocus, LASTINPUTINFO};
 use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
 use crate::config::AppConfig;
@@ -22,14 +27,26 @@ use crate::model::{DisplayMode, FrameSnapshot, LocalTime, Timeline};
 use crate::monitor::{self, Bounds};
 use crate::native::{client_size, set_pointer, DpiScope, WindowIdentity};
 use crate::render::{Renderer, Style};
+use crate::travel::{
+    self, NetworkEvent, NetworkState, TravelRotation, TravelSource, TRAVEL_HTML_SHELL,
+};
+use crate::travel_webview::{
+    PlayerEventKind, StartupPoll, TravelWebView, TravelWebViewStartup, BROWSER_FAILED,
+    PLAYER_EVENT, SHELL_NAVIGATED, SHELL_READY, WEBVIEW_STARTUP_CHANGED,
+};
 
 const CLASS_NAME: *const u16 = windows_sys::w!("MyDateTimeScreensaver.Window");
 const WINDOW_TITLE: *const u16 = windows_sys::w!("MyDateTimeScreensaver");
 const CLOSE_ALL: u32 = WM_APP + 1;
 const CHECK_FOREGROUND: u32 = WM_APP + 2;
+const TRAVEL_FETCH_DONE: u32 = WM_APP + 44;
 #[cfg(debug_assertions)]
 const TEST_GET_CONFIG_SNAPSHOT: u32 = WM_APP + 32;
 const MAINTENANCE_TIMER: usize = 1;
+const TRAVEL_INPUT_TIMER: usize = 2;
+const TRAVEL_RETRY_MS: u64 = 30_000;
+const PLAYER_START_TIMEOUT_MS: u64 = 20_000;
+const MAX_CANDIDATES_PER_ATTEMPT: usize = 3;
 
 #[derive(Clone, Copy)]
 enum Mode {
@@ -55,6 +72,76 @@ enum Role {
     Surface,
 }
 
+struct TravelFetchCompletion {
+    generation: u64,
+    purpose: FetchPurpose,
+    catalog_healthy: bool,
+    source: Result<TravelSource, String>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FetchPurpose {
+    Current,
+    Prefetch,
+}
+
+struct TravelSession {
+    rotation: TravelRotation,
+    sender: mpsc::Sender<TravelFetchCompletion>,
+    receiver: mpsc::Receiver<TravelFetchCompletion>,
+    generation: u64,
+    fetching: bool,
+    catalog_healthy: bool,
+    state: NetworkState,
+    source: Option<TravelSource>,
+    prefetched_source: Option<TravelSource>,
+    shell_ready: bool,
+    awaiting_playback: bool,
+    playback_token: u32,
+    load_started: u64,
+    last_playing: u64,
+    retry_at: u64,
+    prefetch_retry_at: u64,
+    browser_startup: Option<TravelWebViewStartup>,
+    browser: Option<TravelWebView>,
+    browser_error: Option<String>,
+}
+
+impl TravelSession {
+    fn new(seed: u32) -> Self {
+        let (sender, receiver) = mpsc::channel();
+        Self {
+            rotation: TravelRotation::new(seed),
+            sender,
+            receiver,
+            generation: 0,
+            fetching: false,
+            catalog_healthy: false,
+            state: NetworkState::Offline,
+            source: None,
+            prefetched_source: None,
+            shell_ready: false,
+            awaiting_playback: false,
+            playback_token: 0,
+            load_started: 0,
+            last_playing: 0,
+            retry_at: 0,
+            prefetch_retry_at: 0,
+            browser_startup: None,
+            browser: None,
+            browser_error: None,
+        }
+    }
+
+    fn activate_source(&mut self, source: TravelSource, now: u64) {
+        self.playback_token = self.playback_token.wrapping_add(1).max(1);
+        self.source = Some(source);
+        self.awaiting_playback = true;
+        self.load_started = now;
+        self.state = self.state.transition(NetworkEvent::SourceResolved);
+    }
+}
+
 struct Session {
     mode: Mode,
     config: Cell<AppConfig>,
@@ -63,7 +150,9 @@ struct Session {
     coordinator: Cell<HWND>,
     lifecycle: Cell<Shutdown>,
     baseline: Cell<Option<InputBaseline>>,
+    last_input_tick: Cell<Option<u32>>,
     timer: Cell<usize>,
+    input_timer: Cell<usize>,
     error: Cell<Option<AppError>>,
     in_loop: Cell<bool>,
     closing: Cell<bool>,
@@ -71,10 +160,19 @@ struct Session {
     timeline: Cell<Option<Timeline>>,
     frame: Cell<Option<FrameSnapshot>>,
     interval: Cell<u32>,
+    travel: RefCell<Option<TravelSession>>,
+    travel_host: Cell<HWND>,
 }
 
 impl Session {
     fn new(mode: Mode, config: AppConfig, countdown_seconds: u32) -> Self {
+        // SAFETY: This is only a seed read and has no lifetime or ownership effect.
+        let seed_tick = unsafe { GetTickCount64() } as u32;
+        let travel = (matches!(mode, Mode::Fullscreen)
+            && mode.display(config) == DisplayMode::JapanTravel)
+            .then(|| {
+                TravelSession::new(seed_tick ^ unsafe { GetCurrentProcessId() }.rotate_left(13))
+            });
         Self {
             mode,
             config: Cell::new(config),
@@ -83,7 +181,9 @@ impl Session {
             coordinator: Cell::new(ptr::null_mut()),
             lifecycle: Cell::new(Shutdown::default()),
             baseline: Cell::new(None),
+            last_input_tick: Cell::new(None),
             timer: Cell::new(0),
+            input_timer: Cell::new(0),
             error: Cell::new(None),
             in_loop: Cell::new(false),
             closing: Cell::new(false),
@@ -91,6 +191,8 @@ impl Session {
             timeline: Cell::new(None),
             frame: Cell::new(None),
             interval: Cell::new(1000),
+            travel: RefCell::new(travel),
+            travel_host: Cell::new(ptr::null_mut()),
         }
     }
 
@@ -104,6 +206,466 @@ impl Session {
             Mode::Developer(_) => Style::default(),
             _ => Style::from_config(self.config.get()),
         }
+    }
+
+    fn initialize_travel(&self) {
+        if self.travel.borrow().is_none() || self.lifecycle.get().stopping {
+            return;
+        }
+        let host = self.travel_host.get();
+        let coordinator = self.coordinator.get();
+        if host.is_null() || coordinator.is_null() {
+            return;
+        }
+
+        let startup = prepare_travel_storage().and_then(|(user_data, content)| {
+            TravelWebViewStartup::start(host, coordinator, &user_data, &content)
+        });
+        if self.lifecycle.get().stopping {
+            drop(startup);
+            return;
+        }
+        if let Some(travel) = self.travel.borrow_mut().as_mut() {
+            match startup {
+                Ok(startup) => travel.browser_startup = Some(startup),
+                Err(error) => {
+                    travel.browser_error = Some(error);
+                    travel.state = NetworkState::Offline;
+                }
+            }
+        }
+        // SAFETY: GetTickCount64 is a monotonic, process-independent clock read.
+        self.begin_travel_fetch(unsafe { GetTickCount64() }, FetchPurpose::Current);
+    }
+
+    fn begin_travel_fetch(&self, now: u64, purpose: FetchPurpose) {
+        let coordinator = self.coordinator.get();
+        if coordinator.is_null() || self.lifecycle.get().stopping {
+            return;
+        }
+        let (generation, purpose, candidates, sender, check_catalog) = {
+            let mut travel_slot = self.travel.borrow_mut();
+            let Some(travel) = travel_slot.as_mut() else {
+                return;
+            };
+            if travel.fetching || travel.browser_error.is_some() && travel.source.is_some() {
+                return;
+            }
+            travel.generation = travel.generation.wrapping_add(1);
+            travel.fetching = true;
+            if purpose == FetchPurpose::Current {
+                travel.state = travel.state.transition(NetworkEvent::FetchStarted);
+            }
+            let current = travel
+                .source
+                .as_ref()
+                .map(|source| source.camera_id.as_str());
+            let mut candidates = travel.rotation.candidates();
+            candidates.retain(|candidate| Some(candidate.camera_id) != current);
+            candidates.truncate(MAX_CANDIDATES_PER_ATTEMPT);
+            (
+                travel.generation,
+                purpose,
+                candidates,
+                travel.sender.clone(),
+                !travel.catalog_healthy,
+            )
+        };
+        if purpose == FetchPurpose::Current {
+            self.update_travel_status();
+        }
+
+        let coordinator_value = coordinator as usize;
+        let spawn = thread::Builder::new()
+            .name("japan-travel-source-check".into())
+            .spawn(move || {
+                let catalog = if check_catalog {
+                    travel::check_catalog().map(|()| true)
+                } else {
+                    Ok(true)
+                };
+                let completion = match catalog {
+                    Err(error) => TravelFetchCompletion {
+                        generation,
+                        purpose,
+                        catalog_healthy: false,
+                        source: Err(error.to_string()),
+                    },
+                    Ok(catalog_healthy) => {
+                        let mut last_error = "沒有可用的日本即時影像候選".to_owned();
+                        let mut source = None;
+                        for candidate in candidates {
+                            match travel::fetch_source(candidate) {
+                                Ok(resolved) => {
+                                    source = Some(resolved);
+                                    break;
+                                }
+                                Err(error) => last_error = error.to_string(),
+                            }
+                        }
+                        TravelFetchCompletion {
+                            generation,
+                            purpose,
+                            catalog_healthy,
+                            source: source.ok_or(last_error),
+                        }
+                    }
+                };
+                if sender.send(completion).is_ok() {
+                    // SAFETY: The HWND is an opaque copied value. Failure means
+                    // shutdown won the race; receiver teardown reclaims the value.
+                    unsafe {
+                        PostMessageW(coordinator_value as HWND, TRAVEL_FETCH_DONE, 0, 0);
+                    }
+                }
+            });
+        if let Err(_error) = spawn {
+            if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                travel.fetching = false;
+                if purpose == FetchPurpose::Current {
+                    travel.state = travel.state.transition(NetworkEvent::FetchFailed);
+                    travel.retry_at = now.saturating_add(TRAVEL_RETRY_MS);
+                } else {
+                    travel.prefetch_retry_at = now.saturating_add(TRAVEL_RETRY_MS);
+                }
+            }
+            self.update_travel_status();
+        }
+    }
+
+    fn receive_travel_fetch(&self, now: u64) {
+        let completions = {
+            let travel_slot = self.travel.borrow();
+            let Some(travel) = travel_slot.as_ref() else {
+                return;
+            };
+            let mut completions = Vec::new();
+            while let Ok(completion) = travel.receiver.try_recv() {
+                completions.push(completion);
+            }
+            completions
+        };
+        for completion in completions {
+            let mut should_load = false;
+            {
+                let mut travel_slot = self.travel.borrow_mut();
+                let Some(travel) = travel_slot.as_mut() else {
+                    return;
+                };
+                if completion.generation != travel.generation {
+                    continue;
+                }
+                travel.fetching = false;
+                travel.catalog_healthy |= completion.catalog_healthy;
+                match completion.source {
+                    Ok(source) => {
+                        debug_assert!(source
+                            .embed_url()
+                            .starts_with("https://www.youtube-nocookie.com/"));
+                        let keep_prefetched = completion.purpose == FetchPurpose::Prefetch
+                            && travel.state == NetworkState::Playing
+                            && !TravelRotation::due(travel.last_playing, now);
+                        if keep_prefetched {
+                            travel.prefetched_source = Some(source);
+                        } else {
+                            travel.activate_source(source, now);
+                            should_load = travel.shell_ready && travel.browser.is_some();
+                        }
+                        if travel.browser.is_none() && travel.browser_startup.is_none() {
+                            travel.awaiting_playback = false;
+                            travel.state = NetworkState::Offline;
+                            travel.retry_at = u64::MAX;
+                        }
+                    }
+                    Err(_error) => {
+                        if completion.purpose == FetchPurpose::Prefetch
+                            && travel.state == NetworkState::Playing
+                        {
+                            travel.prefetch_retry_at = now.saturating_add(TRAVEL_RETRY_MS);
+                        } else {
+                            travel.awaiting_playback = false;
+                            travel.state = travel.state.transition(NetworkEvent::FetchFailed);
+                            travel.retry_at = now.saturating_add(TRAVEL_RETRY_MS);
+                        }
+                    }
+                }
+            }
+            self.update_travel_status();
+            if should_load {
+                self.load_current_travel_source(now);
+            }
+        }
+    }
+
+    fn travel_shell_ready(&self, now: u64) {
+        let should_load = {
+            let mut travel_slot = self.travel.borrow_mut();
+            let Some(travel) = travel_slot.as_mut() else {
+                return;
+            };
+            travel.shell_ready = true;
+            travel.source.is_some() && travel.awaiting_playback
+        };
+        self.update_travel_status();
+        if should_load {
+            self.load_current_travel_source(now);
+        }
+    }
+
+    fn load_current_travel_source(&self, now: u64) {
+        let script = self.travel.borrow().as_ref().and_then(|travel| {
+            travel
+                .source
+                .as_ref()
+                .map(|source| travel::load_source_script(source, travel.playback_token))
+        });
+        let Some(script) = script else {
+            return;
+        };
+        match self.with_travel_browser(|browser| browser.execute_script(&script)) {
+            Ok(()) => {
+                if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                    travel.load_started = now;
+                    travel.state = NetworkState::LoadingPlayer;
+                }
+            }
+            Err(error) => {
+                if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                    travel.awaiting_playback = false;
+                    travel.state = NetworkState::Offline;
+                    travel.retry_at = u64::MAX;
+                    travel.browser_error = Some(error);
+                }
+            }
+        }
+        self.update_travel_status();
+    }
+
+    fn receive_travel_player_event(&self, now: u64) {
+        let notification = self
+            .travel
+            .borrow()
+            .as_ref()
+            .and_then(|travel| travel.browser.as_ref())
+            .and_then(TravelWebView::take_player_notification);
+        let Some(notification) = notification else {
+            return;
+        };
+        let event = match notification.kind {
+            PlayerEventKind::Ready => NetworkEvent::PlayerReady,
+            PlayerEventKind::Playing => NetworkEvent::PlayerPlaying,
+            PlayerEventKind::Failed => NetworkEvent::PlayerError,
+            PlayerEventKind::Stalled => NetworkEvent::PlayerStalled,
+        };
+        let mut start_prefetch = false;
+        let mut load_prefetched = false;
+        {
+            let mut travel_slot = self.travel.borrow_mut();
+            let Some(travel) = travel_slot.as_mut() else {
+                return;
+            };
+            if notification.token != travel.playback_token {
+                return;
+            }
+            match event {
+                NetworkEvent::PlayerReady if travel.awaiting_playback => {
+                    travel.state = travel.state.transition(event);
+                }
+                NetworkEvent::PlayerPlaying if travel.awaiting_playback => {
+                    travel.state = travel.state.transition(event);
+                    travel.awaiting_playback = false;
+                    travel.last_playing = now;
+                    if let Some(source) = travel.source.as_ref() {
+                        travel.rotation.mark_playing(&source.camera_id);
+                    }
+                    travel.prefetch_retry_at = now;
+                    start_prefetch = true;
+                }
+                NetworkEvent::PlayerError | NetworkEvent::PlayerStalled
+                    if travel.awaiting_playback || travel.state == NetworkState::Playing =>
+                {
+                    if let Some(source) = travel.prefetched_source.take() {
+                        travel.activate_source(source, now);
+                        load_prefetched = travel.shell_ready && travel.browser.is_some();
+                    } else {
+                        travel.state = travel.state.transition(event);
+                        travel.awaiting_playback = false;
+                        travel.retry_at = now;
+                    }
+                }
+                _ => return,
+            }
+        }
+        self.update_travel_status();
+        if load_prefetched {
+            self.load_current_travel_source(now);
+        }
+        if start_prefetch {
+            self.begin_travel_fetch(now, FetchPurpose::Prefetch);
+        }
+    }
+
+    fn maintain_travel(&self, now: u64) {
+        self.receive_travel_webview_startup();
+        self.receive_travel_fetch(now);
+        let mut should_load = false;
+        let fetch_purpose = {
+            let mut travel_slot = self.travel.borrow_mut();
+            let Some(travel) = travel_slot.as_mut() else {
+                return;
+            };
+            if travel.browser_error.is_some() {
+                None
+            } else if matches!(
+                travel.state,
+                NetworkState::LoadingPlayer | NetworkState::PlayerReady
+            ) && travel.browser.is_some()
+                && travel.shell_ready
+                && travel.awaiting_playback
+                && now.saturating_sub(travel.load_started) >= PLAYER_START_TIMEOUT_MS
+            {
+                travel.state = NetworkState::SourceFailed;
+                travel.awaiting_playback = false;
+                travel.retry_at = now;
+                Some(FetchPurpose::Current)
+            } else if travel.state == NetworkState::Playing {
+                if TravelRotation::due(travel.last_playing, now) {
+                    if let Some(source) = travel.prefetched_source.take() {
+                        travel.activate_source(source, now);
+                        should_load = travel.shell_ready && travel.browser.is_some();
+                        None
+                    } else if !travel.fetching {
+                        Some(FetchPurpose::Current)
+                    } else {
+                        None
+                    }
+                } else if travel.prefetched_source.is_none()
+                    && !travel.fetching
+                    && now >= travel.prefetch_retry_at
+                {
+                    Some(FetchPurpose::Prefetch)
+                } else {
+                    None
+                }
+            } else {
+                (matches!(
+                    travel.state,
+                    NetworkState::Offline | NetworkState::SourceFailed | NetworkState::Stalled
+                ) && now >= travel.retry_at
+                    && !travel.fetching)
+                    .then_some(FetchPurpose::Current)
+            }
+        };
+        if should_load {
+            self.load_current_travel_source(now);
+        }
+        if let Some(purpose) = fetch_purpose {
+            self.begin_travel_fetch(now, purpose);
+        }
+    }
+
+    fn receive_travel_webview_startup(&self) {
+        let outcome = self
+            .travel
+            .borrow_mut()
+            .as_mut()
+            .and_then(|travel| travel.browser_startup.as_mut())
+            .map(TravelWebViewStartup::poll);
+        match outcome {
+            Some(StartupPoll::Ready(browser)) => {
+                if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                    travel.browser_startup.take();
+                    travel.browser = Some(browser);
+                    travel.browser_error = None;
+                }
+            }
+            Some(StartupPoll::Failed(error)) => {
+                if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                    travel.browser_startup.take();
+                    travel.browser_error = Some(error);
+                    travel.awaiting_playback = false;
+                    travel.state = NetworkState::Offline;
+                    travel.retry_at = u64::MAX;
+                }
+            }
+            Some(StartupPoll::Pending) | None => {}
+        }
+        self.update_travel_status();
+    }
+
+    fn travel_browser_failed(&self) {
+        let browser = {
+            let mut travel_slot = self.travel.borrow_mut();
+            let Some(travel) = travel_slot.as_mut() else {
+                return;
+            };
+            travel.browser_error = Some("WebView2 navigation or renderer failed".into());
+            travel.shell_ready = false;
+            travel.awaiting_playback = false;
+            travel.state = NetworkState::Offline;
+            travel.retry_at = u64::MAX;
+            travel.browser.take()
+        };
+        drop(browser);
+        let host = self.travel_host.get();
+        if !host.is_null() {
+            // SAFETY: The surface is owned by this UI thread. After the child
+            // controller closes, repaint exposes the GDI fallback immediately.
+            unsafe { windows_sys::Win32::Graphics::Gdi::InvalidateRect(host, ptr::null(), 0) };
+        }
+    }
+
+    fn travel_shell_navigated(&self) {
+        if self.with_travel_browser(TravelWebView::show).is_err() {
+            self.travel_browser_failed();
+        }
+    }
+
+    fn update_travel_status(&self) {
+        let script = {
+            let travel_slot = self.travel.borrow();
+            let Some(travel) = travel_slot.as_ref() else {
+                return;
+            };
+            if !travel.shell_ready || travel.browser.is_none() {
+                return;
+            }
+            travel::set_status_script(travel.state.label())
+        };
+        let _ = self.with_travel_browser(|browser| browser.execute_script(&script));
+    }
+
+    fn resize_travel(&self, hwnd: HWND, width: i32, height: i32) {
+        if hwnd == self.travel_host.get() {
+            let _ = self.with_travel_browser(|browser| browser.resize(width, height));
+        }
+    }
+
+    fn with_travel_browser(
+        &self,
+        operation: impl FnOnce(&TravelWebView) -> Result<(), String>,
+    ) -> Result<(), String> {
+        let browser = self
+            .travel
+            .borrow_mut()
+            .as_mut()
+            .and_then(|travel| travel.browser.take())
+            .ok_or_else(|| "WebView2 player is unavailable".to_owned())?;
+        let result = operation(&browser);
+        if !self.lifecycle.get().stopping {
+            if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                travel.browser = Some(browser);
+                return result;
+            }
+        }
+        drop(browser);
+        result
+    }
+
+    fn close_travel(&self) {
+        self.travel_host.set(ptr::null_mut());
+        let travel = self.travel.borrow_mut().take();
+        drop(travel);
     }
 
     fn register(&self, hwnd: HWND) {
@@ -167,6 +729,14 @@ impl Session {
             // SAFETY: This timer belongs to this UI thread's coordinator.
             unsafe { KillTimer(coordinator, timer) };
         }
+        let input_timer = self.input_timer.replace(0);
+        if input_timer != 0 && !coordinator.is_null() {
+            // SAFETY: This input poll timer belongs to this coordinator.
+            unsafe { KillTimer(coordinator, input_timer) };
+        }
+        // Close WebView2 before destroying its parent surface. This also drops
+        // the completion receiver, so late worker results are reclaimed safely.
+        self.close_travel();
         // Clone and release the RefCell borrow BEFORE any reentrant DestroyWindow.
         let windows = self.windows.borrow().clone();
         for hwnd in windows.into_iter().filter(|&hwnd| hwnd != coordinator) {
@@ -209,6 +779,32 @@ impl Session {
             if baseline.moved(unsafe { GetTickCount64() }, point.x, point.y) {
                 self.request_shutdown();
             }
+        }
+    }
+
+    fn check_travel_input(&self) {
+        if self.travel.borrow().is_none() || !matches!(self.mode, Mode::Fullscreen) {
+            return;
+        }
+        let (Some(started), Some(baseline)) = (self.last_input_tick.get(), self.baseline.get())
+        else {
+            return;
+        };
+        // Preserve the same startup grace used by cursor movement, then compare
+        // the session-wide last-input tick so even short events consumed by the
+        // WebView2 child are observed.
+        if !baseline.ready(unsafe { GetTickCount64() }) {
+            return;
+        }
+        let mut info = LASTINPUTINFO {
+            cbSize: size_of::<LASTINPUTINFO>() as u32,
+            dwTime: 0,
+        };
+        // SAFETY: info has the documented size and remains writable for the call.
+        if unsafe { GetLastInputInfo(&mut info) } == 0 {
+            self.fail(last_error("GetLastInputInfo"));
+        } else if info.dwTime != started {
+            self.request_shutdown();
         }
     }
 
@@ -259,6 +855,10 @@ impl Session {
             }
             #[cfg(debug_assertions)]
             Mode::Developer(_) => (),
+        }
+        if self.travel.borrow().is_some() && !self.lifecycle.get().stopping {
+            // SAFETY: Read the same monotonic clock used for rotation deadlines.
+            self.maintain_travel(unsafe { GetTickCount64() });
         }
         if !self.lifecycle.get().stopping {
             if let Err(error) = self.sample_frame(restart) {
@@ -368,6 +968,28 @@ impl Session {
         }
         Ok(())
     }
+}
+
+fn prepare_travel_storage() -> Result<(PathBuf, PathBuf), String> {
+    let local_app_data = env::var_os("LOCALAPPDATA")
+        .map(PathBuf::from)
+        .ok_or_else(|| "LOCALAPPDATA is unavailable for WebView2 data".to_owned())?;
+    let base = local_app_data.join("KOMSMOS").join("MyDateTimeScreensaver");
+    let user_data = base.join("WebView2");
+    let content = base.join("TravelContent");
+    fs::create_dir_all(&user_data)
+        .map_err(|error| format!("cannot create WebView2 user data directory: {error}"))?;
+    fs::create_dir_all(&content)
+        .map_err(|error| format!("cannot create travel content directory: {error}"))?;
+    let shell = content.join("index.html");
+    let needs_write = fs::read(&shell)
+        .map(|bytes| bytes != TRAVEL_HTML_SHELL.as_bytes())
+        .unwrap_or(true);
+    if needs_write {
+        fs::write(&shell, TRAVEL_HTML_SHELL.as_bytes())
+            .map_err(|error| format!("cannot write travel player shell: {error}"))?;
+    }
+    Ok((user_data, content))
 }
 
 struct WindowState {
@@ -624,7 +1246,24 @@ fn run(
                 x: point.x,
                 y: point.y,
             }));
+            let mut last_input = LASTINPUTINFO {
+                cbSize: size_of::<LASTINPUTINFO>() as u32,
+                dwTime: 0,
+            };
+            // SAFETY: The initialized struct has the documented size.
+            if unsafe { GetLastInputInfo(&mut last_input) } == 0 {
+                return Err(last_error("GetLastInputInfo"));
+            }
+            session.last_input_tick.set(Some(last_input.dwTime));
             session.hide_cursor();
+            if session.display() == DisplayMode::JapanTravel {
+                if let Some(&primary) = surfaces.first() {
+                    session.travel_host.set(primary);
+                    // The already-visible GDI surface remains responsive while
+                    // WebView2 performs its bounded, message-pumping startup.
+                    session.initialize_travel();
+                }
+            }
         }
         Mode::Preview(parent) => {
             session.sample_frame(true)?;
@@ -668,6 +1307,9 @@ fn run(
                 DisplayMode::Countdown => {
                     windows_sys::w!("MyDateTimeScreensaver — Phase 3 / Countdown (Debug)")
                 }
+                DisplayMode::JapanTravel => {
+                    windows_sys::w!("MyDateTimeScreensaver — Japan Travel (Debug)")
+                }
             };
             // SAFETY: Show the fully initialized ordinary developer window.
             unsafe {
@@ -676,12 +1318,24 @@ fn run(
             }
         }
     }
+    if session.lifecycle.get().stopping {
+        return Ok(());
+    }
     // SAFETY: Timer belongs to the live message-only coordinator; no timer callback.
     let timer = unsafe { SetTimer(coordinator, MAINTENANCE_TIMER, session.interval.get(), None) };
     if timer == 0 {
         return Err(last_error("SetTimer"));
     }
     session.timer.set(timer);
+    if session.travel.borrow().is_some() {
+        // SAFETY: A dedicated short timer catches mouse clicks consumed by the
+        // WebView2 child without increasing the renderer's one-second cadence.
+        let input_timer = unsafe { SetTimer(coordinator, TRAVEL_INPUT_TIMER, 100, None) };
+        if input_timer == 0 {
+            return Err(last_error("SetTimer(travel input)"));
+        }
+        session.input_timer.set(input_timer);
+    }
     session.in_loop.set(true);
     let mut message = MSG::default();
     loop {
@@ -778,6 +1432,7 @@ unsafe extern "system" fn window_proc(
             let display = match session.display() {
                 DisplayMode::TimeDate => 0,
                 DisplayMode::Countdown => 1,
+                DisplayMode::JapanTravel => 2,
             };
             let font = match config.font_mode {
                 crate::model::FontMode::SevenSegment => 0,
@@ -855,8 +1510,41 @@ unsafe extern "system" fn window_proc(
             session.close_all();
             0
         }
+        TRAVEL_FETCH_DONE if role == Role::Coordinator => {
+            // SAFETY: The worker only posts an event; the UI thread drains owned
+            // channel values and applies the latest generation.
+            session.receive_travel_fetch(unsafe { GetTickCount64() });
+            0
+        }
+        WEBVIEW_STARTUP_CHANGED if role == Role::Coordinator => {
+            session.receive_travel_webview_startup();
+            0
+        }
+        SHELL_READY if role == Role::Coordinator => {
+            // SAFETY: Monotonic timestamp for the pending player deadline.
+            session.travel_shell_ready(unsafe { GetTickCount64() });
+            0
+        }
+        PLAYER_EVENT if role == Role::Coordinator => {
+            // SAFETY: Monotonic timestamp validates the tokened player event and
+            // starts the one-minute window only for the current source.
+            session.receive_travel_player_event(unsafe { GetTickCount64() });
+            0
+        }
+        BROWSER_FAILED if role == Role::Coordinator => {
+            session.travel_browser_failed();
+            0
+        }
+        SHELL_NAVIGATED if role == Role::Coordinator => {
+            session.travel_shell_navigated();
+            0
+        }
         WM_TIMER if role == Role::Coordinator && wparam == session.timer.get() => {
             session.maintain();
+            0
+        }
+        WM_TIMER if role == Role::Coordinator && wparam == session.input_timer.get() => {
+            session.check_travel_input();
             0
         }
         CHECK_FOREGROUND => {
@@ -936,6 +1624,7 @@ unsafe extern "system" fn window_proc(
                         surface.renderer.borrow_mut().replace(Renderer::default());
                     }
                 }
+                session.resize_travel(hwnd, width, height);
             }
             if matches!(session.mode, Mode::Fullscreen) {
                 if let (Some(surface), Some(frame), Ok((width, height))) =
@@ -993,6 +1682,25 @@ fn paint_black(hwnd: HWND) -> Result<(), AppError> {
 mod tests {
     use super::*;
     use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+
+    #[test]
+    fn activating_a_source_advances_a_nonzero_playback_token() {
+        let mut travel = TravelSession::new(1);
+        let source = |camera: &str| TravelSource {
+            camera_id: camera.into(),
+            place: "日本".into(),
+            youtube_id: "Ee27soLzJ5c".into(),
+        };
+        travel.activate_source(source("first"), 100);
+        assert_eq!(travel.playback_token, 1);
+        assert!(travel.awaiting_playback);
+        travel.activate_source(source("second"), 200);
+        assert_eq!(travel.playback_token, 2);
+        assert_eq!(travel.load_started, 200);
+        travel.playback_token = u32::MAX;
+        travel.activate_source(source("wrapped"), 300);
+        assert_eq!(travel.playback_token, 1);
+    }
 
     #[test]
     fn real_creation_failures_and_partial_group_cleanup_drop_each_state_once() {

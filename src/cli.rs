@@ -53,6 +53,9 @@ pub fn parse(args: &[&str]) -> Result<RunMode, ParseError> {
             "--dev-render=countdown" => {
                 return Ok(RunMode::Developer(crate::model::DisplayMode::Countdown))
             }
+            "--dev-render=japan-travel" => {
+                return Ok(RunMode::Developer(crate::model::DisplayMode::JapanTravel))
+            }
             _ => (),
         }
     }
