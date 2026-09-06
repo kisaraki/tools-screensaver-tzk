@@ -1,13 +1,13 @@
 # 日本旅行模式來源、網路與授權紀錄
 
 產品版本：0.2.0<br>
-規格文件：v1.3<br>
-最後非互動 HTTP 檢查：2026-09-06T22:34:09.5322337+08:00<br>
+規格文件：v1.4<br>
+最後非互動 HTTP 檢查：2026-09-07T06:36:23.3366718+08:00<br>
 主要目錄：[tw.live 日本旅行即時影像](https://tw.live/japan/)
 
 ## 文件用途
 
-本文件記錄 v0.2.0 日本旅行模式實際使用的來源契約、當次網路探測，以及尚未完成的播放與權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
+本文件記錄 v0.3.0 日本旅行模式實際使用的來源契約、當次網路探測，以及尚未完成的播放與權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
 
 tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地即時影像並標示資料來源為 YouTube；本程式使用 tw.live camera detail 解析出的 YouTube video ID，交由 YouTube 官方嵌入播放器播放。程式不嵌入 tw.live 整頁，也不執行其 script、廣告或追蹤碼。
 
@@ -21,11 +21,11 @@ tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地
 
 只有第三層能在產品畫面標成播放中。catalog、detail、YouTube oEmbed 或縮圖回傳 HTTP 200 都不能冒充 `PlaybackHealthy`。
 
-## 2026-09-06 非互動探測
+## 2026-09-07 非互動探測
 
 `scripts/check-japan-sources.ps1` 以有界 HTTPS GET 檢查日本目錄與全部 8 個內建 camera seed；每個 request timeout 為 10 秒。每個候選都依序檢查 tw.live detail、解析出的 YouTube oEmbed 及縮圖。腳本沒有開啟 `/s`、`/c`、WebView2、安裝程式或 UAC。
 
-日本目錄回傳 HTTP 200，8／8 候選在檢查當下可解析且三個 HTTP 檢查均成功；`networkHealthy=true`。完整機器可讀證據位於 [source-health.json](evidence/phase6/source-health.json)。
+日本目錄回傳 HTTP 200，8／8 候選在檢查當下可解析且三個 HTTP 檢查均成功；`networkHealthy=true`。完整機器可讀證據位於 [source-health.json](evidence/phase7/source-health.json)。
 
 | 內建地點提示 | camera detail | 當次 video ID | detail／oEmbed／縮圖 |
 | --- | --- | --- | --- |
@@ -57,7 +57,7 @@ tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地
 
 ## Player、框架與第三方規則
 
-正式主螢幕使用本專案自製的本機 HTML／CSS A380 客艙風格 shell；完整 16:9 YouTube player 位於窗框內，地名與狀態列在 player 矩形外。`/p`、`/c`、其他螢幕及錯誤 fallback 使用自製 GDI 靜態畫面。這些畫面不使用 Airbus 商標、航空公司塗裝或第三方照片。
+正式主螢幕可選本專案自製的「自在飛行」或「列車旅行」HTML／CSS shell；完整 16:9 YouTube player 位於框景內，地名與狀態列在 player 矩形外。兩種場景共用相同來源、健康檢查及輪換契約。`/p`、`/c`、其他螢幕及錯誤 fallback 使用對應場景的自製 GDI 靜態畫面。這些畫面不使用 Airbus、列車營運者商標、航空公司塗裝或第三方照片。
 
 影片固定靜音，播放器控制項保持顯示。程式不遮蔽或裁切 player、YouTube 品牌、廣告或 controls，也不下載、錄製、轉碼、代理或重新託管影片。[YouTube Required Minimum Functionality](https://developers.google.com/youtube/terms/required-minimum-functionality) 說明播放器可見性、最小尺寸、Referer 與 overlay 邊界；[YouTube Developer Policies](https://developers.google.com/youtube/terms/developer-policies-guide) 說明 autoplay、播放完整性及資料處理規則。每次發布都必須重新檢查目前政策。
 

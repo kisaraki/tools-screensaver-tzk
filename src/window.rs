@@ -27,9 +27,7 @@ use crate::model::{DisplayMode, FrameSnapshot, LocalTime, Timeline};
 use crate::monitor::{self, Bounds};
 use crate::native::{client_size, set_pointer, DpiScope, WindowIdentity};
 use crate::render::{Renderer, Style};
-use crate::travel::{
-    self, NetworkEvent, NetworkState, TravelRotation, TravelSource, TRAVEL_HTML_SHELL,
-};
+use crate::travel::{self, NetworkEvent, NetworkState, TravelRotation, TravelSource};
 use crate::travel_webview::{
     PlayerEventKind, StartupPoll, TravelWebView, TravelWebViewStartup, BROWSER_FAILED,
     PLAYER_EVENT, SHELL_NAVIGATED, SHELL_READY, WEBVIEW_STARTUP_CHANGED,
@@ -218,7 +216,8 @@ impl Session {
             return;
         }
 
-        let startup = prepare_travel_storage().and_then(|(user_data, content)| {
+        let shell = travel::travel_html_shell(self.config.get().travel_style);
+        let startup = prepare_travel_storage(&shell).and_then(|(user_data, content)| {
             TravelWebViewStartup::start(host, coordinator, &user_data, &content)
         });
         if self.lifecycle.get().stopping {
@@ -970,7 +969,7 @@ impl Session {
     }
 }
 
-fn prepare_travel_storage() -> Result<(PathBuf, PathBuf), String> {
+fn prepare_travel_storage(shell_html: &str) -> Result<(PathBuf, PathBuf), String> {
     let local_app_data = env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .ok_or_else(|| "LOCALAPPDATA is unavailable for WebView2 data".to_owned())?;
@@ -983,10 +982,10 @@ fn prepare_travel_storage() -> Result<(PathBuf, PathBuf), String> {
         .map_err(|error| format!("cannot create travel content directory: {error}"))?;
     let shell = content.join("index.html");
     let needs_write = fs::read(&shell)
-        .map(|bytes| bytes != TRAVEL_HTML_SHELL.as_bytes())
+        .map(|bytes| bytes != shell_html.as_bytes())
         .unwrap_or(true);
     if needs_write {
-        fs::write(&shell, TRAVEL_HTML_SHELL.as_bytes())
+        fs::write(&shell, shell_html.as_bytes())
             .map_err(|error| format!("cannot write travel player shell: {error}"))?;
     }
     Ok((user_data, content))

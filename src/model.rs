@@ -27,6 +27,29 @@ impl DisplayMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TravelStyle {
+    FreeFlight,
+    TrainJourney,
+}
+
+impl TravelStyle {
+    pub const fn from_registry(value: u32) -> Option<Self> {
+        match value {
+            0 => Some(Self::FreeFlight),
+            1 => Some(Self::TrainJourney),
+            _ => None,
+        }
+    }
+
+    pub const fn registry_value(self) -> u32 {
+        match self {
+            Self::FreeFlight => 0,
+            Self::TrainJourney => 1,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FontMode {
     SevenSegment,
     Consolas,

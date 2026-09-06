@@ -1,0 +1,117 @@
+{
+    "schemaVersion":  1,
+    "checkedAt":  "2026-09-07T06:36:23.3366718+08:00",
+    "checkType":  "noninteractive HTTP reachability; does not claim video PLAYING",
+    "timeoutSecondsPerRequest":  10,
+    "catalog":  {
+                    "url":  "https://tw.live/japan/",
+                    "ok":  true,
+                    "status":  200,
+                    "elapsedMs":  1007,
+                    "error":  null
+                },
+    "summary":  {
+                    "total":  8,
+                    "reachable":  8,
+                    "unavailable":  0,
+                    "networkHealthy":  true
+                },
+    "cameras":  [
+                    {
+                        "cameraId":  "sapporostationhbc",
+                        "place":  "北海道・札幌",
+                        "twLiveUrl":  "https://tw.live/cam/?id=sapporostationhbc",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "Ee27soLzJ5c",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  529,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "okutamastationview",
+                        "place":  "東京・奧多摩",
+                        "twLiveUrl":  "https://tw.live/cam/?id=okutamastationview",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "PXpYve3XhE8",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  331,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "jpkyotokarasumadorinakagyo",
+                        "place":  "京都・中京區",
+                        "twLiveUrl":  "https://tw.live/cam/?id=jpkyotokarasumadorinakagyo",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "rjMsbLzg5p0",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  451,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "osakahanatencam",
+                        "place":  "大阪・JR 放出車站",
+                        "twLiveUrl":  "https://tw.live/cam/?id=osakahanatencam",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "A1EYCaxAhMY",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  778,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "miyajimacamera",
+                        "place":  "廣島・嚴島宮島",
+                        "twLiveUrl":  "https://tw.live/cam/?id=miyajimacamera",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "s2CxZ7N25i0",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  755,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "kariyushibeachnago",
+                        "place":  "沖繩・名護嘉利吉海灘",
+                        "twLiveUrl":  "https://tw.live/cam/?id=kariyushibeachnago",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "THryehCFhUU",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  626,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "sakurajimatarumizu",
+                        "place":  "鹿兒島・垂水櫻島",
+                        "twLiveUrl":  "https://tw.live/cam/?id=sakurajimatarumizu",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "NfR1Y-mYEtg",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  595,
+                        "error":  null
+                    },
+                    {
+                        "cameraId":  "jpkamikochitaishoilakealps",
+                        "place":  "長野・上高地大正池",
+                        "twLiveUrl":  "https://tw.live/cam/?id=jpkamikochitaishoilakealps",
+                        "twLiveStatus":  200,
+                        "youtubeId":  "jdUIL3sodzU",
+                        "oEmbedStatus":  200,
+                        "thumbnailStatus":  200,
+                        "reachable":  true,
+                        "elapsedMs":  720,
+                        "error":  null
+                    }
+                ]
+}

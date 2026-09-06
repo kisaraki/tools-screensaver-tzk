@@ -24,11 +24,11 @@ use windows_sys::Win32::{
     },
 };
 
-use crate::model::Xorshift32;
+use crate::model::{TravelStyle, Xorshift32};
 
 const SOURCE_HOST: &str = "tw.live";
 const CAMERA_PATH_PREFIX: &str = "/cam/?id=";
-const USER_AGENT: &str = "MyDateTimeScreensaver/0.2 (Windows 10; Japan travel mode)";
+const USER_AGENT: &str = "MyDateTimeScreensaver/0.3 (Windows 10; Japan travel mode)";
 const MAX_RESPONSE_BYTES: usize = 512 * 1024;
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(15);
 const IO_TIMEOUT_MS: i32 = 4_000;
@@ -692,10 +692,10 @@ impl NetworkState {
     }
 }
 
-/// One visible 16:9 player is surrounded by an A380-inspired cabin bezel. The
-/// location and health text occupy their own row below the player; no element is
-/// layered over or clipped into the YouTube player rectangle.
-pub(crate) const TRAVEL_HTML_SHELL: &str = r#"<!doctype html>
+/// One visible 16:9 player is surrounded by a user-selected, project-drawn
+/// travel frame. Location and health text occupy their own row below the player;
+/// no element is layered over or clipped into the YouTube player rectangle.
+const TRAVEL_HTML_TEMPLATE: &str = r#"<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
@@ -704,17 +704,22 @@ pub(crate) const TRAVEL_HTML_SHELL: &str = r#"<!doctype html>
 <style>
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071019;color:#f4f7fa;font-family:"Microsoft JhengHei UI",sans-serif}
 body{display:grid;place-items:center}
-  .cabin{box-sizing:border-box;width:min(94vw,135vh);padding:clamp(12px,2.6vw,40px);border:clamp(8px,1.4vw,24px) solid #ccd5dc;border-radius:clamp(42px,8vw,128px);background:linear-gradient(145deg,#f3f6f8,#8696a3 46%,#d9e0e5 65%,#6d7b86);box-shadow:inset 0 0 0 clamp(5px,.7vw,12px) #3f4c56,0 20px 60px #000}
+.cabin{box-sizing:border-box;width:min(94vw,135vh);padding:clamp(12px,2.6vw,40px);box-shadow:0 20px 60px #000}
+.free-flight{border:clamp(8px,1.4vw,24px) solid #ccd5dc;border-radius:clamp(42px,8vw,128px);background:linear-gradient(145deg,#f3f6f8,#8696a3 46%,#d9e0e5 65%,#6d7b86);box-shadow:inset 0 0 0 clamp(5px,.7vw,12px) #3f4c56,0 20px 60px #000}
+.train-journey{border:clamp(9px,1.5vw,25px) solid #5d2f19;border-radius:clamp(24px,3vw,52px) clamp(24px,3vw,52px) clamp(10px,1.3vw,24px) clamp(10px,1.3vw,24px);background:repeating-linear-gradient(90deg,#3d1d10 0,#3d1d10 5%,#a45b2c 5.6%,#5e2e17 7.2%,#32170d 12%);box-shadow:inset 0 0 0 clamp(5px,.7vw,12px) #d28743,inset 0 clamp(18px,3vw,46px) 0 #492414,0 20px 60px #000}
 .window{box-sizing:border-box;padding:clamp(8px,1vw,16px);border:clamp(5px,.7vw,11px) solid #283640;border-radius:clamp(24px,4vw,60px);background:#101b24}
+.train-journey .window{border-color:#d79b5d;border-radius:clamp(10px,1.6vw,25px);background:linear-gradient(90deg,#3a1d11,#8c4a27 9%,#35190e 16%,#35190e 84%,#8c4a27 91%,#3a1d11);box-shadow:inset 0 0 0 clamp(3px,.45vw,8px) #2b140b}
 .screen{width:100%;aspect-ratio:16/9;background:#000}
 #player,#player iframe{display:block;width:100%;height:100%;border:0}
 .caption{display:flex;justify-content:space-between;gap:1em;align-items:center;padding:clamp(9px,1.2vw,18px) clamp(4px,.8vw,12px) 0;font-weight:700;letter-spacing:.04em}
+.train-journey .caption{margin-top:clamp(5px,.7vw,11px);padding:clamp(8px,1vw,15px);border-radius:clamp(4px,.6vw,10px);background:linear-gradient(90deg,#2d160d,#75401f,#2d160d);box-shadow:inset 0 0 0 1px #ca8242}
 #place{font-size:clamp(16px,2.2vw,34px);color:#fff}
 #status{font-size:clamp(12px,1.2vw,18px);color:#c8f3ff;text-align:right}
+.train-journey #place{color:#ffe1a6}.train-journey #status{color:#ffd7a1}
 </style>
 </head>
 <body>
-<main class="cabin" aria-label="A380 客機窗戶景像">
+<main class="cabin __TRAVEL_SCENE_CLASS__" aria-label="__TRAVEL_SCENE_LABEL__">
   <section class="window">
     <div class="screen"><div id="player"></div></div>
     <div class="caption"><span id="place">日本旅行模式</span><span id="status">正在檢查來源網路…</span></div>
@@ -776,6 +781,16 @@ body{display:grid;place-items:center}
 </script>
 </body>
 </html>"#;
+
+pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
+    let (class, label) = match style {
+        TravelStyle::FreeFlight => ("free-flight", "自在飛行客艙窗景"),
+        TravelStyle::TrainJourney => ("train-journey", "列車旅行車廂窗景"),
+    };
+    TRAVEL_HTML_TEMPLATE
+        .replace("__TRAVEL_SCENE_CLASS__", class)
+        .replace("__TRAVEL_SCENE_LABEL__", label)
+}
 
 pub(crate) fn load_source_script(source: &TravelSource, token: u32) -> String {
     format!(
@@ -928,15 +943,28 @@ mod tests {
 
     #[test]
     fn html_shell_has_one_player_and_keeps_caption_outside_it() {
-        assert_eq!(TRAVEL_HTML_SHELL.matches("id=\"player\"").count(), 1);
-        let screen_end = TRAVEL_HTML_SHELL.find("</div></div>").unwrap();
-        let caption = TRAVEL_HTML_SHELL.find("class=\"caption\"").unwrap();
-        assert!(caption > screen_end);
-        for event in ["'ready'", "'playing'", "'error'", "'stalled'"] {
-            assert!(TRAVEL_HTML_SHELL.contains(event));
+        for (style, class, label) in [
+            (TravelStyle::FreeFlight, "free-flight", "自在飛行客艙窗景"),
+            (
+                TravelStyle::TrainJourney,
+                "train-journey",
+                "列車旅行車廂窗景",
+            ),
+        ] {
+            let shell = travel_html_shell(style);
+            assert_eq!(shell.matches("id=\"player\"").count(), 1);
+            let screen_end = shell.find("</div></div>").unwrap();
+            let caption = shell.find("class=\"caption\"").unwrap();
+            assert!(caption > screen_end);
+            assert!(shell.contains(&format!("class=\"cabin {class}\"")));
+            assert!(shell.contains(label));
+            assert!(!shell.contains("__TRAVEL_SCENE_"));
+            for event in ["'ready'", "'playing'", "'error'", "'stalled'"] {
+                assert!(shell.contains(event));
+            }
+            assert!(shell.contains("youtube-nocookie.com"));
+            assert!(!shell.contains("iframe{position:absolute"));
         }
-        assert!(TRAVEL_HTML_SHELL.contains("youtube-nocookie.com"));
-        assert!(!TRAVEL_HTML_SHELL.contains("iframe{position:absolute"));
     }
 
     #[test]

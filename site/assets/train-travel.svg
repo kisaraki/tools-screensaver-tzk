@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 554" role="img" aria-labelledby="title desc">
+  <title id="title">列車旅行場景靜態示意</title>
+  <desc id="desc">暖色木質觀光列車車廂、拱形頂棚、窗外日本山景、餐桌與座椅。</desc>
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a1209"/>
+      <stop offset=".45" stop-color="#92502a"/>
+      <stop offset="1" stop-color="#35170c"/>
+    </linearGradient>
+    <linearGradient id="ceiling" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#30170d"/>
+      <stop offset="1" stop-color="#a26235"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6c981"/>
+      <stop offset=".55" stop-color="#fff0c8"/>
+      <stop offset="1" stop-color="#8ea266"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4b2b20"/>
+      <stop offset="1" stop-color="#160b08"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <clipPath id="leftWindow"><path d="M77 173h270v188H77z"/></clipPath>
+    <clipPath id="rightWindow"><path d="M853 173h270v188H853z"/></clipPath>
+  </defs>
+  <rect width="1200" height="554" fill="#090503"/>
+  <path d="M26 554V184C26 72 104 18 218 18h764c114 0 192 54 192 166v370Z" fill="url(#wood)" stroke="#d28a49" stroke-width="5"/>
+  <path d="M168 18h864L847 150H353Z" fill="url(#ceiling)"/>
+  <g fill="none" stroke="#de8d45" stroke-width="8" opacity=".75">
+    <path d="M210 23 382 151"/>
+    <path d="M331 19 447 151"/>
+    <path d="M452 19 512 151"/>
+    <path d="M990 23 818 151"/>
+    <path d="M869 19 753 151"/>
+    <path d="M748 19 688 151"/>
+  </g>
+  <path d="M347 151h506v403H347Z" fill="#4b2616"/>
+  <path d="M476 151h248l94 403H382Z" fill="url(#floor)"/>
+  <g stroke="#8e5538" stroke-width="4" opacity=".75">
+    <path d="M456 240h288M434 328h332M410 422h380M385 518h430"/>
+  </g>
+  <g>
+    <path d="M57 144h310v247H57Z" fill="#170b07" stroke="#c17a3d" stroke-width="7"/>
+    <path d="M77 173h270v188H77Z" fill="url(#sky)"/>
+    <g clip-path="url(#leftWindow)">
+      <path d="m62 326 88-66 73 42 88-86 78 110v48H62Z" fill="#60764f"/>
+      <path d="m173 278 50-58 48 55-29-11-20 18-18-18Z" fill="#f7f2e0"/>
+      <path d="M54 345c103-25 199-18 319 9v30H54Z" fill="#344b31"/>
+      <path d="M48 310h329" stroke="#fff" stroke-opacity=".32" stroke-width="10" filter="url(#glow)"/>
+    </g>
+    <path d="M833 144h310v247H833Z" fill="#170b07" stroke="#c17a3d" stroke-width="7"/>
+    <path d="M853 173h270v188H853Z" fill="url(#sky)"/>
+    <g clip-path="url(#rightWindow)">
+      <path d="m827 326 88-66 73 42 88-86 78 110v48H827Z" fill="#60764f"/>
+      <path d="m938 278 50-58 48 55-29-11-20 18-18-18Z" fill="#f7f2e0"/>
+      <path d="M819 345c103-25 199-18 319 9v30H819Z" fill="#344b31"/>
+    </g>
+  </g>
+  <g fill="#f3eadb" stroke="#9b5e35" stroke-width="4">
+    <path d="M48 400h310l-42 78H82Z"/>
+    <path d="M842 400h310l-34 78H884Z"/>
+  </g>
+  <g fill="#77504a" stroke="#c18560" stroke-width="4">
+    <path d="M148 441c0-38 24-61 65-61s65 23 65 61v94H148Z"/>
+    <path d="M922 441c0-38 24-61 65-61s65 23 65 61v94H922Z"/>
+  </g>
+  <g fill="#ffe0a0">
+    <circle cx="600" cy="62" r="16"/>
+    <circle cx="551" cy="75" r="8"/>
+    <circle cx="649" cy="75" r="8"/>
+  </g>
+  <g font-family="Segoe UI, Microsoft JhengHei UI, sans-serif">
+    <rect x="388" y="174" width="424" height="68" rx="8" fill="#180b07" fill-opacity=".88" stroke="#d28a49"/>
+    <circle cx="418" cy="208" r="6" fill="#ffbf62"/>
+    <text x="438" y="199" fill="#d8ae81" font-size="12" letter-spacing="2.4">TRAIN JOURNEY</text>
+    <text x="438" y="224" fill="#fff4df" font-size="19" font-weight="650">長野 · NAGANO</text>
+  </g>
+</svg>

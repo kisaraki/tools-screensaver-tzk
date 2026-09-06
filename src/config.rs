@@ -4,9 +4,9 @@ use std::fmt;
 use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
-use crate::model::{DisplayMode, FontMode};
+use crate::model::{DisplayMode, FontMode, TravelStyle};
 
-pub const SCHEMA_VERSION: u32 = 3;
+pub const SCHEMA_VERSION: u32 = 4;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const REG_BINARY_KIND: u32 = REG_BINARY;
 pub const REG_DWORD_KIND: u32 = REG_DWORD;
@@ -42,6 +42,7 @@ impl ColorPreset {
 
 const SCHEMA: &str = "SchemaVersion";
 const DISPLAY_MODE: &str = "DisplayMode";
+const TRAVEL_STYLE: &str = "TravelStyle";
 const COLOR_PRESET: &str = "ColorPreset";
 const FONT_MODE: &str = "FontMode";
 const CUSTOM_LOGFONT: &str = "CustomLogFont";
@@ -87,6 +88,7 @@ pub trait SettingsStore {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AppConfig {
     pub display_mode: DisplayMode,
+    pub travel_style: TravelStyle,
     pub color_preset: ColorPreset,
     pub font_mode: FontMode,
     pub custom_font: Option<FontSpec>,
@@ -99,6 +101,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             display_mode: DisplayMode::TimeDate,
+            travel_style: TravelStyle::FreeFlight,
             color_preset: ColorPreset::BrightGreen,
             font_mode: FontMode::SevenSegment,
             custom_font: None,
@@ -122,6 +125,7 @@ impl AppConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConfigDraft {
     pub display_mode: DisplayMode,
+    pub travel_style: TravelStyle,
     pub color_preset: ColorPreset,
     pub font_mode: FontMode,
     pub custom_font: Option<FontSpec>,
@@ -131,6 +135,7 @@ impl From<AppConfig> for ConfigDraft {
     fn from(value: AppConfig) -> Self {
         Self {
             display_mode: value.display_mode,
+            travel_style: value.travel_style,
             color_preset: value.color_preset,
             font_mode: value.font_mode,
             custom_font: value.custom_font,
@@ -174,6 +179,10 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
             *mode != DisplayMode::JapanTravel || schema.is_some_and(|version| version >= 3)
         })
         .unwrap_or(DisplayMode::TimeDate);
+    let travel_style = dword(get(store, TRAVEL_STYLE))
+        .and_then(TravelStyle::from_registry)
+        .filter(|_| schema.is_some_and(|version| version >= 4))
+        .unwrap_or(TravelStyle::FreeFlight);
     let color_preset = dword(get(store, COLOR_PRESET))
         .and_then(ColorPreset::from_registry)
         .unwrap_or(ColorPreset::BrightGreen);
@@ -194,6 +203,7 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .unwrap_or(DEFAULT_COUNTDOWN_SECONDS);
     AppConfig {
         display_mode,
+        travel_style,
         color_preset,
         font_mode,
         custom_font,
@@ -277,6 +287,10 @@ pub fn save_draft(store: &mut impl SettingsStore, draft: ConfigDraft) -> Result<
         (
             DISPLAY_MODE,
             Some(RawValue::dword(draft.display_mode.registry_value())),
+        ),
+        (
+            TRAVEL_STYLE,
+            Some(RawValue::dword(draft.travel_style.registry_value())),
         ),
         (
             COLOR_PRESET,
@@ -405,6 +419,12 @@ mod tests {
         }
         assert_eq!(DisplayMode::from_registry(3), None);
 
+        for (raw, expected) in [(0, TravelStyle::FreeFlight), (1, TravelStyle::TrainJourney)] {
+            assert_eq!(TravelStyle::from_registry(raw), Some(expected));
+            assert_eq!(expected.registry_value(), raw);
+        }
+        assert_eq!(TravelStyle::from_registry(2), None);
+
         for (raw, expected) in [
             (0, ColorPreset::DarkRed),
             (1, ColorPreset::DarkOrange),
@@ -470,7 +490,7 @@ mod tests {
 
     #[test]
     fn schema_states_and_future_write_protection() {
-        for schema in [None, Some(1), Some(2), Some(3)] {
+        for schema in [None, Some(1), Some(2), Some(3), Some(4)] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
                 store.values.insert(SCHEMA.into(), RawValue::dword(schema));
@@ -486,8 +506,14 @@ mod tests {
         assert_eq!(load(&legacy).display_mode, DisplayMode::TimeDate);
         legacy.values.insert(SCHEMA.into(), RawValue::dword(3));
         assert_eq!(load(&legacy).display_mode, DisplayMode::JapanTravel);
+        legacy
+            .values
+            .insert(TRAVEL_STYLE.into(), RawValue::dword(1));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::FreeFlight);
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(4));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::TrainJourney);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(4));
+        future.values.insert(SCHEMA.into(), RawValue::dword(5));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -495,9 +521,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(4))
+            Err(SaveError::FutureSchema(5))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(4));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(5));
 
         for broken_schema in [
             RawValue::dword(0),
@@ -592,6 +618,7 @@ mod tests {
         store.fail_at = Some(3);
         let draft = ConfigDraft {
             display_mode: DisplayMode::Countdown,
+            travel_style: TravelStyle::TrainJourney,
             color_preset: ColorPreset::OffWhite,
             font_mode: FontMode::Consolas,
             custom_font: Some(valid_font()),
@@ -624,6 +651,7 @@ mod tests {
             &mut failing,
             ConfigDraft {
                 display_mode: DisplayMode::Countdown,
+                travel_style: TravelStyle::FreeFlight,
                 color_preset: ColorPreset::DarkOrange,
                 font_mode: FontMode::MingLiu,
                 custom_font: None,
@@ -638,6 +666,7 @@ mod tests {
         let mut store = MemoryStore::default();
         let invalid = ConfigDraft {
             display_mode: DisplayMode::TimeDate,
+            travel_style: TravelStyle::FreeFlight,
             color_preset: ColorPreset::BrightGreen,
             font_mode: FontMode::Custom,
             custom_font: None,
@@ -665,6 +694,7 @@ mod tests {
             let mut store = RegistryStore::at(&cleanup.path);
             let draft = ConfigDraft {
                 display_mode: DisplayMode::Countdown,
+                travel_style: TravelStyle::TrainJourney,
                 color_preset: ColorPreset::DarkRed,
                 font_mode: FontMode::Consolas,
                 custom_font: Some(valid_font()),
@@ -673,6 +703,7 @@ mod tests {
             save_countdown(&mut store, 359999).unwrap();
             let loaded = load(&store);
             assert_eq!(loaded.display_mode, DisplayMode::Countdown);
+            assert_eq!(loaded.travel_style, TravelStyle::TrainJourney);
             assert_eq!(loaded.color_preset, ColorPreset::DarkRed);
             assert_eq!(loaded.font_mode, FontMode::Consolas);
             assert_eq!(loaded.last_countdown_seconds, 359999);

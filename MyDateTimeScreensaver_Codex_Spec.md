@@ -1,7 +1,7 @@
 # MyDateTimeScreensaver 開發規格書
 
-> 文件版本：1.3（修訂版）<br>
-> 修訂日期：2026-09-06<br>
+> 文件版本：1.4（修訂版）<br>
+> 修訂日期：2026-09-07<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
 > 目前必要驗證平台：Windows 10 x64；Windows 11 延後驗證（依使用者 2026-09-04 指示）
@@ -16,20 +16,21 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 在其上新增第三種「日本旅行模式」與 Phase 6。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
+- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
 
-### 0.2 v1.2 與 v1.3 的主要修訂
+### 0.2 v1.2～v1.4 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
 | 第三種畫面 | v1.3 新增「日本旅行模式」，內部識別 `JapanTravel`；不改動既有 `TimeDate=0`、`Countdown=1` | 1、8.6、10 |
 | 網路邊界 | 只有 `/s` 的 `JapanTravel` 可連線；`/p`、`/c` 與另外兩種模式維持零網路請求 | 7、8.6、11、17 |
 | 來源與輪換 | 以 `https://tw.live/japan/` 檢查目錄健康，從 8 個內建 camera seed 隨機解析 detail；成功播放滿 60 秒後換一個不同來源，失敗有界重試及離線 fallback | 8.6、16、17 |
-| 播放器與客艙框 | 主螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、A380 客艙風格框及 player 外的地點／狀態；其他螢幕、preview 與 fallback 使用 GDI 靜態畫面 | 8.6 |
+| 旅行場景 | v1.4 將原 A380 客艙風格命名為「自在飛行」，新增暖色木質車廂、拱形頂棚、窗列與餐桌座位語彙的「列車旅行」；兩者共用來源與播放契約 | 8.6、10～11 |
+| 播放器與旅行框 | 主螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、所選旅行場景及 player 外的地點／狀態；其他螢幕、preview 與 fallback 使用對應 GDI 靜態畫面 | 8.6 |
 | 旅行多螢幕 | 正式 `/s` 只在主螢幕建立一個 autoplay player，其他螢幕顯示靜態伴隨畫面 | 5.2、8.6 |
 | 旅行預覽 | `/p` 與 `/c` 只畫無網路的 GDI 靜態示意，不建立 WebView2 或探測公開網站 | 7.3、11.3 |
 | WebView2 Runtime | 使用靜態 WebView2 loader，不另帶 `WebView2Loader.dll`；目標機缺 Evergreen Runtime 時顯示內建 fallback，不自動下載、安裝或觸發 UAC | 2.2、8.6、15、17 |
-| Registry schema | v1.3 將 schema 升為 3，新增 `DisplayMode=2`；舊 0／1 值保持相容，來源清單不寫入 registry | 10 |
+| Registry schema | v1.3 將 schema 升為 3 並新增 `DisplayMode=2`；v1.4 升為 4 並新增 `TravelStyle=0/1`。舊設定預設為「自在飛行」，來源清單不寫入 registry | 10 |
 | 增量階段 | 已完成的 Phase 0～5 保持歷史事實；第三模式由 Phase 6 實作、測試及發布 | 19.2 |
 | 倒數每次先輸入 | 保留；補上系統閒置／安全桌面實機驗證，不能僅憑直接執行 `/s` 宣稱支援 | 6.2、17.3 |
 | 全螢幕顯示時機 | 先建立隱藏視窗，全部成功後才顯示；建立時不加 `WS_VISIBLE` | 6.1 |
@@ -48,7 +49,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v1.3 對應第三模式的目標軟體版號為 `0.2.0`。既有 v0.1.0／v0.1.1 tag、報告與 evidence 是歷史成果，不得回寫成已包含第三模式。
+- 文件版本與軟體版本分開；文件 v1.4 對應雙旅行場景的目標軟體版號為 `0.3.0`。既有 v0.1.x／v0.2.0 tag、報告與 evidence 是歷史成果，不得回寫成已包含「列車旅行」。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -61,7 +62,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式在主螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、其他螢幕及錯誤 fallback 則由 GDI 繪製靜態客艙畫面。
+建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在主螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、其他螢幕及錯誤 fallback 則由 GDI 繪製對應靜態場景。
 
 ### 1.1 必要功能
 
@@ -79,7 +80,7 @@
 | R10 | 單一 `.scr` 與 Inno Setup 安裝 EXE | 13～15 | 0、5 | AC01、AC13 |
 | R11 | 安裝／移除不擅改安全設定、不影響其他帳號 | 15 | 5 | AC14 |
 | R12 | 實際測試紀錄、版本與雜湊可追溯 | 17～19、22 | 4、5 | AC15 |
-| R13 | A380 客艙風格窗景、目前城市／地區及鏡頭名稱 | 7、8.6、11 | 6 | AC16 |
+| R13 | 「自在飛行」與「列車旅行」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7 | AC16 |
 | R14 | 每 60 秒隨機換來源、來源健康檢查、有界 failover | 5、8.6、16～17 | 6 | AC17 |
 | R15 | 前兩模式與所有 preview 無網路；Runtime／斷線安全 fallback 與第三方揭露 | 2、7～8、15～18、22 | 6 | AC18 |
 
@@ -328,7 +329,7 @@ MyDateTimeScreensaver/
 
 列舉失敗或無有效區域，才退回 virtual-screen metrics 建立單一視窗；fallback 仍檢查正尺寸、溢位及 allocation 上限。不得強制更換顯示解析度或獨佔顯示模式。
 
-日本旅行模式在全部 surface 建立並顯示 GDI 客艙 fallback 後，於主螢幕探測 Runtime，非同步建立 WebView2 environment／controller 與本機 shell，再由背景 worker 檢查目錄與來源。shell 顯示「正在檢查來源」，其他螢幕與 Runtime 失敗路徑持續顯示可退出的 GDI 客艙 fallback；不得讓使用者在等待期間看見未遮蔽桌面，也不得為等待 Runtime 或網路延後鍵鼠退出。WebView2 缺失、來源失敗或網路中斷不視為整個視窗初始化失敗。
+日本旅行模式在全部 surface 建立並顯示所選 GDI 旅行 fallback 後，於主螢幕探測 Runtime，非同步建立 WebView2 environment／controller 與本機 shell，再由背景 worker 檢查目錄與來源。shell 顯示「正在檢查來源」，其他螢幕與 Runtime 失敗路徑持續顯示可退出的 GDI 旅行 fallback；不得讓使用者在等待期間看見未遮蔽桌面，也不得為等待 Runtime 或網路延後鍵鼠退出。WebView2 缺失、來源失敗或網路中斷不視為整個視窗初始化失敗。
 
 ### 6.2 離機作業番茄鐘模式啟動流程
 
@@ -396,7 +397,7 @@ MyDateTimeScreensaver/
 | --- | --- | --- | --- |
 | 標準桌曆暨時鐘模式（`TimeDate`） | 每秒更新的本機時間與當月月曆 | 不適用 | 否 |
 | 離機作業番茄鐘模式（`Countdown`） | 上次保存時間，無效則 300 秒；`remaining=total`、ratio=1 | 否 | 否 |
-| 日本旅行模式（`JapanTravel`） | 純 GDI 客艙窗框、示例地名與「全螢幕時連線」狀態 | 否 | 否 |
+| 日本旅行模式（`JapanTravel`） | 依保存場景繪製純 GDI 旅行窗框、示例地名與「全螢幕時連線」狀態 | 否 | 否 |
 
 三種 preview 都不得發出網路請求、建立 WebView2、跳出倒數輸入框、發出聲音或觸發零點提示。小尺寸退化依第 8.1 節，不能改成獨立視窗。
 
@@ -587,11 +588,12 @@ SS = display_seconds % 60
 - process 內只保留本次 `TravelSession` 的目錄健康旗標、目前來源、地點、video ID、generation 及時間狀態，不建立持久來源 cache，也不保存縮圖、影格、音訊或影片。抓取新候選失敗時可以讓目前 player 繼續顯示，再按重試狀態處理。
 - 每輪最多嘗試隨機排序後的 3 個不同候選；後續輪換必須排除上一個成功播放的 camera。單輪全失敗時進入可退出的離線狀態並有界重試。
 
-#### 8.6.2 A380 客艙風格與地名
+#### 8.6.2 旅行場景與地名
 
-- 主螢幕正式 `/s` 以專案自製的本機 HTML／CSS shell 模擬 A380 客艙風格窗框、內框、艙壁與柔和邊緣；`/p`、`/c`、其他螢幕及 Runtime／網路 fallback 則使用自製 GDI 靜態版本。不得使用 Airbus 商標、機型標誌、航空公司塗裝或未授權照片，也不宣稱與 Airbus 有合作關係。
+- 日本旅行模式提供 `FreeFlight=0` 與 `TrainJourney=1` 兩種可保存場景。原 A380 客艙風格的使用者名稱改為「自在飛行」；「列車旅行」使用暖色木質、拱形頂棚、窗列、餐桌及座位的抽象圖形語彙。兩者都由專案自行繪製，不包含使用者附件、第三方照片、商標、車種或航空公司塗裝，也不宣稱與任何運輸業者合作。
+- 主螢幕正式 `/s` 依保存場景產生本機 HTML／CSS shell；`/p`、`/c`、其他螢幕及 Runtime／網路 fallback 使用對應的 GDI 靜態版本。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\MyDateTimeScreensaver\`，不從遠端網站取得產品 UI。
-- player 維持完整 16:9 矩形並全部可見。A380 風格外框、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
+- player 維持完整 16:9 矩形並全部可見。「自在飛行」或「列車旅行」外框、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
 - 影片固定靜音，不播放來源音訊。不得隱藏播放器原生 attribution／controls；螢幕保護程式的一般鍵鼠退出規則仍優先，使用者輸入不轉成對遠端 player 的自動操作。
 
@@ -605,7 +607,7 @@ SS = display_seconds % 60
 
 #### 8.6.4 Runtime、健康檢查與 fallback
 
-- 建立 player 前以 `GetAvailableCoreWebView2BrowserVersionString` 探測 Evergreen Runtime，再於 STA message loop 上非同步建立 environment／controller。等待期間保留可退出的 GDI 客艙 fallback；找不到 Runtime、非同步 completion 回報失敗、controller 失敗或版本不支援時仍保留 fallback。不得由 `.scr` 下載或啟動 Runtime installer、開啟瀏覽器、要求 UAC 或改成另一個已保存模式。
+- 建立 player 前以 `GetAvailableCoreWebView2BrowserVersionString` 探測 Evergreen Runtime，再於 STA message loop 上非同步建立 environment／controller。等待期間保留可退出的 GDI 旅行 fallback；找不到 Runtime、非同步 completion 回報失敗、controller 失敗或版本不支援時仍保留 fallback。不得由 `.scr` 下載或啟動 Runtime installer、開啟瀏覽器、要求 UAC 或改成另一個已保存模式。
 - 健康狀態分三層：`CatalogReachable` 表示 tw.live 目錄 HTTP 成功且標記合理；`CandidateResolved` 表示 detail 可解析成允許的 YouTube video ID；`PlaybackHealthy` 表示 WebView2 shell 與 player 完成載入且 player 回報 `PLAYING`。HTTP 200、oEmbed、縮圖或 Runtime probe 成功都不能單獨宣稱影片可播放。
 - player source 載入 20 秒仍未進入 `PLAYING` 時視為失敗；單一候選失敗後選另一個，單輪最多嘗試 3 個。全部失敗顯示稍後重試狀態，每 30 秒再檢查；player error 或連續停滯則立即切換。
 - WinHTTP worker completion 攜帶 source generation；若已切換或 shutdown，晚到 completion 只能釋放自身資料，不能覆蓋新狀態、重建視窗或重新開始播放。每次載入來源都產生非零 playback token；WebView2 player event 必須攜帶並符合目前 token，舊來源晚到的 `PLAYING`、error 或 stall 不得改變新來源狀態。
@@ -680,8 +682,9 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 
 | 名稱 | 型別 | 有效範圍／內容 | 預設 |
 | --- | --- | --- | --- |
-| SchemaVersion | REG_DWORD | 目前為 3 | 3 |
+| SchemaVersion | REG_DWORD | 目前為 4 | 4 |
 | DisplayMode | REG_DWORD | 0=TimeDate、1=Countdown、2=JapanTravel | 0 |
+| TravelStyle | REG_DWORD | 0=FreeFlight（自在飛行）、1=TrainJourney（列車旅行） | 0 |
 | ColorPreset | REG_DWORD | 0～3 | 2 |
 | FontMode | REG_DWORD | 0～3 | 0 |
 | CustomLogFont | REG_BINARY | 完整、已驗證 LOGFONTW | 無 |
@@ -689,10 +692,11 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 | LastCountdownDurationSeconds | REG_DWORD | 1～359999 | 300 |
 
 - key 不存在：全預設，讀取不建立 key。
-- SchemaVersion 缺失／1／2：按該舊版的已知欄位個別驗證；`DisplayMode` 只接受舊值 0／1，值 2 在舊 schema 視為損壞而 fallback。使用者明確提交成功才寫 version 3。
-- SchemaVersion=3：正常驗證每欄，`DisplayMode=2` 對應 `JapanTravel`。
+- SchemaVersion 缺失／1／2：按該舊版的已知欄位個別驗證；`DisplayMode` 只接受舊值 0／1，值 2 在舊 schema 視為損壞而 fallback。
+- SchemaVersion=3：`DisplayMode=2` 對應 `JapanTravel`；沒有 `TravelStyle`，一律使用 `FreeFlight`。
+- SchemaVersion=4：正常驗證每欄；`TravelStyle` 非 0／1 或型別錯誤時只回退為 `FreeFlight`。使用者明確提交成功才寫 version 4。
 - schema 型別損壞／0：視為損壞資料，使用預設，允許下一次明確提交修復已知值。
-- SchemaVersion>3：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
+- SchemaVersion>4：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
 
 ### 10.2 讀取
 
@@ -726,6 +730,8 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 #define IDC_MODE_TIME_DATE      1001
 #define IDC_MODE_COUNTDOWN      1002
 #define IDC_MODE_JAPAN_TRAVEL   1003
+#define IDC_TRAVEL_FREE_FLIGHT  1004
+#define IDC_TRAVEL_TRAIN_JOURNEY 1005
 #define IDC_COLOR_DARK_RED      1101
 #define IDC_COLOR_DARK_ORANGE   1102
 #define IDC_COLOR_BRIGHT_GREEN  1103
@@ -739,6 +745,7 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 ```
 
 - 模式群組：「標準桌曆暨時鐘模式」／「離機作業番茄鐘模式」／「日本旅行模式」三個 radio 選項。
+- 日本旅行場景群組：「自在飛行」／「列車旅行」兩個 radio；非日本旅行模式時停用但保留草稿值，切回日本旅行時恢復可選。
 - 日本旅行 radio 附近以非互動文字說明「需要網路；會連線至 tw.live 與 YouTube，影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
 - 顏色群組：四個 radio；各組正確設 `WS_GROUP`，不能兩组互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
@@ -763,7 +770,7 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 - 模式／顏色變更只更新草稿、必要 cache 並 invalidate；只有字型／尺寸／DPI 變更才重建 font cache。
 - 標準桌曆暨時鐘模式（`TimeDate`）每秒以目前本機時間更新；不能只在選項改變時更新時鐘。
 - 離機作業番茄鐘模式（`Countdown`）靜態示範：remaining=300 秒、total=600 秒、顯示 `00:05:00`、ratio=0.5、上下各半砂量，不播放落砂動畫或警示。
-- 日本旅行模式（`JapanTravel`）只畫 GDI A380 客艙風格窗框、示例地名與「全螢幕時連線」；不建立 WebView2、不發 request、不以歷史縮圖冒充即時影片。
+- 日本旅行模式（`JapanTravel`）依草稿畫 GDI「自在飛行」或「列車旅行」窗框、示例地名與「全螢幕時連線」；不建立 WebView2、不發 request、不以歷史縮圖冒充即時影片。
 - `/c` 預覽永遠採草稿，不由 `/p` 的 registry poll 蓋掉尚未保存的修改。
 - 所有預覽不位移；字型失敗時 fallback，不使對話框失去操作能力。
 
@@ -984,7 +991,7 @@ MyDateTimeScreensaver.scr --install-set-current
 | UT23 | 取消、ChooseFont 取消 | 保存呼叫次數=0 |
 | UT24 | 模擬第 N 次寫入失敗，rollback 成功／失敗 | 顯示對應保存狀態，未修改未知值 |
 | UT25 | 多視窗同 generation、連續 shutdown request | 共用秒數／ratio，關閉一次，最後才 quit |
-| UT26 | schema 2 的 mode 0／1；schema 3 的 mode 0／1／2；schema >3 | 舊值原樣讀取、`2=JapanTravel` round-trip、未知新版禁止降版寫入 |
+| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema >4 | 舊值相容、schema 3 預設自在飛行、兩種場景 round-trip、未知新版禁止降版寫入 |
 | UT27 | 固定 seed；來源數 0／1／2／N；目前 index 位於頭尾 | 可重現、永不越界；候選多於一個時不立即重複目前來源 |
 | UT28 | PLAYING 後 59999／60000 ms、一次跳過多分鐘、睡眠恢復 | 未到不切、到時只切一次、不補跑漏掉的分鐘 |
 | UT29 | 固定 tw.live catalog marker／detail HTML fixtures；entity、缺欄、錯誤 host、非法 camera／video ID、控制字元與超長資料 | 只產生合法有界 metadata；格式錯誤可辨識，無 panic 或把不可信資料當程式碼 |
@@ -1082,7 +1089,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC13 | Setup安裝至64位元System32、可由Windows選取、版本一致 | MT01、MT13、成品hash |
 | AC14 | setcurrent身分正確／失敗可辨；不改安全／逾時／啟用及其他帳號設定 | MT11～MT13、前後值比較 |
 | AC15 | README、原始碼、測試、必要成品及逐項驗收報告完整 | 第22節清單 |
-| AC16 | 日本旅行的自製 A380 風格窗框、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT34、MT16、MT18、視覺證據 |
+| AC16 | 日本旅行的自製「自在飛行」與「列車旅行」窗框、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT26、UT34、MT16、MT18、視覺證據 |
 | AC17 | 來源發現、60秒隨機輪換、三層健康檢查、failover、timeout 與 shutdown 均有界 | UT27～UT32、MT16～MT19 |
 | AC18 | 前兩模式與 preview 無網路；旅行模式 Runtime／斷線 fallback、outbound／隱私／授權揭露完整 | UT30～UT33、MT17、MT20、來源清單 |
 
@@ -1105,7 +1112,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 接續 Phase 6 加入日本旅行模式。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1223,12 +1230,23 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 
 最後一項會連公開網站，須另列結果且不可成為 deterministic CI gate；前三項不得建立 WebView2 或觸發 UAC。若尚未完成 MT16～MT20，可發布明列限制的候選版，但不能宣稱日本旅行模式或 Windows 10 完整驗收完成。
 
+### Phase 7：雙旅行場景
+
+**目標：** 將原客艙窗框命名為「自在飛行」，加入可保存的「列車旅行」場景，且不改變既有來源、播放器與遠端無互動邊界。
+
+1. 軟體版號升為 `0.3.0`、registry schema 升為 4，新增 `TravelStyle=0/1`；schema 3 與缺值設定預設為自在飛行。
+2. 設定對話框新增兩個場景 radio，只在日本旅行模式時啟用；確定才保存，取消不寫入。
+3. HTML／CSS player shell 與 GDI preview／fallback 都實作兩種自製場景；列車旅行參考暖色木質車廂、拱形頂棚、窗列與餐桌座位，但不納入附件或第三方照片。
+4. 兩種場景均保留完整 16:9 player rect、player 外地名／狀態、靜音、單播放器、60 秒輪換、來源健康檢查與有界 failover。
+5. 執行 noninteractive build、兩種 shell／GDI fixture、registry migration、resource smoke 與封裝；不開啟 `/s`、設定 dialog、安裝程式或 UAC。
+6. 更新 v1.4 規格、README、Pages、acceptance report、Phase 7 report、v0.3.0 release notes 與 SHA-256，再發布 GitHub Release。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 MyDateTimeScreensaver_Codex_Spec.md v1.3 實作 Phase 6。
+請依 MyDateTimeScreensaver_Codex_Spec.md v1.4 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1242,7 +1260,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 - 直接複製或嵌入 tw.live 整頁 HTML／CSS／JavaScript、執行其廣告／追蹤碼，或把遠端頁面當成產品 UI。旅行模式只解析有界 metadata 並使用官方 player。
 - 在 `/p`、`/c`、TimeDate 或 Countdown 發出 request，或在 network callback 同步等待、無界 retry、接受非 HTTPS／非允許 top-level navigation。
 - 把 HTTP 200、縮圖或 iframe document 成功寫成影片已播放，或把公開來源暫時可達寫成永久授權／可用性保證。
-- 在 YouTube player 上疊 A380 框／地名、遮 controls／branding、同一 screen 同時 autoplay 多個 player，或用錯誤 Referer／nested iframe 規避政策。
+- 在 YouTube player 上疊旅行框／地名、遮 controls／branding、同一 screen 同時 autoplay 多個 player，或用錯誤 Referer／nested iframe 規避政策。
 - 讓每螢幕建立自己的deadline、按timer次數遞減或paint時各取不同時間。
 - 在preview中顯示輸入框、topmost、隱藏全域游標或啟用fullscreen退出規則。
 - 倒數輸入未完成便鋪全螢幕、吞掉使用者輸入或由保存失敗直接開始。
@@ -1295,7 +1313,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 9. `docs/acceptance-report.md`，逐項 AC／UT／MT、環境及真實結果。
 10. `docs/visual-reference.md` 與實作截圖，說明參考範圍、色彩差異、旅行 player 邊界及 fixture 條件。
 11. `docs/japan-travel-sources.md`，列來源、原始提供者、最後 HTTP／播放檢查、授權與可用性限制。
-12. `docs/phase6-report.md` 與 v0.2.0 release notes；不得改寫 Phase 0～5 歷史證據。
+12. `docs/phase6-report.md`、`docs/phase7-report.md` 與各版 release notes；不得改寫既有歷史證據。
 13. README：安裝工具、build/test/package、`/s`／`/p`／`/c`、三種模式、WebView2／網路／隱私邊界、離線 fallback、字型fallback、registry、倒數閒置互動限制、原使用者setcurrent、解除安裝提示、已知未測項與簽章狀態。
 14. MIT License 與素材來源說明；MIT 不涵蓋第三方影片，使用者附件只留在已忽略的本機開發參考目錄，不進公開 repository 或 installer。
 

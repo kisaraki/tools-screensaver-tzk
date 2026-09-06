@@ -5,7 +5,7 @@ use crate::gdi::{
     self, dim, require, rgb, Buffer, Canvas, Font, FontMode, Pens, SavedDc, Selection,
 };
 use crate::layout::{buffer_bytes, Detail, Layout, Rect};
-use crate::model::{hms, Calendar, DisplayMode, FrameSnapshot, SEGMENTS};
+use crate::model::{hms, Calendar, DisplayMode, FrameSnapshot, TravelStyle, SEGMENTS};
 use crate::native::client_size;
 use std::ptr;
 use windows_sys::Win32::Foundation::HWND;
@@ -17,6 +17,7 @@ pub(crate) struct Style {
     pub font: FontMode,
     pub custom: Option<FontSpec>,
     pub point_size_tenth: u32,
+    pub travel_style: TravelStyle,
 }
 impl Default for Style {
     fn default() -> Self {
@@ -25,6 +26,7 @@ impl Default for Style {
             font: FontMode::SevenSegment,
             custom: None,
             point_size_tenth: DEFAULT_POINT_SIZE_TENTH,
+            travel_style: TravelStyle::FreeFlight,
         }
     }
 }
@@ -37,6 +39,7 @@ impl Style {
             point_size_tenth: config
                 .custom_font
                 .map_or(DEFAULT_POINT_SIZE_TENTH, FontSpec::point_size_tenth),
+            travel_style: config.travel_style,
         }
     }
 
@@ -53,6 +56,7 @@ impl Style {
             point_size_tenth: draft
                 .custom_font
                 .map_or(DEFAULT_POINT_SIZE_TENTH, FontSpec::point_size_tenth),
+            travel_style: draft.travel_style,
         }
     }
 
@@ -431,50 +435,172 @@ fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result
     let accent = style.color();
     let outer = layout.panel;
     let player = layout.inner;
-    let radius = (outer.w * 0.075).min(outer.h * 0.16).max(2.0);
-    canvas.rounded(
-        outer,
-        Some(rgb(28, 34, 38)),
-        dim(accent, 0.55),
-        (outer.w * 0.008).max(1.0),
-        radius,
-    )?;
-    let middle = outer.inset(outer.w * 0.018, outer.h * 0.028);
-    canvas.rounded(
-        middle,
-        Some(rgb(168, 177, 180)),
-        rgb(72, 82, 87),
-        (outer.w * 0.006).max(1.0),
-        radius * 0.82,
-    )?;
+    match style.travel_style {
+        TravelStyle::FreeFlight => {
+            let radius = (outer.w * 0.075).min(outer.h * 0.16).max(2.0);
+            canvas.rounded(
+                outer,
+                Some(rgb(28, 34, 38)),
+                dim(accent, 0.55),
+                (outer.w * 0.008).max(1.0),
+                radius,
+            )?;
+            let middle = outer.inset(outer.w * 0.018, outer.h * 0.028);
+            canvas.rounded(
+                middle,
+                Some(rgb(168, 177, 180)),
+                rgb(72, 82, 87),
+                (outer.w * 0.006).max(1.0),
+                radius * 0.82,
+            )?;
+        }
+        TravelStyle::TrainJourney => {
+            let radius = (outer.w * 0.025).min(outer.h * 0.07).max(2.0);
+            canvas.rounded(
+                outer,
+                Some(rgb(47, 24, 14)),
+                rgb(201, 125, 55),
+                (outer.w * 0.009).max(1.0),
+                radius,
+            )?;
+            let middle = outer.inset(outer.w * 0.016, outer.h * 0.024);
+            canvas.rounded(
+                middle,
+                Some(rgb(118, 63, 31)),
+                rgb(238, 174, 92),
+                (outer.w * 0.006).max(1.0),
+                radius * 0.72,
+            )?;
+            if layout.detail != Detail::Tiny {
+                for ratio in [0.08, 0.18, 0.82, 0.92] {
+                    let x = outer.x + outer.w * ratio;
+                    canvas.line(
+                        &[
+                            (x, outer.y + outer.h * 0.04),
+                            (x, player.y - outer.h * 0.015),
+                        ],
+                        (outer.w * 0.006).max(1.0),
+                        rgb(226, 142, 65),
+                    )?;
+                }
+                for ratio in [0.16, 0.5, 0.84] {
+                    let x = outer.x + outer.w * ratio;
+                    canvas.ellipse(
+                        Rect {
+                            x: x - outer.w * 0.012,
+                            y: outer.y + outer.h * 0.04,
+                            w: outer.w * 0.024,
+                            h: outer.w * 0.024,
+                        },
+                        rgb(255, 220, 139),
+                    )?;
+                }
+            }
+        }
+    }
 
     // A calm built-in scene is shown while checking the live source, in previews,
     // and when WebView2 or the network is unavailable. The real player replaces
     // the entire surface and remains a complete, unobscured 16:9 rectangle.
-    canvas.fill(player, rgb(21, 54, 76))?;
-    let horizon = Rect {
-        x: player.x,
-        y: player.y + player.h * 0.58,
-        w: player.w,
-        h: player.h * 0.42,
-    };
-    canvas.fill(horizon, rgb(9, 23, 34))?;
-    if layout.detail != Detail::Tiny {
-        for (x, y, w, h) in [
-            (0.15, 0.31, 0.20, 0.075),
-            (0.48, 0.22, 0.26, 0.085),
-            (0.72, 0.41, 0.18, 0.065),
-        ] {
-            canvas.ellipse(
+    match style.travel_style {
+        TravelStyle::FreeFlight => {
+            canvas.fill(player, rgb(21, 54, 76))?;
+            canvas.fill(
                 Rect {
-                    x: player.x + player.w * x,
-                    y: player.y + player.h * y,
-                    w: player.w * w,
-                    h: player.h * h,
+                    x: player.x,
+                    y: player.y + player.h * 0.58,
+                    w: player.w,
+                    h: player.h * 0.42,
                 },
-                rgb(196, 210, 217),
+                rgb(9, 23, 34),
             )?;
+            if layout.detail != Detail::Tiny {
+                for (x, y, w, h) in [
+                    (0.15, 0.31, 0.20, 0.075),
+                    (0.48, 0.22, 0.26, 0.085),
+                    (0.72, 0.41, 0.18, 0.065),
+                ] {
+                    canvas.ellipse(
+                        Rect {
+                            x: player.x + player.w * x,
+                            y: player.y + player.h * y,
+                            w: player.w * w,
+                            h: player.h * h,
+                        },
+                        rgb(196, 210, 217),
+                    )?;
+                }
+            }
         }
+        TravelStyle::TrainJourney => {
+            canvas.fill(player, rgb(234, 174, 101))?;
+            let horizon_y = player.y + player.h * 0.48;
+            canvas.fill(
+                Rect {
+                    x: player.x,
+                    y: horizon_y,
+                    w: player.w,
+                    h: player.h * 0.52,
+                },
+                rgb(64, 85, 46),
+            )?;
+            if layout.detail != Detail::Tiny {
+                let vanishing = (player.cx(), player.y + player.h * 0.55);
+                canvas.polygon(
+                    &[
+                        (player.x + player.w * 0.34, player.bottom()),
+                        (vanishing.0 - player.w * 0.035, vanishing.1),
+                        (vanishing.0 + player.w * 0.035, vanishing.1),
+                        (player.x + player.w * 0.66, player.bottom()),
+                    ],
+                    rgb(69, 38, 25),
+                    Some((rgb(177, 111, 54), player.w * 0.005)),
+                )?;
+                for ratio in [0.64, 0.74, 0.84, 0.94] {
+                    let half = player.w * (ratio - 0.55) * 0.33;
+                    let y = player.y + player.h * ratio;
+                    canvas.line(
+                        &[(player.cx() - half, y), (player.cx() + half, y)],
+                        (player.h * 0.012).max(1.0),
+                        rgb(193, 137, 79),
+                    )?;
+                }
+                for side in [0.0, 1.0] {
+                    let left = side == 0.0;
+                    let x0 = if left {
+                        player.x + player.w * 0.03
+                    } else {
+                        player.x + player.w * 0.73
+                    };
+                    canvas.polygon(
+                        &[
+                            (x0, player.y + player.h * 0.69),
+                            (x0 + player.w * 0.24, player.y + player.h * 0.69),
+                            (x0 + player.w * 0.20, player.y + player.h * 0.84),
+                            (x0 + player.w * 0.01, player.y + player.h * 0.84),
+                        ],
+                        rgb(232, 221, 197),
+                        Some((rgb(126, 72, 38), player.w * 0.004)),
+                    )?;
+                    let chair_x = if left {
+                        player.x + player.w * 0.22
+                    } else {
+                        player.x + player.w * 0.68
+                    };
+                    canvas.ellipse(
+                        Rect {
+                            x: chair_x,
+                            y: player.y + player.h * 0.79,
+                            w: player.w * 0.10,
+                            h: player.h * 0.18,
+                        },
+                        rgb(85, 47, 35),
+                    )?;
+                }
+            }
+        }
+    }
+    if layout.detail != Detail::Tiny {
         let plaque = layout.calendar;
         let title_rect = Rect {
             x: plaque.x,
@@ -488,11 +614,15 @@ fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result
             w: plaque.w,
             h: plaque.h * 0.52,
         };
+        let scene_name = match style.travel_style {
+            TravelStyle::FreeFlight => "自在飛行",
+            TravelStyle::TrainJourney => "列車旅行",
+        };
         let title = Font::fit(
             canvas.dc,
             FontMode::MingLiu,
             None,
-            "日本旅行模式",
+            "列車旅行・日本旅行模式",
             title_rect.w * 0.92,
             title_rect.h * 0.82,
             title_rect.h * 0.65,
@@ -508,7 +638,13 @@ fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result
             status_rect.h * 0.5,
             false,
         )?;
-        canvas.text(&title, "日本旅行模式", title_rect, accent, true)?;
+        canvas.text(
+            &title,
+            &format!("{scene_name}・日本旅行模式"),
+            title_rect,
+            accent,
+            true,
+        )?;
         canvas.text(
             &status,
             "連線中或影像來源暫時無法使用",
@@ -1036,6 +1172,24 @@ mod tests {
                 }
             }
         }
+        for travel_style in [TravelStyle::FreeFlight, TravelStyle::TrainJourney] {
+            let mut renderer = Renderer::default();
+            let buffer = draw(
+                &mut renderer,
+                screen.0,
+                800,
+                450,
+                144,
+                DisplayMode::JapanTravel,
+                Style {
+                    travel_style,
+                    ..Style::default()
+                },
+                frame(300000),
+            );
+            assert_eq!(buffer.pixels(screen.0).unwrap().len(), 800 * 450 * 4);
+            assert!(renderer.pens.len() <= 32);
+        }
         // Warmed GDI baseline; no live renderer/cache remains above.
         // SAFETY: Read counters for this test process only.
         let before = unsafe { GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS) };
@@ -1147,6 +1301,18 @@ mod tests {
                 label,
             ));
         }
+        cases.push((
+            DisplayMode::JapanTravel,
+            800,
+            450,
+            96,
+            Style {
+                travel_style: TravelStyle::TrainJourney,
+                ..Style::default()
+            },
+            300000,
+            "train-journey",
+        ));
         for (index, (mode, w, h, dpi, style, tick, label)) in cases.into_iter().enumerate() {
             let mut renderer = Renderer::default();
             let buffer = draw(&mut renderer, screen.0, w, h, dpi, mode, style, frame(tick));

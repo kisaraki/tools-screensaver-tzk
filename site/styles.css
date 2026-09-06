@@ -300,7 +300,7 @@ h1 em {
 
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -354,6 +354,43 @@ h1 em {
   background:
     radial-gradient(circle at 50% 35%, rgba(39, 245, 93, 0.08), transparent 55%),
     #020403;
+}
+
+.travel-card {
+  grid-column: 1 / -1;
+}
+
+.travel-variants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.travel-variants .mode-image {
+  position: relative;
+  margin: 0;
+  border-right: 1px solid var(--line);
+}
+
+.travel-variants .mode-image:last-child {
+  border-right: 0;
+}
+
+.travel-variants figcaption {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(2, 4, 3, 0.82);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.travel-card .train-image {
+  background: #090503;
 }
 
 .feature-grid {
@@ -611,6 +648,12 @@ h1 em {
   font-size: 0.92rem;
 }
 
+.mode-labels .sub-option {
+  padding-left: 25px;
+  color: #cbb18c;
+  font-size: 0.84rem;
+}
+
 .mode-labels small {
   max-width: 520px;
   padding-left: 25px;
@@ -807,6 +850,15 @@ footer div {
 
   .travel-card {
     grid-column: auto;
+  }
+
+  .travel-variants {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-variants .mode-image {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .feature-grid article {

@@ -10,7 +10,7 @@ use windows_sys::Win32::UI::Controls::{
     CheckRadioButton, DRAWITEMSTRUCT, EM_SETLIMITTEXT, EM_SETSEL,
 };
 use windows_sys::Win32::UI::HiDpi::GetDpiForWindow;
-use windows_sys::Win32::UI::Input::KeyboardAndMouse::SetFocus;
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
 use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
 use crate::config::{self, ColorPreset, ConfigDraft};
@@ -18,7 +18,7 @@ use crate::error::{last_error, AppError};
 use crate::font::FontSpec;
 use crate::model::{
     parse_duration, Countdown, CountdownFrame, DisplayMode, FontMode, FrameSnapshot, InputError,
-    LocalTime,
+    LocalTime, TravelStyle,
 };
 use crate::native::{set_pointer, WindowIdentity};
 use crate::registry::{load_registry, RegistryStore};
@@ -252,6 +252,19 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         }
         if CheckRadioButton(
             hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_FREE_FLIGHT),
+            i32::from(resource_ids::IDC_TRAVEL_TRAIN_JOURNEY),
+            i32::from(match draft.travel_style {
+                TravelStyle::FreeFlight => resource_ids::IDC_TRAVEL_FREE_FLIGHT,
+                TravelStyle::TrainJourney => resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+            }),
+        ) == 0
+        {
+            return Err(last_error("CheckRadioButton(travel style)"));
+        }
+        set_travel_style_enabled(hwnd, draft.display_mode == DisplayMode::JapanTravel);
+        if CheckRadioButton(
+            hwnd,
             i32::from(resource_ids::IDC_COLOR_DARK_RED),
             i32::from(resource_ids::IDC_COLOR_OFF_WHITE),
             i32::from(match draft.color_preset {
@@ -306,6 +319,11 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
         value if value == resource_ids::IDC_MODE_JAPAN_TRAVEL => DisplayMode::JapanTravel,
         _ => draft.display_mode,
     };
+    draft.travel_style = match id {
+        value if value == resource_ids::IDC_TRAVEL_FREE_FLIGHT => TravelStyle::FreeFlight,
+        value if value == resource_ids::IDC_TRAVEL_TRAIN_JOURNEY => TravelStyle::TrainJourney,
+        _ => draft.travel_style,
+    };
     if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE).contains(&id) {
         draft.color_preset = match id {
             resource_ids::IDC_COLOR_DARK_RED => ColorPreset::DarkRed,
@@ -315,6 +333,21 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
         };
     }
     state.draft.set(draft);
+}
+
+fn set_travel_style_enabled(hwnd: HWND, enabled: bool) {
+    // SAFETY: Both IDs are fixed child controls of the live configuration dialog.
+    unsafe {
+        for id in [
+            resource_ids::IDC_TRAVEL_FREE_FLIGHT,
+            resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+        ] {
+            let control = GetDlgItem(hwnd, i32::from(id));
+            if !control.is_null() {
+                EnableWindow(control, i32::from(enabled));
+            }
+        }
+    }
 }
 
 fn update_font_combo(hwnd: HWND, state: &ConfigDialogState) {
@@ -479,10 +512,17 @@ unsafe extern "system" fn config_proc(
             if notification == BN_CLICKED as u16
                 && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
                     .contains(&id)
+                    || (resource_ids::IDC_TRAVEL_FREE_FLIGHT
+                        ..=resource_ids::IDC_TRAVEL_TRAIN_JOURNEY)
+                        .contains(&id)
                     || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE)
                         .contains(&id)) =>
         {
             update_draft_from_command(state, id);
+            set_travel_style_enabled(
+                hwnd,
+                state.draft.get().display_mode == DisplayMode::JapanTravel,
+            );
             invalidate_preview(hwnd);
             1
         }
