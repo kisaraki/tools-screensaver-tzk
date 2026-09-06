@@ -1,0 +1,28 @@
+# MyDateTimeScreensaver v0.1.1
+
+此版本更新使用者可見的模式名稱與設定畫面產品識別，功能與原有設定相容。
+
+## 變更
+
+- 「時間日期」更名為「標準桌曆暨時鐘模式」。
+- 「倒數計時」更名為「離機作業番茄鐘模式」。
+- 設定畫面加入「KOMSMOS TOOLKIT 探真拓知酷」識別，非互動 smoke test 會檢查內嵌資源字串。
+- 內部 enum、registry 值與測試介面仍使用 `TimeDate` 與 `Countdown`，既有偏好可繼續使用。
+
+## 下載與驗證
+
+建議下載 `MyDateTimeScreensaver-Setup.exe` 與 `SHA256SUMS.txt`。安裝程式需要系統管理員權限；「將它設為目前的螢幕保護程式」預設不勾。
+
+| 成品 | SHA-256 |
+| --- | --- |
+| `MyDateTimeScreensaver.scr` | `__SCR_SHA256__` |
+| `MyDateTimeScreensaver-Setup.exe` | `__SETUP_SHA256__` |
+
+## 驗證狀態與限制
+
+- Windows 10 x64 的建置、自動測試、原生功能與 smoke test 使用無互動流程執行。
+- 遠端驗證不觸發 UAC、不寫入 System32；完整安裝、覆蓋升級與解除安裝矩陣仍為 `NOT TESTED`。
+- `.scr` 與 Setup 均未含 Authenticode 簽章，Windows 可能顯示未驗證發行者或 SmartScreen 提示。
+- Windows 11 尚無測試環境，狀態為 `NOT TESTED`。
+
+完整狀態見 [驗收報告](https://github.com/kisaraki/tools-screensaver-tzk/blob/v0.1.1/docs/acceptance-report.md)。

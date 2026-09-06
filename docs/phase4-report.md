@@ -37,16 +37,16 @@ Phase 4 程式與目前環境可執行的驗證已完成，沒有已知 GDI／US
 
 ## 30 分鐘資源與效能
 
-[observe-phase4.ps1](../scripts/observe-phase4.ps1) 只在正式產品設定鍵不存在時執行；建立唯一 lease，結束時確認沒有未知 value／subkey 且 lease 未被替換後才刪除。兩種顯示模式各用本次 Release `/p` 在 96-DPI host 執行 1,800 秒；每 30 秒輪替 6 種尺寸、3 種字型與 4 種色彩。每個模式完成 59 次實際 cache 重建。
+[observe-phase4.ps1](../scripts/observe-phase4.ps1) 只在正式產品設定鍵不存在時執行；建立唯一 lease，結束時確認沒有未知 value／subkey 且 lease 未被替換後才刪除。標準桌曆暨時鐘模式與離機作業番茄鐘模式各用本次 Release `/p` 在 96-DPI host 執行 1,800 秒；每 30 秒輪替 6 種尺寸、3 種字型與 4 種色彩。每個模式完成 59 次實際 cache 重建。
 
 | 模式 | 時間 | 全機 CPU 平均 | private 1 min → 30 min | 最大 working set／預算 | GDI range | USER range | 循環 | 結果 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| TimeDate | 1,800.133 s | 0.0131% | 1,458,176 → 1,536,000 bytes | 7,880,704／37,607,424 bytes | 4 | 0 | 59 | PASS |
-| Countdown | 1,800.004 s | 0.0157% | 1,503,232 → 1,376,256 bytes | 7,757,824／37,607,424 bytes | 1 | 0 | 59 | PASS |
+| 標準桌曆暨時鐘模式（`TimeDate`） | 1,800.133 s | 0.0131% | 1,458,176 → 1,536,000 bytes | 7,880,704／37,607,424 bytes | 4 | 0 | 59 | PASS |
+| 離機作業番茄鐘模式（`Countdown`） | 1,800.004 s | 0.0157% | 1,503,232 → 1,376,256 bytes | 7,757,824／37,607,424 bytes | 1 | 0 | 59 | PASS |
 
 CPU 依規格使用 `100 × CPU 秒增量 /（牆鐘秒 × 8 logical processors）`。單一 1920×1080 buffer 的工程預算是 `24 MiB + 1.5 × 4 × W × H = 37,607,424 bytes`。兩者 CPU 均遠低於 1%，最大 working set 未達預算四分之一；private growth 未接近 `max(4 MiB, baseline 10%)`；GDI／USER／總 handle 也沒有持續上升。觀察使用的 Release hash 是 `/Brepro` 修正前的 `d74a3221c4fcd02061378117ea3ade6680f796b779e3ca90be7b507e583246b0`；其後唯一產品建置變更為 linker metadata 的 `/Brepro`，程式碼、資源與依賴未變。最終成品另由 smoke、Release 原生測試及位元重現比對驗證。
 
-這次長測是 1920×1080／96-DPI Release preview host，並非實體單螢幕全螢幕，也不涵蓋正式全螢幕倒數的 10 Hz 長時間 CPU；後者保持 `NOT TESTED`。短時間 `/s` 已在雙 4K 實機驗證 10 Hz 倒數、同步 surface 與退出清理。
+這次長測是 1920×1080／96-DPI Release preview host，並非實體單螢幕全螢幕，也不涵蓋正式全螢幕離機作業番茄鐘模式的 10 Hz 長時間 CPU；後者保持 `NOT TESTED`。短時間 `/s` 已在雙 4K 實機驗證 10 Hz 倒數、同步 surface 與退出清理。
 
 ## Windows 10 實機矩陣
 
@@ -67,7 +67,7 @@ CPU 依規格使用 `100 × CPU 秒增量 /（牆鐘秒 × 8 logical processors�
 | MT11 | NOT TESTED | 需 Phase 5 installer、標準帳號與另一管理員 UAC。 |
 | MT12 | NOT TESTED | 需 Phase 5 installer／install helper。 |
 | MT13 | NOT TESTED | 需 Phase 5 固定 AppId、升級與解除安裝。 |
-| MT14 | PARTIAL | 兩模式 Release preview 各 30 分鐘、各 59 次 resize／font 循環通過；實體 DPI 反覆變更與全螢幕 10 Hz 長測未測。 |
+| MT14 | PARTIAL | 標準桌曆暨時鐘模式與離機作業番茄鐘模式的 Release preview 各 30 分鐘、各 59 次 resize／font 循環通過；實體 DPI 反覆變更與全螢幕 10 Hz 長測未測。 |
 | MT15 | NOT TESTED | fresh offline build、static CRT imports 通過；沒有「未裝開發工具／VC++ Redistributable」的乾淨 Windows 10 目標機。 |
 
 Windows 11：`NOT TESTED（依使用者指示延期）`。

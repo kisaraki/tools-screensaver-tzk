@@ -33,17 +33,9 @@ jobs:
         run: scripts\build.bat
 
       - name: Run non-interactive smoke test
-        shell: pwsh
+        shell: pwsh -NoLogo -NoProfile -NonInteractive -Command ". '{0}'"
         run: |
           $smokeOutput = Join-Path $env:RUNNER_TEMP 'MyDateTimeScreensaver-smoke'
-          $process = Start-Process -FilePath 'powershell.exe' -Wait -PassThru -NoNewWindow -ArgumentList @(
-            '-NoProfile',
-            '-NonInteractive',
-            '-ExecutionPolicy', 'Bypass',
-            '-File', (Resolve-Path '.\scripts\smoke-test.ps1').Path,
-            '-ArtifactPath', (Resolve-Path '.\dist\MyDateTimeScreensaver.scr').Path,
-            '-OutputDirectory', $smokeOutput
-          )
-          if ($process.ExitCode -ne 0) {
-            throw "Smoke test failed with exit code $($process.ExitCode)."
-          }
+          & .\scripts\smoke-test.ps1 `
+            -ArtifactPath .\dist\MyDateTimeScreensaver.scr `
+            -OutputDirectory $smokeOutput

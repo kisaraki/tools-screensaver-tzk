@@ -1,9 +1,9 @@
 [package]
 name = "my_datetime_screensaver"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.97.1"
-description = "Native Win32 date, time, and countdown screensaver"
+description = "Native Win32 calendar clock and away-work Pomodoro screensaver"
 license = "MIT"
 repository = "https://github.com/kisaraki/tools-screensaver-tzk"
 homepage = "https://kisaraki.github.io/tools-screensaver-tzk/"

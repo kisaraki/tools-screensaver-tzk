@@ -1,9 +1,9 @@
 # MyDateTimeScreensaver 驗收報告
 
-軟體版本：0.1.0  
+軟體版本：0.1.1<br>
 規格文件：v1.2（修訂版）  
-執行日期：2026-09-05  
-Source revision：Phase 5 驗證當時尚無 commit，以 `docs/evidence/phase5/source-sha256.txt` 追溯工作樹；公開版本由 Git tag `v0.1.0` 固定  
+執行日期：2026-09-06<br>
+Source revision：以 Git tag `v0.1.1` 與 `docs/evidence/phase5/source-sha256.txt` 追溯<br>
 環境：Windows 10 Education 22H2 x64，build 19045.6456；Intel Core i5-8259U，4 cores／8 logical processors，約 24 GiB RAM；Intel Iris Plus Graphics 655；雙 3840×2160、兩者 144 DPI／150%，左側螢幕為負 X  
 工具：Rust／Cargo 1.97.1、windows-sys 0.61.2、MSVC x64 toolset 14.51.36231（link.exe 14.51.36256.0）、Windows SDK RC 10.0.26100.0、Inno Setup 6.7.3
 
@@ -24,7 +24,7 @@ Source revision：Phase 5 驗證當時尚無 commit，以 `docs/evidence/phase5/
 | AC09 | NOT TESTED | 四色、四字型、fallback 與極端點數有測試／fixture | UT18～22、visual-reference | 缺 200% 實體 dialog 與混合 DPI 實機 |
 | AC10 | PASS | 專用測試 key 與 fake store 驗證型別、schema、取消、rollback、未知值 | UT20～24、Phase 3 report | — |
 | AC11 | NOT TESTED | 指定鍵鼠、4px／500ms、同程序焦點與十一種訊息清理已有實測 | Phase 1／4 native | 外部 foreground 被 Windows policy 拒絕一次；實際登出未測 |
-| AC12 | NOT TESTED | 兩模式 Release preview 各 30 分鐘、各 59 次 cache 循環穩定 | Phase 4 resource report | 正式全螢幕 Countdown 10 Hz 長測與實體 DPI 反覆變更未測 |
+| AC12 | NOT TESTED | 標準桌曆暨時鐘模式與離機作業番茄鐘模式的 Release preview 各 30 分鐘、各 59 次 cache 循環穩定 | Phase 4 resource report | 正式全螢幕離機作業番茄鐘模式（`Countdown`）10 Hz 長測與實體 DPI 反覆變更未測 |
 | AC13 | NOT TESTED | Setup 已編譯且版本一致 | `phase5/package.txt`、`SHA256SUMS.txt` | UAC 被取消，尚未實際安裝、列舉、移除 |
 | AC14 | NOT TESTED | 非 System32 helper code 4 且四值不變 | `smoke-report.json` | 原使用者成功路徑、另一管理員 UAC、直接提權 installer 未測 |
 | AC15 | PASS | README、原始碼、測試、`.scr`、Setup、hash、視覺與逐項報告均存在 | repository 交付清單 | 成品明確標示 NotSigned 與未測限制 |
@@ -60,7 +60,7 @@ Phase 5 另新增兩項：內部 helper 只接受精確單一旗標；從非 Sys
 | MT11 | NOT TESTED | helper 身分檢查已實作 | 獨立標準帳號與另一管理員 UAC |
 | MT12 | NOT TESTED | helper 非安裝路徑拒絕已測 | Setup 從已提權程序啟動及安裝後 elevated helper |
 | MT13 | NOT TESTED | 固定 AppId／restartreplace／保留偏好規則已編譯 | 實際同版覆蓋、舊版升級、檔案使用中、解除安裝 |
-| MT14 | NOT TESTED | 兩模式 Release preview 各 30 分鐘與 59 次循環通過 | 全螢幕 10 Hz 長測與實體 DPI 變更 |
+| MT14 | NOT TESTED | 標準桌曆暨時鐘模式與離機作業番茄鐘模式的 Release preview 各 30 分鐘與 59 次循環通過 | 全螢幕 10 Hz 長測與實體 DPI 變更 |
 | MT15 | NOT TESTED | fresh offline hash 可重現、無 VC/UCRT 動態 import | 無未裝工具／VC++ Redistributable 的乾淨 Win10 目標機 |
 
 Windows 11：`NOT TESTED`，依使用者指示延期，沒有當成 Windows 10 的阻擋理由，也沒有宣稱已支援通過。
@@ -69,7 +69,7 @@ Windows 11：`NOT TESTED`，依使用者指示延期，沒有當成 Windows 10 �
 
 | 成品 | SHA-256 | 狀態 |
 | --- | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | `30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941` | Build／smoke PASS；NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | `2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
+| `dist/MyDateTimeScreensaver.scr` | `__SCR_SHA256__` | Build／smoke PASS；NotSigned |
+| `dist/MyDateTimeScreensaver-Setup.exe` | `__SETUP_SHA256__` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
 
-Phase 5 的封裝原始碼與候選成品已交付，並依專案擁有者指示採 MIT License 公開發布。完成 Windows 10 完整驗收仍需在可互動的本機環境執行 `scripts/test-installation.ps1` 並補做本表列出的必要實機情境；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，成品維持 NotSigned。
+Phase 5 的封裝原始碼與 v0.1.1 候選成品已交付，並依專案擁有者指示採 MIT License 公開發布。完成 Windows 10 完整驗收仍需在可互動的本機環境執行 `scripts/test-installation.ps1` 並補做本表列出的必要實機情境；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，成品維持 NotSigned。

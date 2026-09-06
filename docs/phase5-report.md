@@ -1,13 +1,13 @@
 # Phase 5 封裝與交付報告
 
-日期：2026-09-05  
-軟體版本：0.1.0  
+日期：2026-09-06<br>
+軟體版本：0.1.1<br>
 規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.2（修訂版）  
 必要平台：Windows 10 x64；Windows 11 依使用者指示延期
 
 ## 結果
 
-Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、單一 Inno Setup EXE 和 SHA-256 清單。開發候選未簽章。非互動 gate、PE／資源／manifest／靜態 CRT、版本一致性、helper 非安裝位置拒絕和受保護 HKCU 值不變均已實際通過。
+Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、單一 Inno Setup EXE 和 SHA-256 清單。v0.1.1 將使用者可見模式名稱更新為「標準桌曆暨時鐘模式」與「離機作業番茄鐘模式」，並在設定畫面加入「KOMSMOS TOOLKIT 探真拓知酷」識別；內部 `TimeDate`／`Countdown` 值保持相容。開發候選未簽章。非互動 gate、PE／資源／manifest／靜態 CRT、版本一致性、helper 非安裝位置拒絕和受保護 HKCU 值不變均已實際通過。
 
 需要管理員桌面的實際安裝測試曾啟動一次，但 Windows 回報 UAC「操作被使用者取消」。其後確認 System32、產品目錄、解除安裝登錄及 `SCRNSAVE.EXE` 都未被改動。因此乾淨安裝、task 已勾、同版覆蓋、檔案使用中、解除安裝、不同帳號 UAC 和直接提權情境仍是 `NOT TESTED`。這個狀態使本次成果只能稱為「有已知驗證限制的開發候選」，不能稱為 Windows 10 完整驗收。
 
@@ -25,22 +25,22 @@ Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、�
 
 | 檔案 | 版本 | Bytes | SHA-256 | Authenticode |
 | --- | --- | ---: | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | 0.1.0 | 609,792 | `30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941` | NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | 0.1.0.0 | 2,247,540 | `2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78` | NotSigned |
+| `dist/MyDateTimeScreensaver.scr` | 0.1.1 | __SCR_BYTES__ | `__SCR_SHA256__` | NotSigned |
+| `dist/MyDateTimeScreensaver-Setup.exe` | 0.1.1.0 | __SETUP_BYTES__ | `__SETUP_SHA256__` | NotSigned |
 
-`dist/SHA256SUMS.txt` 由成功 package 產生。專案擁有者已指定 MIT License 並授權建立公開 GitHub repository、Release 與 Pages；v0.1.0 以未簽章開發候選版發布。若日後取得憑證，須依序簽 `.scr`、重封 Setup、簽 Setup，再重建最終雜湊。
+`dist/SHA256SUMS.txt` 由成功 package 產生。專案擁有者已指定 MIT License 並授權建立公開 GitHub repository、Release 與 Pages；v0.1.0 保留既有成品，這次模式改名與設定畫面品牌更新另以 v0.1.1 未簽章開發候選版發布。若日後取得憑證，須依序簽 `.scr`、重封 Setup、簽 Setup，再重建最終雜湊。
 
-上表是加入 MIT License 與公開 metadata 後重新執行 package／非互動 smoke 的最終發布成品。Phase 5 目錄中較早的 `build.txt`、`build-arbitrary-cwd.txt`、`package-arbitrary-cwd.txt` 與 `smoke-arbitrary-cwd.txt` 保留階段執行時的舊 hash，只用來證明當時的任意工作目錄與 gate 行為；下載驗證以本表、`verification.json` 與 Release 的 `SHA256SUMS.txt` 為準。
+上表是加入新模式名稱、「KOMSMOS TOOLKIT 探真拓知酷」識別與公開 metadata 後重新執行 package／非互動 smoke 的最終發布成品。Phase 5 目錄中較早的 `build.txt`、`build-arbitrary-cwd.txt`、`package-arbitrary-cwd.txt` 與 `smoke-arbitrary-cwd.txt` 保留階段執行時的舊 hash，只用來證明當時的任意工作目錄與 gate 行為；下載驗證以本表、`verification.json` 與 Release 的 `SHA256SUMS.txt` 為準。
 
 ## 實際 gate
 
 ```powershell
 scripts\build.bat
 scripts\package.bat
-powershell -NoProfile -File scripts\smoke-test.ps1
+pwsh -NoLogo -NoProfile -NonInteractive -File scripts\smoke-test.ps1
 ```
 
-結果：fmt PASS；Clippy `-D warnings` PASS；35 個非互動測試 PASS（16 library、8 CLI、2 native、9 time/layout；另有 1 個 fixture 測試按設計 ignored）；locked Release build PASS；package PASS；smoke PASS。Smoke 驗證 x64 PE32+ Windows GUI、六類必要資源、manifest、版本、Windows-only imports、無動態 VC/UCRT import、Release Debug 入口拒絕、錯誤參數，以及 helper code 4 前後四個系統螢幕保護值相同。
+結果：fmt PASS；Clippy `-D warnings` PASS；35 個非互動測試 PASS（16 library、8 CLI、2 native、9 time/layout；另有 1 個 fixture 測試按設計 ignored）；locked Release build PASS；package PASS；smoke PASS。Smoke 驗證 x64 PE32+ Windows GUI、六類必要資源、新模式名稱與品牌字串、manifest、版本、Windows-only imports、無動態 VC/UCRT import、Release Debug 入口拒絕、錯誤參數，以及 helper code 4 前後四個系統螢幕保護值相同。
 
 另從 repository 外的 `%USERPROFILE%\Downloads` 以絕對腳本路徑重跑 build、package 與 smoke，三者均 PASS；證據為 `build-arbitrary-cwd.txt`、`package-arbitrary-cwd.txt`、`smoke-arbitrary-cwd.txt`。這確認 `%~dp0`／`$MyInvocation.MyCommand.Path` 的根目錄解析沒有依賴目前工作目錄。
 

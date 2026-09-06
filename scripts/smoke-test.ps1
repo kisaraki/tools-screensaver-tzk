@@ -235,11 +235,25 @@ try {
     foreach ($resource in $resources) {
         $resource.bytes = [Phase5ResourceReader]::GetResource($smokeCopy, $resource.id, $resource.type).Length
     }
+    $configDialogBytes = [Phase5ResourceReader]::GetResource($smokeCopy, 2003, 5)
+    $configDialogText = [Text.Encoding]::Unicode.GetString($configDialogBytes)
+    $expectedDialogLabels = @(
+        '標準桌曆暨時鐘模式(&T)',
+        '離機作業番茄鐘模式(&C)',
+        'KOMSMOS TOOLKIT',
+        '探真拓知酷'
+    )
+    foreach ($label in $expectedDialogLabels) {
+        if (-not $configDialogText.Contains($label)) {
+            throw "Configuration dialog is missing the expected label: $label"
+        }
+    }
     $manifestBytes = [Phase5ResourceReader]::GetResource($smokeCopy, 1, 24)
     $manifest = [Text.Encoding]::UTF8.GetString($manifestBytes).TrimStart([char]0xfeff)
+    $expectedAssemblyVersion = "$expectedVersion.0"
     foreach ($token in @('level="asInvoker"', 'uiAccess="false"', 'PerMonitorV2',
             'Microsoft.Windows.Common-Controls', 'processorArchitecture="amd64"',
-            'version="0.1.0.0"', '{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}')) {
+            "version=`"$expectedAssemblyVersion`"", '{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}')) {
         if (-not $manifest.Contains($token)) { throw "Embedded manifest is missing: $token" }
     }
     [IO.File]::WriteAllText((Join-Path $output 'embedded.manifest'), $manifest, [Text.UTF8Encoding]::new($false))
@@ -316,6 +330,7 @@ try {
         version = $expectedVersion
         fileDescription = $versionInfo.FileDescription
         resources = $resources
+        configurationLabels = $expectedDialogLabels
         manifestChecks = 'PASS'
         imports = $imports
         staticCrtCheck = 'PASS (no dynamic VC/UCRT import)'

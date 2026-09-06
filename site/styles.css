@@ -18,11 +18,13 @@
 }
 
 html {
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 72% 8%, rgba(39, 245, 93, 0.08), transparent 28rem),
     var(--bg);
@@ -533,13 +535,78 @@ h1 em {
   background: var(--panel);
 }
 
-.settings-shot img {
-  border: 1px solid #3a453e;
-  border-radius: 5px;
-}
-
 .settings-shot p {
   color: var(--muted);
+}
+
+.toolkit-card {
+  min-height: 230px;
+  padding: clamp(24px, 5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 36px;
+  border: 1px solid #3a453e;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(39, 245, 93, 0.11), transparent 13rem),
+    #090d0a;
+}
+
+.toolkit-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.toolkit-mark img {
+  width: 42px;
+  height: 42px;
+}
+
+.toolkit-mark div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.toolkit-mark strong {
+  color: var(--green);
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
+.toolkit-mark span {
+  color: var(--text);
+  font-size: 0.83rem;
+  letter-spacing: 0.12em;
+}
+
+.mode-labels {
+  display: grid;
+  gap: 12px;
+}
+
+.mode-labels p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.radio {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 1px solid #718078;
+  border-radius: 50%;
+}
+
+.radio.checked {
+  border: 4px solid var(--green);
 }
 
 .compat-grid {

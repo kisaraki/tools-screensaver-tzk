@@ -53,5 +53,4 @@
 - `window::tests::real_creation_failures_and_partial_group_cleanup_drop_each_state_once`：覆蓋 `WM_NCCREATE` 前失敗、`WM_CREATE` 後失敗與多 surface 部分建立清理。
 - `render::tests::gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects`：實際 GDI 小尺寸、font／buffer cache 50 次循環，process GDI objects 回到穩定基線。
 - Release 原生測試：兩個 4K／144 DPI surface、十一種關閉訊息、preview 三種 DPI context 與反覆 resize。
-- Release 30 分鐘觀察：TimeDate 與 Countdown 各 59 次 size／font／color cache 重建，GDI、USER 與 private bytes 無持續成長；詳見 [Phase 4 報告](phase4-report.md)。
-
+- Release 30 分鐘觀察：標準桌曆暨時鐘模式（`TimeDate`）與離機作業番茄鐘模式（`Countdown`）各 59 次 size／font／color cache 重建，GDI、USER 與 private bytes 無持續成長；詳見 [Phase 4 報告](phase4-report.md)。

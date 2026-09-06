@@ -55,7 +55,7 @@ target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
 - 檔案大小：485,376 bytes（474 KiB）。
 - SHA-256：`48A6AA0DD805C611726BCE55174CDCA18489560CD2A9CE905C1F85727842C65B`。
 - `FileVersion=0.1.0`、`ProductVersion=0.1.0`、數值版／manifest assembly 版為 0.1.0.0。
-- 名稱字串為「日期時間螢幕保護程式」；FileDescription 標示 Phase 0；CompanyName／LegalCopyright 留空。
+- Phase 0 成品當時的名稱字串為「日期時間螢幕保護程式」；FileDescription 標示 Phase 0；CompanyName／LegalCopyright 留空。這是歷史驗證輸出，不是目前的使用者可見模式名稱。
 - 資源類型／ID：RT_ICON 1～4、RT_STRING block 1、RT_GROUP_ICON 101、RT_VERSION 1、RT_MANIFEST 1；manifest 僅一份。
 - Manifest 實際包含 `asInvoker`、`uiAccess=false`、PerMonitorV2、Windows 10／11 相容性 GUID 及 Common Controls v6。
 - DLL imports：kernel32.dll／KERNEL32.dll、user32.dll、ntdll.dll、api-ms-win-core-synch-l1-2-0.dll。沒有 VC++ Redistributable DLL 或第三方 runtime DLL import。

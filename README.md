@@ -5,28 +5,28 @@
 [![Release](https://img.shields.io/github/v/release/kisaraki/tools-screensaver-tzk?include_prereleases&sort=semver)](https://github.com/kisaraki/tools-screensaver-tzk/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-17d98b.svg)](LICENSE)
 
-MyDateTimeScreensaver 是以 Rust、原生 Win32 與 GDI 製作的 Windows x64 螢幕保護程式。它提供時間日期與倒數計時兩種畫面，不需要網路、外部字型檔或額外執行階段。
+MyDateTimeScreensaver 是以 Rust、原生 Win32 與 GDI 製作的 Windows x64 螢幕保護程式。它提供「標準桌曆暨時鐘模式」與「離機作業番茄鐘模式」，不需要網路、外部字型檔或額外執行階段。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.1.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.1.0) · [完整開發規格](MyDateTimeScreensaver_Codex_Spec.md)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.1.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.1.1) · [完整開發規格](MyDateTimeScreensaver_Codex_Spec.md)
 
-![時間日期模式：左側指針鐘與右側六列月曆](docs/evidence/phase2/fixtures/02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.png)
+![標準桌曆暨時鐘模式：左側指針鐘與右側六列月曆](docs/evidence/phase2/fixtures/02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.png)
 
-> **v0.1.0 是未簽章的開發候選版。** Windows 10 x64 的建置、原生功能測試與非互動 smoke test 已通過；需要 UAC 的完整安裝／升級／解除安裝矩陣尚未在遠端工作階段執行。Windows 11 尚未驗證。下載後請先比對 SHA-256。
+> **v0.1.1 是未簽章的開發候選版。** Windows 10 x64 的建置、原生功能測試與非互動 smoke test 已通過；需要 UAC 的完整安裝／升級／解除安裝矩陣尚未在遠端工作階段執行。Windows 11 尚未驗證。下載後請先比對 SHA-256。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [MyDateTimeScreensaver-Setup.exe](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式 |
-| [MyDateTimeScreensaver.scr](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查 |
-| [SHA256SUMS.txt](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.0/SHA256SUMS.txt) | 兩個成品的 SHA-256 |
+| [MyDateTimeScreensaver-Setup.exe](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式 |
+| [MyDateTimeScreensaver.scr](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查 |
+| [SHA256SUMS.txt](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.1.1/SHA256SUMS.txt) | 兩個成品的 SHA-256 |
 
 目前成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941` |
-| `MyDateTimeScreensaver-Setup.exe` | `2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78` |
+| `MyDateTimeScreensaver.scr` | `__SCR_SHA256__` |
+| `MyDateTimeScreensaver-Setup.exe` | `__SETUP_SHA256__` |
 
 ## 安裝與使用
 
@@ -41,14 +41,15 @@ MyDateTimeScreensaver 是以 Rust、原生 Win32 與 GDI 製作的 Windows x64 �
 
 ## 功能
 
-- **時間日期**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。
-- **倒數計時**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
+- **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。
+- **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
 - **個人化**：深紅、深橘、亮綠、灰白四色；電子錶、Consolas、新細明體及自訂系統字型。
+- **設定識別**：原生設定畫面以程式圖示搭配「KOMSMOS TOOLKIT 探真拓知酷」小型標示。
 - **Windows 整合**：支援 `/s` 全螢幕、`/p HWND` 系統預覽與 `/c` 原生設定對話框。
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
 - **離線與精簡**：純 Win32/GDI、靜態 CRT，沒有網路請求、遙測、常駐服務或額外 VC++ Runtime 需求。
 
-![倒數計時模式：七段數字、沙漏與進度線](docs/evidence/phase2/fixtures/13-Countdown-800x369-dpi96-p2-SevenSegment-palette.png)
+![離機作業番茄鐘模式：七段數字、沙漏與進度線](docs/evidence/phase2/fixtures/13-Countdown-800x369-dpi96-p2-SevenSegment-palette.png)
 
 ## 命令列模式
 
@@ -58,7 +59,7 @@ MyDateTimeScreensaver.scr /p <HWND>
 MyDateTimeScreensaver.scr /c
 ```
 
-- `/s`：每台螢幕建立無邊框視窗；時間日期直接開始，倒數模式會先要求本次時、分、秒。
+- `/s`：每台螢幕建立無邊框視窗；標準桌曆暨時鐘模式直接開始，離機作業番茄鐘模式會先要求本次時、分、秒。
 - `/p <HWND>` 或 `/p:<HWND>`：嵌入 Windows 提供的預覽父視窗。
 - `/c` 或無參數：開啟原生設定對話框。
 
@@ -120,7 +121,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～4 報告保留各階段當時的版本、hash 與限制；目前下載成品以 v0.1.0 Release 與 `SHA256SUMS.txt` 為準。文字 evidence 中的本機路徑與主機名稱已在公開前匿名化。
+Phase 0～4 報告保留各階段當時的版本、hash 與限制；目前下載成品以 v0.1.1 Release 與 `SHA256SUMS.txt` 為準。文字 evidence 中的本機路徑與主機名稱已在公開前匿名化。
 
 ## 授權
 

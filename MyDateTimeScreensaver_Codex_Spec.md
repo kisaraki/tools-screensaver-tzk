@@ -52,7 +52,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供時間日期與倒數計時兩種模式。全部畫面由 Rust 呼叫 Win32 GDI 繪製，離線執行。
+建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供「標準桌曆暨時鐘模式」與「離機作業番茄鐘模式」兩種螢幕保護畫面。內部程式與登錄值仍分別使用 `TimeDate` 與 `Countdown` 識別；這些技術名稱不是使用者可見標籤。全部畫面由 Rust 呼叫 Win32 GDI 繪製，離線執行。
 
 ### 1.1 必要功能
 
@@ -295,7 +295,7 @@ MyDateTimeScreensaver/
 
 ### 6.1 建立與顯示
 
-1. 讀取並驗證一次設定；Countdown 先執行第 6.2 節輸入流程。
+1. 讀取並驗證一次設定；離機作業番茄鐘模式（內部識別 `Countdown`）先執行第 6.2 節輸入流程。
 2. 以 `EnumDisplayMonitors(NULL, NULL, ...)` 列舉有效桌面顯示區域，讀取 `MONITORINFO.rcMonitor`。鏡像／重複矩形須避免重複覆蓋。
 3. 每個有效矩形建立一個初始隱藏的 `WS_POPUP`，擴充樣式 `WS_EX_TOPMOST | WS_EX_TOOLWINDOW`。
 4. 採完整 `rcMonitor`，不用 work area；支援負 X／Y，不假設主螢幕位於 `(0,0)`。
@@ -304,12 +304,12 @@ MyDateTimeScreensaver/
 
 列舉失敗或無有效區域，才退回 virtual-screen metrics 建立單一視窗；fallback 仍檢查正尺寸、溢位及 allocation 上限。不得強制更換顯示解析度或獨佔顯示模式。
 
-### 6.2 倒數啟動流程
+### 6.2 離機作業番茄鐘模式啟動流程
 
 ```text
 /s → 讀取模式
-      ├─ TimeDate → 準備全部視窗 → 顯示
-      └─ Countdown → 輸入時間
+      ├─ 標準桌曆暨時鐘模式（TimeDate） → 準備全部視窗 → 顯示
+      └─ 離機作業番茄鐘模式（Countdown） → 輸入時間
                        ├─ 取消／Esc／關閉 → 結束（0）
                        ├─ 驗證不通過 → 留在輸入框
                        └─ 開始 → 保存時間 → 準備全部視窗
@@ -317,7 +317,7 @@ MyDateTimeScreensaver/
                                              └─ 建立共用 deadline → 顯示並倒數
 ```
 
-- 每次 `/s` 選用 Countdown 都顯示一次 `IDD_COUNTDOWN_INPUT`；多螢幕不能各問一次。
+- 每次 `/s` 選用離機作業番茄鐘模式都顯示一次 `IDD_COUNTDOWN_INPUT`；多螢幕不能各問一次。
 - 三個欄位範圍：小時 `0–99`、分鐘 `0–59`、秒 `0–59`；總秒數 `1–359999`。
 - 預填上次按「開始」成功保存的值，首次 `00:05:00`。此值是上次接受的時間，不保證後續視窗一定建立成功。
 - 只接受 1～2 個 ASCII 數字；空白、空字串、符號、全形數字與黏貼的非法內容都拒絕。`ES_NUMBER` 不取代程式驗證。
@@ -325,7 +325,7 @@ MyDateTimeScreensaver/
 - deadline 在視窗準備完成、正式顯示前建立；對話框停留及視窗準備時間不扣除倒數。
 - 輸入階段不套用一般滑鼠／鍵盤退出，不隱藏游標，也不先鋪黑全螢幕。
 
-**保留的產品限制：** Windows 閒置自動啟動 Countdown 也會要求輸入。`/s` 本身不能可靠區分手動與系統啟動，不能自行推定使用者正在一般互動桌面。必須測試「繼續執行時顯示登入畫面」開／關及實際閒置啟動；若目標環境阻止互動，將該情境列 `FAIL` 或 `NOT TESTED`，不得繞過系統保護、偷偷改成自動倒數或宣稱驗收完成。此限制列入 README。
+**保留的產品限制：** Windows 閒置自動啟動離機作業番茄鐘模式也會要求輸入。`/s` 本身不能可靠區分手動與系統啟動，不能自行推定使用者正在一般互動桌面。必須測試「繼續執行時顯示登入畫面」開／關及實際閒置啟動；若目標環境阻止互動，將該情境列 `FAIL` 或 `NOT TESTED`，不得繞過系統保護、偷偷改成自動倒數或宣稱驗收完成。此限制列入 README。
 
 ### 6.3 游標與退出
 
@@ -341,7 +341,7 @@ MyDateTimeScreensaver/
 
 - `WM_DISPLAYCHANGE`：第一版採安全退出全部全螢幕，下一次啟動重新列舉；不要求執行中無縫重建拓撲。
 - `WM_DPICHANGED`：更新該螢幕 DPI 與幾何；頂層全螢幕重新查 `rcMonitor` 保持覆蓋，不機械套用一般可移動視窗的尺寸。
-- `WM_TIMECHANGE`／時區變更：時間日期快照立即重新取本機時間；倒數不受影響。
+- `WM_TIMECHANGE`／時區變更：標準桌曆暨時鐘模式的快照立即重新取本機時間；離機作業番茄鐘模式的倒數不受影響。
 - 不阻止系統睡眠、不呼叫維持螢幕常亮的 API。若程序睡眠後仍存在，恢復時以原 deadline 重算；睡眠時間計入經過時間。
 - 若恢復時已逾期，顯示零；不把錯過的 timer 次數逐次補跑，不重播已過去的完整閃爍序列。
 - 收到 `WM_QUERYENDSESSION` 不阻止登出；`WM_ENDSESSION` 清理退出。
@@ -368,8 +368,8 @@ MyDateTimeScreensaver/
 
 | 模式 | 畫面來源 | 是否倒數 | 是否位移 |
 | --- | --- | --- | --- |
-| TimeDate | 每秒更新的本機時間與當月月曆 | 不適用 | 否 |
-| Countdown | 上次保存時間，無效則 300 秒；`remaining=total`、ratio=1 | 否 | 否 |
+| 標準桌曆暨時鐘模式（`TimeDate`） | 每秒更新的本機時間與當月月曆 | 不適用 | 否 |
+| 離機作業番茄鐘模式（`Countdown`） | 上次保存時間，無效則 300 秒；`remaining=total`、ratio=1 | 否 | 否 |
 
 不得跳出倒數輸入框、發出聲音或觸發零點提示。小尺寸退化依第 8.1 節，不能改成獨立視窗。
 
@@ -393,7 +393,7 @@ MyDateTimeScreensaver/
 | 小於 120×80，但寬高皆正 | 最佳努力顯示兩區輪廓／倒數字樣；不保證文字可讀，必須無 panic、負尺寸或越界 |
 | 任一邊為 0 | 不配置 buffer、不實際繪圖，待恢復 |
 
-### 8.2 時間日期模式
+### 8.2 標準桌曆暨時鐘模式
 
 #### 8.2.1 參考圖與可接受差異
 
@@ -451,7 +451,7 @@ r = R / (abs(u)^6 + abs(v)^6)^(1/6)
 - 閏年：能被 400 整除，或能被 4 整除但不能被 100 整除。
 - 若星期函式用 Sunday=0，第一天 Monday-based offset 為 `(weekday+6)%7`；day 的格子索引為 `offset+day-1`。
 
-### 8.3 倒數模式
+### 8.3 離機作業番茄鐘模式
 
 #### 8.3.1 參考範圍與構圖
 
@@ -666,9 +666,10 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 #define IDC_COUNTDOWN_SECONDS   1403
 ```
 
-- 模式群組：時間日期／倒數計時 radio。
+- 模式群組：「標準桌曆暨時鐘模式」／「離機作業番茄鐘模式」兩個 radio 選項。
 - 顏色群組：四個 radio；各組正確設 `WS_GROUP`，不能兩组互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
+- 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
 - Tab 順序循序可用，radio 支援方向鍵，Enter 提交、Esc 取消；標籤有明確欄位關係，不只靠顏色表意。
 - 100%、150%、200% DPI 不重疊／截字；跨螢幕依 dialog DPI 機制更新，避免系統與程式各縮放一次。
@@ -687,8 +688,8 @@ HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
 - `IDC_PREVIEW` 用 `SS_OWNERDRAW`，在 `WM_DRAWITEM` 取得 `DRAWITEMSTRUCT.hDC`／`rcItem` 後呼叫共用 renderer；此 HDC 為 borrowed，不使用 `BeginPaint`／`EndPaint`／`ReleaseDC`。
 - 保存／恢復 HDC 狀態，不改變其他控制項的 clip、字型或座標原點。
 - 模式／顏色變更只更新草稿、必要 cache 並 invalidate；只有字型／尺寸／DPI 變更才重建 font cache。
-- TimeDate 每秒以目前本機時間更新；不能只在選項改變時更新時鐘。
-- Countdown 靜態示範：remaining=300 秒、total=600 秒、顯示 `00:05:00`、ratio=0.5、上下各半砂量，不播放落砂動畫或警示。
+- 標準桌曆暨時鐘模式（`TimeDate`）每秒以目前本機時間更新；不能只在選項改變時更新時鐘。
+- 離機作業番茄鐘模式（`Countdown`）靜態示範：remaining=300 秒、total=600 秒、顯示 `00:05:00`、ratio=0.5、上下各半砂量，不播放落砂動畫或警示。
 - `/c` 預覽永遠採草稿，不由 `/p` 的 registry poll 蓋掉尚未保存的修改。
 - 所有預覽不位移；字型失敗時 fallback，不使對話框失去操作能力。
 
@@ -893,7 +894,7 @@ MyDateTimeScreensaver.scr --install-set-current
 | UT10 | total=5000，now-start=0／1／1000／4999／5000／9000 ms | 顯示秒 5／5／4／1／0／0，ratio 限於 [0,1] |
 | UT11 | remaining=10001／10000／1／0 ms | 最後十秒 false／true／true／false |
 | UT12 | deadline 後 419／420／3359／3360 ms | 正常／變暗／變暗／永久正常；只 4 個暗半週期 |
-| UT13 | 時間調整±1日，tick 不變 | 倒數值不變；TimeDate 由新快照更新 |
+| UT13 | 時間調整±1日，tick 不變 | 離機作業番茄鐘模式的倒數值不變；標準桌曆暨時鐘模式（`TimeDate`）由新快照更新 |
 | UT14 | 一次跳過 10 秒／睡眠後已逾期 | 不逐 tick 補跑；依 deadline 算值，逾期=0 |
 | UT15 | 0～9 segments | mask 與第 8.3.2 節一致；未點亮段不誤畫 |
 | UT16 | xorshift 固定非零 seed、零 seed fallback | 可重現，無永遠輸出零的錯誤 seed |
@@ -947,7 +948,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 17.4 效能與記憶體
 
-- 時間日期更新 1 Hz；倒數進行／完成閃爍 10 Hz；完成後 1 Hz；不得存在未受事件節制的 loop。
+- 標準桌曆暨時鐘模式更新 1 Hz；離機作業番茄鐘模式在倒數進行／完成閃爍時更新 10 Hz，完成後為 1 Hz；不得存在未受事件節制的 loop。
 - 基準環境：單螢幕 1920×1080、100% DPI、Release、無 debugger、預熱1分鐘後量測5分鐘。記錄 CPU 型號、邏輯核心數、解析度、DPI 及工具。
 - CPU 目標：相對全機總能力平均 <1%。計算口徑為 `100×程序CPU秒增量/(牆鐘秒×邏輯核心數)`，不能把單核心百分比與工作管理員數值混用。
 - 4K／多螢幕另報，不憑「一般桌面」宣稱通過。超標須記錄可重現原因及是否需優化。
@@ -961,7 +962,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 至少保留：800×369 參考比例、1920×1080、3840×2160、1080×1920、小型 Windows preview 及150%／200%設定 dialog 截圖。
 
-- TimeDate fixture 可用 2023-12-31、12:15:40 比對附件日曆與指針；產品正常模式仍使用真實時間。
+- 標準桌曆暨時鐘模式的 `TimeDate` fixture 可用 2023-12-31、12:15:40 比對附件日曆與指針；產品正常模式仍使用真實時間。
 - 每種色票在兩種模式至少各檢查一次；特別確認灰白／亮綠 LCD 輪廓可讀與深紅黑底可辨。
 - 截圖標示版本、尺寸、DPI、模式、色彩、字型、fixture／真實時間，不能用參考圖冒充實作截圖。
 
@@ -1144,7 +1145,7 @@ powershell -NoProfile -File scripts\smoke-test.ps1
 | [Inno：ArchitecturesAllowed](https://jrsoftware.org/ishelp/topic_setup_architecturesallowed.htm) | 安裝架構限制 |
 | [Inno：ExecAsOriginalUser](https://jrsoftware.org/ishelp/topic_isxfunc_execasoriginaluser.htm) | 原使用者執行與uninstall限制 |
 | [Inno：Run section](https://jrsoftware.org/ishelp/topic_runsection.htm) | runasoriginaluser及執行結果處理 |
-| 使用者提供的私有圖片 | 已檢視；時間日期構圖參考，不納入公開 repository 或交付素材 |
+| 使用者提供的私有圖片 | 已檢視；標準桌曆暨時鐘模式的構圖參考，不納入公開 repository 或交付素材 |
 | [Classroom Timer](https://kisaraki.github.io/classroom-timer-tzk/?tool=countdown) | 原稿指定；本次未取得網頁內容，未聲稱當前畫面驗證 |
 
 ## 22. 完成交付清單
