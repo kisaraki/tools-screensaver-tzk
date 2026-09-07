@@ -426,6 +426,12 @@ h1 em {
   position: relative;
 }
 
+.download-access-note {
+  margin-top: 12px;
+  color: var(--green);
+  font-weight: 700;
+}
+
 .download-section::before,
 .source::before {
   content: "";
