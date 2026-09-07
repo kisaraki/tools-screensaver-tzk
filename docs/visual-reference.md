@@ -1,8 +1,18 @@
 # 視覺參考與實作證據
 
-產品版本：0.1.1<br>
-規格文件：v1.2  
-更新日期：2026-09-06
+產品版本：0.5.0<br>
+規格文件：v1.6<br>
+更新日期：2026-09-08
+
+## v0.5.0 置中版面
+
+日期時鐘與番茄鐘在一般桌面使用中央 64% 寬、60% 高的內容區，四周留白；小型預覽保持原有比例。[Phase 9 報告](phase9-report.md) 收錄本版 37 張 GDI renderer 圖片、尺寸門檻與驗證範圍。
+
+![日期時鐘，1920×1080](evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
+
+![番茄鐘，1920×1080](evidence/phase9/fixtures/15-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
+
+4K、直向與小型預覽可由 Phase 9 畫面證據表開啟。這些圖片為離屏繪製，沒有開啟全螢幕或系統設定，也沒有觸發 UAC。以下 Phase 2～5 圖片與紀錄保留為歷史證據，不代表目前版面的尺寸。
 
 ## 參考範圍
 

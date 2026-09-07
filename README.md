@@ -7,26 +7,26 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.4.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.4.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.5.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.5.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md)
 
-![標準桌曆暨時鐘模式：左側指針鐘與右側六列月曆](docs/evidence/phase2/fixtures/02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.png)
+![v0.5.0 標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.4.0 是未簽章的開發候選版。** Windows 10 x64 的非互動建置、45 個預設自動測試、兩種旅行場景 fixture、WebView2 Runtime 無視窗探測、產品解析器即時來源測試、來源 HTTP 健康檢查、smoke 與封裝已通過；實際 YouTube player `PLAYING`、連續 60 秒輪換、多螢幕旅行畫面、斷網情境與 30 分鐘資源觀察仍為 `NOT TESTED`。需要 UAC 的安裝／升級／解除安裝矩陣沒有在遠端工作階段執行，Windows 11 也尚未驗證。
+> **v0.5.0 是未簽章的開發候選版。** 桌曆時鐘與番茄鐘改為置中、留白較多的版面。Windows 10 x64 的非互動建置、46 個預設測試、37 張 GDI fixture、smoke 與封裝已通過。旅行來源及 Runtime 探測沿用 v0.4.0 的具日期紀錄；實際影片播放、連續輪換、多螢幕旅行畫面與長時間資源觀察仍為 `NOT TESTED`。安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
-目前 v0.4.0 成品：
+目前 v0.5.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `tools-screensaver-tzk.scr` | `870d9e4c6110f5a6a4132cf96dc96c11aebbf4b9ce6d331ef9d374c42985fa37` |
-| `tools-screensaver-tzk-Setup.exe` | `006cd1fb5352106a393fc6b527f286312cda24a877503cfcc978dc9e6d9679fb` |
+| `tools-screensaver-tzk.scr` | `08bc4c39579606124abfc76afc86c74d0bdac2dfd61910eb6baf74b9a3fc4e5b` |
+| `tools-screensaver-tzk-Setup.exe` | `60f773c1d645b2347b82a805398055e65154d01229f3ffd05237fc53701b5eb7` |
 
 ## 安裝與使用
 
@@ -39,10 +39,11 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\tools-screensaver-tzk`。
 
-v0.4.0 將產品內部識別、System32 檔名、Registry key 與 WebView2 資料目錄統一為 `tools-screensaver-tzk`。改名前版本的個人偏好不會自動遷移；實際覆蓋升級與舊 System32 檔清理需在可顯示 UAC 的 Win10 環境驗證，目前為 `NOT TESTED`。
+自 v0.4.0 起，產品內部識別、System32 檔名、Registry key 與 WebView2 資料目錄統一為 `tools-screensaver-tzk`。改名前版本的個人偏好不會自動遷移；實際覆蓋升級與舊 System32 檔清理需在可顯示 UAC 的 Win10 環境驗證，目前為 `NOT TESTED`。
 
 ## 功能
 
+- **置中留白**：桌曆時鐘與番茄鐘在寬至少 640 px 且高至少 360 px 的畫面，收進中央 64% 寬、60% 高的內容區；左右各留 18%、上下各留 20% 初始空間。內容區面積比先前縮小約 47%，小型預覽保持可讀性。
 - **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。
 - **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
 - **日本旅行模式**：可選原客艙窗框更名後的「自在飛行」，或以暖色木質、拱形頂棚、窗列和餐桌座位為設計語彙的「列車旅行」。兩者都顯示目前城市／地區與 tw.live 所整理的 YouTube 即時影像；player 回報 `PLAYING` 後預抓不同候選，滿 60 秒時切換。
@@ -54,7 +55,7 @@ v0.4.0 將產品內部識別、System32 檔名、Registry key 與 WebView2 資�
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
 - **執行邊界**：前兩種模式、`/p` 系統預覽及 `/c` 設定預覽不建立 WebView2，也不連公開網站；程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
 
-![離機作業番茄鐘模式：七段數字、沙漏與進度線](docs/evidence/phase2/fixtures/13-Countdown-800x369-dpi96-p2-SevenSegment-palette.png)
+![v0.5.0 離機作業番茄鐘模式：置中的數字、沙漏與進度線](docs/evidence/phase9/fixtures/15-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
 
 ## 日本旅行模式的網路與隱私
 
@@ -115,7 +116,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.4.0 本次預設測試共 45 個通過，另有 9 個互動、長時間或環境測試維持 ignored；其中 WebView2 Runtime、產品解析器即時來源測試及兩種 GDI 旅行 fixture 另行明確執行並通過。預設 smoke test 已通過 PE 架構、resources、manifest、版本、imports、靜態 CRT、第三模式、兩種場景與網路說明字串、無 UI 的錯誤參數，以及安裝 helper 從非 System32 路徑拒絕時不改系統設定。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.5.0 的 46 個預設測試通過，另有 9 個互動、長時間或環境測試預設 ignored；GDI 圖片匯出另行執行並通過，共產生 37 張 fixture，涵蓋置中桌曆時鐘、番茄鐘、大小畫面與旅行場景。smoke 已通過 PE、resources、manifest、版本、imports、靜態 CRT 與無 UI 錯誤路徑檢查；安裝 helper 在非 System32 路徑拒絕時沒有改動系統設定。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -137,7 +138,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [Codex 開發規格 v1.5](tools-screensaver-tzk_Codex_Spec.md)
+- [Codex 開發規格 v1.6](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 9 置中版面與驗證報告](docs/phase9-report.md)
 - [Phase 8 產品識別統一與驗證報告](docs/phase8-report.md)
 - [Phase 7 雙旅行場景實作與驗證報告](docs/phase7-report.md)
 - [Phase 6 日本旅行模式實作與驗證報告](docs/phase6-report.md)
@@ -147,7 +149,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～8 報告記錄各階段當時的版本、hash 與限制；Phase 6 的 v0.2.0 是單一客艙場景的歷史結果。目前下載成品以 v0.4.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供內容相同的公開成品。
+Phase 0～9 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.5.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 

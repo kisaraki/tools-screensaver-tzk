@@ -223,6 +223,30 @@ fn layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling() {
 }
 
 #[test]
+fn clock_and_countdown_use_a_centered_friendly_desktop_stage() {
+    for mode in [DisplayMode::TimeDate, DisplayMode::Countdown] {
+        for (width, height) in [(800, 369), (1920, 1080), (3840, 2160), (1080, 1920)] {
+            let layout = Layout::new(width, height, mode).unwrap();
+            let (w, h) = (f64::from(width), f64::from(height));
+            assert!((layout.group.x - w * 0.18).abs() < 1e-8);
+            assert!((layout.group.y - h * 0.20).abs() < 1e-8);
+            assert!((layout.group.w - w * 0.64).abs() < 1e-8);
+            assert!((layout.group.h - h * 0.60).abs() < 1e-8);
+            assert!((layout.group.cx() - w / 2.0).abs() < 1e-8);
+            assert!((layout.group.cy() - h / 2.0).abs() < 1e-8);
+        }
+
+        let preview = Layout::new(320, 180, mode).unwrap();
+        assert!((preview.group.w - 320.0 * 0.88).abs() < 1e-8);
+        assert!((preview.group.h - 180.0 * 0.82).abs() < 1e-8);
+    }
+
+    let travel = Layout::new(1920, 1080, DisplayMode::JapanTravel).unwrap();
+    assert!((travel.group.w - 1920.0 * 0.88).abs() < 1e-8);
+    assert!((travel.group.h - 1080.0 * 0.82).abs() < 1e-8);
+}
+
+#[test]
 fn drift_stays_inside_safety_bounds_and_skips_missed_intervals() {
     assert_eq!(offset_range(800, 0.0, 800.0), (0, 0));
     assert_eq!(offset_range(1, 0.0, 1.0), (0, 0));

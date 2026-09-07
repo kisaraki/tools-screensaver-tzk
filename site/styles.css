@@ -319,6 +319,10 @@ h1 em {
   background: #000;
 }
 
+.mode-card:not(.travel-card) .mode-image {
+  aspect-ratio: 16 / 9;
+}
+
 .mode-copy {
   position: relative;
   padding: 30px 32px 32px;

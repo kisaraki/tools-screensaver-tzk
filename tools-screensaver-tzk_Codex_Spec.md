@@ -1,7 +1,7 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：1.5（修訂版）<br>
-> 修訂日期：2026-09-07<br>
+> 文件版本：1.6（修訂版）<br>
+> 修訂日期：2026-09-08<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
 > 目前必要驗證平台：Windows 10 x64；Windows 11 延後驗證（依使用者 2026-09-04 指示）
@@ -16,9 +16,9 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
+- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8，v1.6 新增置中且縮減的離線模式畫布與 Phase 9。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
 
-### 0.2 v1.2～v1.5 的主要修訂
+### 0.2 v1.2～v1.6 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -32,6 +32,7 @@
 | WebView2 Runtime | 使用靜態 WebView2 loader，不另帶 `WebView2Loader.dll`；目標機缺 Evergreen Runtime 時顯示內建 fallback，不自動下載、安裝或觸發 UAC | 2.2、8.6、15、17 |
 | Registry schema | v1.3 將 schema 升為 3 並新增 `DisplayMode=2`；v1.4 升為 4 並新增 `TravelStyle=0/1`。舊設定預設為「自在飛行」，來源清單不寫入 registry | 10 |
 | 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
+| 離線模式畫面密度 | v1.6 將桌曆時鐘與番茄鐘的大型畫面置中於 64%W×60%H 安全區，降低視覺壓迫；小型 Windows preview 保留較大可視面積，日本旅行 player 不縮小 | 8.1～8.3、19 |
 | 增量階段 | 已完成的 Phase 0～5 保持歷史事實；第三模式由 Phase 6 實作、測試及發布 | 19.2 |
 | 倒數每次先輸入 | 保留；補上系統閒置／安全桌面實機驗證，不能僅憑直接執行 `/s` 宣稱支援 | 6.2、17.3 |
 | 全螢幕顯示時機 | 先建立隱藏視窗，全部成功後才顯示；建立時不加 `WS_VISIBLE` | 6.1 |
@@ -50,7 +51,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v1.5 對應完整產品改名的目標軟體版號為 `0.4.0`。v0.1.x～v0.3.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
+- 文件版本與軟體版本分開；文件 v1.6 對應置中緊湊版面的目標軟體版號為 `0.5.0`。v0.1.x～v0.4.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -85,6 +86,7 @@
 | R14 | 每 60 秒隨機換來源、來源健康檢查、有界 failover | 5、8.6、16～17 | 6 | AC17 |
 | R15 | 前兩模式與所有 preview 無網路；Runtime／斷線安全 fallback 與第三方揭露 | 2、7～8、15～18、22 | 6 | AC18 |
 | R16 | 產品、原始碼、建置、安裝、設定路徑、文件與公開網站統一使用 `tools-screensaver-tzk` 識別 | 0、2、10、13～15、19 | 8 | AC19 |
+| R17 | 桌曆時鐘與番茄鐘在一般畫面使用置中的友善可視面積，小型 preview 維持可讀 | 8.1～8.3 | 9 | AC20 |
 
 ### 1.2 非目標
 
@@ -410,7 +412,7 @@ tools-screensaver-tzk/
 - GDI renderer 接收 `RenderContext`：HDC、client rect、有效 DPI、字型／色彩、`FrameSnapshot`、preview 類型與位移。旅行 GDI layout 負責 preview、其他螢幕與 fallback；正式主螢幕的本機 HTML／CSS shell 另以結構測試證明 caption 位於完整 player rect 外。
 - 幾何先用浮點或定點比例算完，再統一轉成裝置像素；所有乘法／面積／轉型檢查溢位與有限值。
 - client rect 已是繪圖座標，不整張畫面再乘 `DPI/96`；DPI 主要用於筆寬、字型點數及對話框度量。
-- 一般內容最大 88% client 寬、82% client 高，居中；內容之外純黑。安全邊界每軸至少 2%。
+- 桌曆時鐘與番茄鐘在 client 寬至少 640 px 且高至少 360 px 時，使用置中 64% 寬、60% 高的內容區；其餘尺寸及日本旅行使用 88% 寬、82% 高。內容之外純黑，安全邊界每軸至少 2%。
 - layout 回傳完整群組 bounding rect，包含描邊、圓形、沙漏及警示光暈，供位移與裁切測試使用。
 - `WM_TIMER` 更新狀態及 invalidate；`WM_PAINT` 只畫快照。設定 owner-draw 的繪圖路徑見第 11.3 節。
 
@@ -436,9 +438,11 @@ tools-screensaver-tzk/
 
 #### 8.2.2 版面
 
+- 畫面至少 640×360 時，桌曆時鐘只使用水平置中的 64%W×60%H 安全區（左右各 18%、上下各 20% 初始留白），整組視覺中心與畫面中心一致。防烙印位移仍可在安全邊界內進行。
+- 小於 640×360 的 Windows preview 使用 88%W×82%H，避免預覽中的鐘面、月曆與文字過小。日本旅行模式維持 88%W×82%H 以保留影片可視面積。
 - `W/H >= 1.35`：橫向排列，內容寬度分配約為鐘 48%、間距 8%、月曆 44%。
 - 鐘區保持正方形，使用 `min(分配寬, 可用高)`；月曆與鐘的可見群組垂直置中，不能拉伸鐘面。
-- `W/H < 1.35`：改為上鐘下月曆；在 88%W×82%H 安全範圍內，初始分配鐘高 48%、間距 6%、月曆高 46%，再等比適配。
+- `W/H < 1.35`：改為上鐘下月曆；在上述安全區內初始分配鐘高 48%、間距 6%、月曆高 46%，再等比適配。
 - 月曆永遠保留六個日期列的空間，未用列留白，避免月底／月初造成位置跳動。
 - 窄版以完整月曆及六位倒數不裁切優先；不使用固定最小字級把版面撐出畫面。
 
@@ -488,9 +492,9 @@ r = R / (abs(u)^6 + abs(v)^6)^(1/6)
 原稿指定 [Classroom Timer 倒數畫面](https://kisaraki.github.io/classroom-timer-tzk/?tool=countdown) 與[主頁](https://kisaraki.github.io/classroom-timer-tzk/) 作視覺參考。本次修訂未能透過網頁讀取工具取得頁面內容，因此以下數值保留／細化原稿設計，不宣稱與網站當前版本已比對一致。開發時若能開啟網站，記錄比對日期；網站變動不能自動改寫本規格。
 
 - 純黑背景；中央極淡琥珀漸層為可選效果，失敗即退回純黑。
-- 上方沙漏，下方 LCD；全群組符合第 8.1 節安全矩形。
+- 上方沙漏，下方 LCD；全群組符合第 8.1 節安全矩形。畫面至少 640×360 時與桌曆時鐘共用置中 64%W×60%H 安全區；小型 preview 維持 88%W×82%H。
 - 沙漏寬約 client 短邊 10～14%、高 14～20%；若總高不足，與 LCD 一起縮小。
-- LCD 寬約 client 的 72～88%；內部留至少面板寬 4% 的左右 padding。
+- 一般畫面的 LCD 寬約 client 的 64%；小型 preview 可使用 72～88%。內部留至少面板寬 4% 的左右 padding。
 - 面板底色 `RGB(201,207,191)`，外框 `RGB(48,54,61)`；中央顯示固定 `HH:MM:SS`，小時含前導零。
 - 不顯示工具列、按鈕、操作提示、百分秒或額外倒數文字。
 
@@ -1095,6 +1099,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC17 | 來源發現、60秒隨機輪換、三層健康檢查、failover、timeout 與 shutdown 均有界 | UT27～UT32、MT16～MT19 |
 | AC18 | 前兩模式與 preview 無網路；旅行模式 Runtime／斷線 fallback、outbound／隱私／授權揭露完整 | UT30～UT33、MT17、MT20、來源清單 |
 | AC19 | 目前工作樹的英文產品識別、輸出檔名、resources、設定路徑、文件與 Pages 均為 `tools-screensaver-tzk`；文字及路徑掃描無舊識別 | Phase 8 report、resource smoke、repository scan、公開網頁與下載檔 |
+| AC20 | 桌曆時鐘與番茄鐘在一般畫面置中於 64%W×60%H，內部元件不裁切；小型 preview 與日本旅行維持可讀面積 | layout tests、Phase 9 GDI fixtures、Phase 9 report |
 
 ### 18.2 報告格式
 
@@ -1115,7 +1120,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一，v1.6 的 Phase 9 改善桌曆時鐘與番茄鐘的畫面密度。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1255,12 +1260,23 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 執行 noninteractive fmt、Clippy、45 個預設測試、Release build、resource／PE／registry smoke、Runtime probe、即時來源 probe 與 Inno Setup 封裝，全程不開啟交互畫面或觸發 UAC。
 6. 更新 v1.5 規格、README、Pages、acceptance report、Phase 8 report、v0.4.0 release notes、公開下載檔與 SHA-256，發布 GitHub Release 後驗證匿名直連。
 
+### Phase 9：置中緊湊版面
+
+**目標：** 降低桌曆時鐘與番茄鐘在大型畫面的佔用比例，保留易讀性、多螢幕、DPI、預覽與防烙印邊界。
+
+1. 軟體版號升為 `0.5.0`。
+2. 畫面至少 640×360 時，`TimeDate` 與 `Countdown` 的主群組使用置中 64%W×60%H；小於此門檻的 preview 維持 88%W×82%H。
+3. `JapanTravel` 維持 88%W×82%H，不因離線模式改動而縮小 player。
+4. 新增大畫面置中比例、小型 preview 比例與旅行畫布不變的 deterministic tests，並重新輸出 800×369、1920×1080、3840×2160、直向及極小 GDI fixtures。
+5. 執行 noninteractive fmt、Clippy、46 個預設測試、Release build、resource／PE／registry smoke 及 Inno Setup 封裝，不開啟交互畫面或 UAC。
+6. 更新 v1.6 規格、README、Pages、acceptance report、Phase 9 report、v0.5.0 release notes、公開下載檔與 SHA-256，發布 GitHub Release 後驗證匿名直連。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v1.5 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v1.6 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1327,7 +1343,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 9. `docs/acceptance-report.md`，逐項 AC／UT／MT、環境及真實結果。
 10. `docs/visual-reference.md` 與實作截圖，說明參考範圍、色彩差異、旅行 player 邊界及 fixture 條件。
 11. `docs/japan-travel-sources.md`，列來源、原始提供者、最後 HTTP／播放檢查、授權與可用性限制。
-12. `docs/phase6-report.md`、`docs/phase7-report.md`、`docs/phase8-report.md` 與各版 release notes。
+12. `docs/phase6-report.md`、`docs/phase7-report.md`、`docs/phase8-report.md`、`docs/phase9-report.md` 與各版 release notes。
 13. README：安裝工具、build/test/package、`/s`／`/p`／`/c`、三種模式、WebView2／網路／隱私邊界、離線 fallback、字型fallback、registry、倒數閒置互動限制、原使用者setcurrent、解除安裝提示、已知未測項與簽章狀態。
 14. MIT License 與素材來源說明；MIT 不涵蓋第三方影片，使用者附件只留在已忽略的本機開發參考目錄，不進公開 repository 或 installer。
 

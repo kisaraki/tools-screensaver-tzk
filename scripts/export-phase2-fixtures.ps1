@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $phase2ProjectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $phase2ProjectRoot 'docs/evidence/phase2/fixtures' }
 $phase2OutputRoot = [System.IO.Path]::GetFullPath($OutputDirectory)
-$phase2RawRoot = Join-Path $phase2ProjectRoot 'target/phase2-fixtures-bmp'
+$phase2RawRoot = Join-Path $phase2ProjectRoot ('target/phase2-fixtures-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $phase2RawRoot,$phase2OutputRoot -Force | Out-Null
 $phase2OldFixturePath = $env:PHASE2_FIXTURES
 Push-Location $phase2ProjectRoot

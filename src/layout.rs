@@ -58,11 +58,24 @@ impl Layout {
             return None;
         }
         let (w, h) = (f64::from(width), f64::from(height));
-        let group = Rect {
-            x: w * 0.06,
-            y: h * 0.09,
-            w: w * 0.88,
-            h: h * 0.82,
+        // Full-size clock and countdown surfaces use a calm, centered stage
+        // instead of filling the display. Small Windows preview hosts retain
+        // the wider stage so their contents remain legible.
+        let centered_stage = mode != DisplayMode::JapanTravel && width >= 640 && height >= 360;
+        let group = if centered_stage {
+            Rect {
+                x: w * 0.18,
+                y: h * 0.20,
+                w: w * 0.64,
+                h: h * 0.60,
+            }
+        } else {
+            Rect {
+                x: w * 0.06,
+                y: h * 0.09,
+                w: w * 0.88,
+                h: h * 0.82,
+            }
         };
         let empty = Rect {
             x: 0.0,
