@@ -35,7 +35,7 @@ jobs:
       - name: Run non-interactive smoke test
         shell: pwsh -NoLogo -NoProfile -NonInteractive -Command ". '{0}'"
         run: |
-          $smokeOutput = Join-Path $env:RUNNER_TEMP 'MyDateTimeScreensaver-smoke'
+          $smokeOutput = Join-Path $env:RUNNER_TEMP 'tools-screensaver-tzk-smoke'
           & .\scripts\smoke-test.ps1 `
             -ArtifactPath .\dist\tools-screensaver-tzk.scr `
             -OutputDirectory $smokeOutput
