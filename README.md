@@ -7,7 +7,7 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.5.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.5.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.5.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.5.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![v0.5.0 標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
@@ -37,9 +37,34 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 日本旅行模式需要目標電腦已安裝 Microsoft Edge WebView2 Evergreen Runtime。程式與 Setup 不會自行下載或安裝 Runtime，也不會為此再觸發 UAC；Runtime 缺少或 player 建立失敗時，螢幕保護程式會保留可退出的靜態 fallback。Microsoft 提供 [WebView2 Runtime 官方下載與部署說明](https://developer.microsoft.com/microsoft-edge/webview2/)。
 
-成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\tools-screensaver-tzk`。
+成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。
 
 自 v0.4.0 起，產品內部識別、System32 檔名、Registry key 與 WebView2 資料目錄統一為 `tools-screensaver-tzk`。改名前版本的個人偏好不會自動遷移；實際覆蓋升級與舊 System32 檔清理需在可顯示 UAC 的 Win10 環境驗證，目前為 `NOT TESTED`。
+
+<a id="uninstall"></a>
+
+## 解除安裝（Uninstall）
+
+### 使用 Setup 安裝的版本
+
+1. 先退出螢幕保護程式與預覽／設定視窗。在 Windows 開始功能表搜尋「變更螢幕保護程式」，將螢幕保護程式改為「無」或其他項目，按「套用」。共用電腦上，其他選用本程式的帳號也需各自變更。
+2. 按 `Win + R`，輸入 `appwiz.cpl` 並按 Enter，開啟「程式和功能」。
+3. 選取 **tools-screensaver-tzk**，按「解除安裝」並依精靈完成。移除 System32 中的程式需要系統管理員權限，Windows 可能要求 UAC 確認；若精靈要求重新啟動，請依提示完成。
+
+解除安裝程式會移除已安裝的 `.scr`，但不會自動變更任何帳號目前選用的螢幕保護程式，因此請先完成步驟 1。從下載資料夾刪除 `tools-screensaver-tzk-Setup.exe` 本身不會解除安裝。
+
+### 只下載或手動放置 `.scr` 的版本
+
+先依上述步驟 1 停用並退出程式，再刪除自己放置的 `tools-screensaver-tzk.scr`。若曾手動複製到 System32，請用檔案總管刪除 `%WINDIR%\System32\tools-screensaver-tzk.scr`；此操作需要系統管理員權限。這類版本通常不會出現在「程式和功能」清單中。
+
+### 個人設定與旅行快取（選擇性）
+
+解除安裝會保留個人設定與旅行模式的本機資料，方便重新安裝後沿用。若要一併清除，請在程式完全退出後，以需要清理的使用者帳號操作：
+
+- **顯示偏好**：按 `Win + R`，輸入 `regedit`，找到 `HKEY_CURRENT_USER\Software\tools-screensaver-tzk`；可先匯出備份，再只刪除這個機碼。
+- **旅行模式本機資料**：在檔案總管網址列輸入 `%LOCALAPPDATA%\KOMSMOS`，只刪除其中的 `tools-screensaver-tzk` 資料夾。這會移除 WebView2 profile、快取與本機 player shell。
+
+清除後會失去該帳號的已儲存偏好與快取。Microsoft Edge WebView2 Runtime 是其他應用程式也可能使用的共用元件，解除安裝本程式不需要移除它。
 
 ## 功能
 

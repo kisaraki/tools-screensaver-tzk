@@ -26,6 +26,7 @@
         <a href="#features">功能</a>
         <a href="#download">下載</a>
         <a href="#install">安裝</a>
+        <a href="#uninstall">解除安裝</a>
         <a href="https://github.com/kisaraki/tools-screensaver-tzk">GitHub</a>
       </nav>
     </header>
@@ -212,6 +213,44 @@
             <h3>設定畫面加入專案識別</h3>
             <p>原生設定對話框顯示「KOMSMOS TOOLKIT 探真拓知酷」小圖形標示；按下「確定」才寫入目前使用者的設定。設定與預覽畫面本身不連網。</p>
           </div>
+        </div>
+      </section>
+
+      <section class="uninstall section" id="uninstall">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> UNINSTALL</p>
+          <h2>如何解除安裝</h2>
+          <p>使用 Setup 安裝的版本，可從 Windows「程式和功能」移除。</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <div><h3>先停用並退出</h3><p>退出螢幕保護程式與預覽／設定視窗。從開始功能表搜尋「變更螢幕保護程式」，改選「無」或其他項目，再按「套用」。共用電腦的其他使用者也需各自變更。</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><h3>開啟程式和功能</h3><p>按 <code>Win + R</code>，輸入 <code>appwiz.cpl</code> 並按 Enter，在清單中找到 <code>tools-screensaver-tzk</code>。</p></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><h3>完成解除安裝</h3><p>選取本程式並按「解除安裝」，依精靈完成。移除需要系統管理員權限，Windows 可能要求 UAC 確認；若要求重新啟動，請依提示完成。</p></div>
+          </li>
+        </ol>
+        <div class="uninstall-details">
+          <p>解除安裝會移除已安裝的 <code>.scr</code>，但不會自動變更各帳號的螢幕保護選項。只刪除下載的 Setup 檔不會解除安裝。</p>
+          <details>
+            <summary>只有下載或手動放置 .scr，沒有使用 Setup？</summary>
+            <p>先完成步驟 1，再刪除自己放置的 <code>tools-screensaver-tzk.scr</code>。若曾手動複製到 System32，請用檔案總管刪除 <code>%WINDIR%\System32\tools-screensaver-tzk.scr</code>；需要系統管理員權限。這類版本通常不會列在「程式和功能」中。</p>
+          </details>
+          <details>
+            <summary>是否需要清除個人設定與旅行快取？</summary>
+            <p>解除安裝會保留這些資料，方便重新安裝後沿用。若要清除，請先完全退出程式，再以需要清理的使用者帳號操作；清除後會失去該帳號的已儲存偏好與快取。</p>
+            <ul>
+              <li>按 <code>Win + R</code>，輸入 <code>regedit</code>，找到 <code>HKEY_CURRENT_USER\Software\tools-screensaver-tzk</code>；可先匯出備份，再只刪除這個機碼。</li>
+              <li>在檔案總管網址列輸入 <code>%LOCALAPPDATA%\KOMSMOS</code>，只刪除其中的 <code>tools-screensaver-tzk</code> 資料夾，移除 WebView2 profile、快取與本機 player shell。</li>
+            </ul>
+            <p>Microsoft Edge WebView2 Runtime 是共用元件，解除安裝本程式不需要移除它。</p>
+          </details>
         </div>
       </section>
 

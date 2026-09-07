@@ -596,6 +596,30 @@ h1 em {
   background: var(--panel);
 }
 
+.uninstall code {
+  overflow-wrap: anywhere;
+}
+
+.uninstall-details {
+  margin-top: 24px;
+  color: var(--muted);
+}
+
+.uninstall-details details {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.uninstall-details summary {
+  color: var(--text);
+  cursor: pointer;
+}
+
+.uninstall-details summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+
 .settings-shot p {
   color: var(--muted);
 }
