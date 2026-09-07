@@ -1,7 +1,7 @@
 #define MyAppName "MyDateTimeScreensaver"
 #define MyAppDisplayName "日期時間螢幕保護程式"
 #define MyAppPublisher "kisaraki"
-#define MyAppScr AddBackslash(SourcePath) + "..\dist\MyDateTimeScreensaver.scr"
+#define MyAppScr AddBackslash(SourcePath) + "..\dist\tools-screensaver-tzk.scr"
 #define MyAppVersion GetFileVersion(MyAppScr)
 
 [Setup]
@@ -19,7 +19,7 @@ UninstallDisplayName={#MyAppDisplayName}
 UninstallDisplayIcon={sys}\MyDateTimeScreensaver.scr
 DefaultDirName={autopf}\MyDateTimeScreensaver
 OutputDir=..\dist
-OutputBaseFilename=MyDateTimeScreensaver-Setup
+OutputBaseFilename=tools-screensaver-tzk-Setup
 ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
 PrivilegesRequired=admin

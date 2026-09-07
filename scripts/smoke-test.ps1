@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 if (-not $ArtifactPath) {
-    $ArtifactPath = Join-Path $projectRoot 'dist\MyDateTimeScreensaver.scr'
+    $ArtifactPath = Join-Path $projectRoot 'dist\tools-screensaver-tzk.scr'
 }
 $artifact = (Resolve-Path -LiteralPath $ArtifactPath).Path
 if (-not $OutputDirectory) {
@@ -187,7 +187,7 @@ $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
 $smokeTemp = Join-Path $tempRoot ("MyDateTimeScreensaver-smoke-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $smokeTemp | Out-Null
 $smokeTemp = (Resolve-Path -LiteralPath $smokeTemp).Path
-$smokeCopy = Join-Path $smokeTemp 'MyDateTimeScreensaver.scr'
+$smokeCopy = Join-Path $smokeTemp 'tools-screensaver-tzk.scr'
 
 try {
     Copy-Item -LiteralPath $artifact -Destination $smokeCopy

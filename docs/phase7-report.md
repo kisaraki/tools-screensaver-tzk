@@ -19,6 +19,7 @@ Windows 10 非互動建置、45 個預設測試、雙場景 HTML shell 結構、
 - 正式 `/s` 依場景產生本機 WebView2 shell；preview、其他螢幕及 Runtime／網路失敗時由同一場景的 GDI fallback 呈現。
 - 「列車旅行」使用暖木色框、頂棚肋條、燈飾、窗景、餐桌與座椅抽象圖形；「自在飛行」保留原客艙窗框。
 - 兩種場景的完整 16:9 player 均無 overlay；地名與連線狀態保留在 player 外。
+- 公開下載與 `dist` 成品使用 `tools-screensaver-tzk` 檔名前綴；安裝後的 System32 檔名與 AppId 保持不變，避免破壞既有升級路徑。
 
 ## 遠端無互動邊界
 
@@ -41,8 +42,8 @@ Windows 10 非互動建置、45 個預設測試、雙場景 HTML shell 結構、
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `MyDateTimeScreensaver.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` | NotSigned |
-| `MyDateTimeScreensaver-Setup.exe` | 2,321,785 | `03635c9567a7d626eab016e9e4385a166771639f4e4d1dc53f041d562ad3e626` | NotSigned；實際安裝 NOT TESTED |
+| `tools-screensaver-tzk.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` | NotSigned |
+| `tools-screensaver-tzk-Setup.exe` | 2,321,785 | `69879de0c40c840a9aabdd757d30af77c0c16828eeb6d99488ca23553a1f6042` | NotSigned；實際安裝 NOT TESTED |
 
 ## 未完成的實機驗收
 

@@ -6,8 +6,8 @@ set "TARGET=x86_64-pc-windows-msvc"
 for %%I in ("%~dp0..") do set "ROOT=%%~fI"
 set "RELEASE_EXE=%ROOT%\target\%TARGET%\release\my_datetime_screensaver.exe"
 set "DIST_DIR=%ROOT%\dist"
-set "DIST_SCR=%DIST_DIR%\MyDateTimeScreensaver.scr"
-set "DIST_TEMP=%DIST_DIR%\MyDateTimeScreensaver.scr.%RANDOM%.%RANDOM%.tmp"
+set "DIST_SCR=%DIST_DIR%\tools-screensaver-tzk.scr"
+set "DIST_TEMP=%DIST_DIR%\tools-screensaver-tzk.scr.%RANDOM%.%RANDOM%.tmp"
 
 pushd "%ROOT%" || goto :fail
 

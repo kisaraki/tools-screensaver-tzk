@@ -97,7 +97,7 @@ Windows 11：`NOT TESTED`，依使用者指示延期；這不阻擋目前 Window
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` | Build／smoke PASS；NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | 2,321,785 | `03635c9567a7d626eab016e9e4385a166771639f4e4d1dc53f041d562ad3e626` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` | Build／smoke PASS；NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 2,321,785 | `69879de0c40c840a9aabdd757d30af77c0c16828eeb6d99488ca23553a1f6042` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
 
 Phase 5 的 v0.1.1 hash 保留在 Phase 5 報告與該 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.3.0 成品維持 NotSigned。

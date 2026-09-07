@@ -17,16 +17,16 @@ MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 | 檔案 | 用途 |
 | --- | --- |
-| [MyDateTimeScreensaver-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [MyDateTimeScreensaver.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
 | [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 目前 v0.3.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` |
-| `MyDateTimeScreensaver-Setup.exe` | `03635c9567a7d626eab016e9e4385a166771639f4e4d1dc53f041d562ad3e626` |
+| `tools-screensaver-tzk.scr` | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` |
+| `tools-screensaver-tzk-Setup.exe` | `69879de0c40c840a9aabdd757d30af77c0c16828eeb6d99488ca23553a1f6042` |
 
 ## 安裝與使用
 
@@ -65,9 +65,9 @@ WebView2 的 per-user profile 與本機 player shell 位於 `%LOCALAPPDATA%\KOMS
 ## 命令列模式
 
 ```text
-MyDateTimeScreensaver.scr /s
-MyDateTimeScreensaver.scr /p <HWND>
-MyDateTimeScreensaver.scr /c
+tools-screensaver-tzk.scr /s
+tools-screensaver-tzk.scr /p <HWND>
+tools-screensaver-tzk.scr /c
 ```
 
 - `/s`：每台螢幕建立無邊框視窗；標準桌曆暨時鐘模式直接開始，離機作業番茄鐘模式先要求本次時、分、秒，日本旅行模式則在主螢幕初始化 player 並於背景檢查來源。
@@ -95,7 +95,7 @@ rustup toolchain install 1.97.1 --profile minimal `
 .\scripts\build.bat
 ```
 
-成功後產生 `dist\MyDateTimeScreensaver.scr`。已預先安裝正確 Inno Setup 版本時，可執行：
+成功後產生 `dist\tools-screensaver-tzk.scr`。已預先安裝正確 Inno Setup 版本時，可執行：
 
 ```powershell
 .\scripts\package.bat

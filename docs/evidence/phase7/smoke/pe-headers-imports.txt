@@ -2,7 +2,7 @@ Microsoft (R) COFF/PE Dumper Version 14.51.36256.0
 Copyright (C) Microsoft Corporation.  All rights reserved.
 
 
-Dump of file <TEMP>\MyDateTimeScreensaver-smoke-<RUN_ID>\MyDateTimeScreensaver.scr
+Dump of file <TEMP>\MyDateTimeScreensaver-smoke-<RUN_ID>\tools-screensaver-tzk.scr
 
 PE signature found
 

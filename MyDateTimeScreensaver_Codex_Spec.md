@@ -62,7 +62,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `MyDateTimeScreensaver.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在主螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、其他螢幕及錯誤 fallback 則由 GDI 繪製對應靜態場景。
+建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在主螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、其他螢幕及錯誤 fallback 則由 GDI 繪製對應靜態場景。
 
 ### 1.1 必要功能
 
@@ -852,7 +852,7 @@ cargo build --release --locked
 ```
 
 4. 確認 `target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe` 是本次成功產物。
-5. 建立 `dist`，先複製至暫存名稱，成功後替換 `dist\MyDateTimeScreensaver.scr`。
+5. 建立 `dist`，先複製至暫存名稱，成功後替換 `dist\tools-screensaver-tzk.scr`。
 6. 回報完整路徑、版本、檔案 bytes、SHA-256、工具版本及原始碼 revision（若有 Git）。
 
 - 不自動安裝缺失元件，不直接寫入 System32，不啟動 `/s` 或改使用者 screen saver 設定。
@@ -863,7 +863,7 @@ cargo build --release --locked
 
 - 以 `call` 執行 `build.bat` 並檢查 errorlevel；固定實際 ISCC 版本，不能找到任意版本就默默編譯。
 - Inno Source 及 Output 路徑以腳本位置解析，避免 `installer/dist` 與根目錄 `dist` 混淆。
-- 輸出先放本次 staging 目錄，只有編譯、版本及成品存在檢查通過後，才更新 `dist\MyDateTimeScreensaver-Setup.exe`。
+- 輸出先放本次 staging 目錄，只有編譯、版本及成品存在檢查通過後，才更新 `dist\tools-screensaver-tzk-Setup.exe`。
 - 任何清理只限 repository 內已解析的本次 staging 路徑，不遞迴刪除使用者任意目錄。
 - 記錄 `.scr` 與 Setup 的版本、大小、雜湊及未簽章／已簽章狀態；不能把舊 Setup 當成本次交付。
 
@@ -880,11 +880,11 @@ ArchitecturesInstallIn64BitMode=x64os
 PrivilegesRequired=admin
 MinVersion=10.0.15063
 DefaultDirName={autopf}\MyDateTimeScreensaver
-OutputBaseFilename=MyDateTimeScreensaver-Setup
+OutputBaseFilename=tools-screensaver-tzk-Setup
 ```
 
 - 固定 AppId，版本升級不更換；uninstaller 放產品目錄，不能把解除安裝 metadata 任意散落 System32。
-- `.scr` 安裝到 `{sys}\MyDateTimeScreensaver.scr`，明確使用 64-bit install mode 的實體 System32。
+- 公開下載與 `dist` 使用 `tools-screensaver-tzk` 檔名前綴；`.scr` 安裝時仍放到 `{sys}\MyDateTimeScreensaver.scr`，以固定 AppId 與既有檔名維持升級、解除安裝及已保存 `SCRNSAVE.EXE` 路徑相容，並明確使用 64-bit install mode 的實體 System32。
 - `x64compatible` 也接受部分 ARM64 Windows，因此不符合本版限定範圍；這是產品支援範圍的選擇，不是聲稱 x64 程式技術上不能模擬執行。[Inno architecture identifiers](https://jrsoftware.org/ishelp/topic_archidentifiers.htm)
 - 安裝成功建立標準解除安裝項目；不安裝字型、WebView2 Runtime、參考截圖或額外常駐程序。Setup 可用無副作用方式探測 Runtime 並說明旅行模式需求，但不得在遠端／靜默驗證中下載 bootstrapper、接受授權或觸發另一段安裝／UAC。
 - `.scr` 與 installer 的權限分開：installer 提權不代表日後 `.scr` 提權。
@@ -1307,8 +1307,8 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 3. 原生RC dialogs、manifest、icon、版本與名稱resource。
 4. 純邏輯測試、隔離registry測試與有界Windows smoke script。
 5. build／package腳本與Inno Setup安裝腳本。
-6. `dist\MyDateTimeScreensaver.scr`。
-7. `dist\MyDateTimeScreensaver-Setup.exe`。
+6. `dist\tools-screensaver-tzk.scr`。
+7. `dist\tools-screensaver-tzk-Setup.exe`。
 8. `dist\SHA256SUMS.txt` 或等價本次成品hash紀錄。
 9. `docs/acceptance-report.md`，逐項 AC／UT／MT、環境及真實結果。
 10. `docs/visual-reference.md` 與實作截圖，說明參考範圍、色彩差異、旅行 player 邊界及 fixture 條件。

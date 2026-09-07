@@ -10,6 +10,7 @@ v0.3.0 擴充日本旅行模式：原 A380 客艙窗框更名為「自在飛行�
 - 兩種場景共用既有的 8 個 tw.live 候選、靜音 player、60 秒輪換、預抓、來源健康檢查與有界 failover。
 - 玩家矩形維持完整 16:9；旅行框、地名及狀態仍位於 player 外。
 - 使用者提供的列車圖片只作設計參考，沒有納入 repository、網站或成品。
+- 公開下載與建置成品統一使用 `tools-screensaver-tzk` 檔名前綴；安裝後沿用既有 System32 檔名以維持升級相容。
 
 ## 驗證
 
@@ -20,8 +21,8 @@ v0.3.0 擴充日本旅行模式：原 A380 客艙窗框更名為「自在飛行�
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `MyDateTimeScreensaver.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` |
-| `MyDateTimeScreensaver-Setup.exe` | 2,321,785 | `03635c9567a7d626eab016e9e4385a166771639f4e4d1dc53f041d562ad3e626` |
+| `tools-screensaver-tzk.scr` | 808,448 | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` |
+| `tools-screensaver-tzk-Setup.exe` | 2,321,785 | `69879de0c40c840a9aabdd757d30af77c0c16828eeb6d99488ca23553a1f6042` |
 
 兩個成品都沒有 Authenticode 簽章。
 

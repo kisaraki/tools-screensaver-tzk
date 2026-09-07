@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 if (-not $SetupPath) {
-    $SetupPath = Join-Path $projectRoot 'dist\MyDateTimeScreensaver-Setup.exe'
+    $SetupPath = Join-Path $projectRoot 'dist\tools-screensaver-tzk-Setup.exe'
 }
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $projectRoot 'docs\evidence\phase5\installation'

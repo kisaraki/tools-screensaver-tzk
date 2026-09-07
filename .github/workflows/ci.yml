@@ -37,5 +37,5 @@ jobs:
         run: |
           $smokeOutput = Join-Path $env:RUNNER_TEMP 'MyDateTimeScreensaver-smoke'
           & .\scripts\smoke-test.ps1 `
-            -ArtifactPath .\dist\MyDateTimeScreensaver.scr `
+            -ArtifactPath .\dist\tools-screensaver-tzk.scr `
             -OutputDirectory $smokeOutput
