@@ -7,6 +7,7 @@ use crate::gdi::{
 use crate::layout::{buffer_bytes, Detail, Layout, Rect};
 use crate::model::{hms, Calendar, DisplayMode, FrameSnapshot, TravelStyle, SEGMENTS};
 use crate::native::client_size;
+use crate::travel::TravelCaption;
 use std::ptr;
 use windows_sys::Win32::Foundation::HWND;
 use windows_sys::Win32::Graphics::Gdi::*;
@@ -161,6 +162,7 @@ pub(crate) struct Renderer {
     pens: Pens,
     key: Option<(i32, i32, u32, DisplayMode, Style)>,
     direct_fallback: bool,
+    travel_caption: TravelCaption,
 }
 
 struct Paint {
@@ -186,6 +188,9 @@ impl Drop for Paint {
 }
 
 impl Renderer {
+    pub(crate) fn set_travel_caption(&mut self, caption: TravelCaption) {
+        self.travel_caption = caption;
+    }
     pub fn warm(
         &mut self,
         hwnd: HWND,
@@ -426,12 +431,19 @@ impl Renderer {
             DisplayMode::Countdown => {
                 countdown(&mut canvas, layout, self.fonts.as_ref(), frame, style, dpi)
             }
-            DisplayMode::JapanTravel => japan_travel(&mut canvas, layout, style),
+            DisplayMode::JapanTravel => {
+                japan_travel(&mut canvas, layout, style, &self.travel_caption)
+            }
         }
     }
 }
 
-fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result<(), AppError> {
+fn japan_travel(
+    canvas: &mut Canvas<'_>,
+    layout: Layout,
+    style: Style,
+    caption: &TravelCaption,
+) -> Result<(), AppError> {
     let accent = style.color();
     let outer = layout.panel;
     let player = layout.inner;
@@ -618,11 +630,12 @@ fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result
             TravelStyle::FreeFlight => "自在飛行",
             TravelStyle::TrainJourney => "列車旅行",
         };
+        let title_text = format!("{scene_name}・{}", caption.place);
         let title = Font::fit(
             canvas.dc,
             FontMode::MingLiu,
             None,
-            "列車旅行・日本旅行模式",
+            &title_text,
             title_rect.w * 0.92,
             title_rect.h * 0.82,
             title_rect.h * 0.65,
@@ -632,22 +645,16 @@ fn japan_travel(canvas: &mut Canvas<'_>, layout: Layout, style: Style) -> Result
             canvas.dc,
             FontMode::MingLiu,
             None,
-            "連線中或影像來源暫時無法使用",
+            &caption.status,
             status_rect.w * 0.92,
             status_rect.h * 0.72,
             status_rect.h * 0.5,
             false,
         )?;
-        canvas.text(
-            &title,
-            &format!("{scene_name}・日本旅行模式"),
-            title_rect,
-            accent,
-            true,
-        )?;
+        canvas.text(&title, &title_text, title_rect, accent, true)?;
         canvas.text(
             &status,
-            "連線中或影像來源暫時無法使用",
+            &caption.status,
             status_rect,
             rgb(190, 202, 196),
             false,
@@ -1313,8 +1320,37 @@ mod tests {
             300000,
             "train-journey",
         ));
+        for label in ["travel-checking", "travel-playing", "travel-unavailable"] {
+            cases.push((
+                DisplayMode::JapanTravel,
+                1920,
+                1080,
+                96,
+                Style::default(),
+                300000,
+                label,
+            ));
+        }
         for (index, (mode, w, h, dpi, style, tick, label)) in cases.into_iter().enumerate() {
             let mut renderer = Renderer::default();
+            match label {
+                "travel-checking" => renderer.set_travel_caption(TravelCaption::live(
+                    None,
+                    crate::travel::NetworkState::Checking,
+                    false,
+                )),
+                "travel-playing" => renderer.set_travel_caption(TravelCaption::live(
+                    Some("京都・中京區"),
+                    crate::travel::NetworkState::Playing,
+                    false,
+                )),
+                "travel-unavailable" => renderer.set_travel_caption(TravelCaption::live(
+                    None,
+                    crate::travel::NetworkState::Offline,
+                    true,
+                )),
+                _ => (),
+            }
             let buffer = draw(&mut renderer, screen.0, w, h, dpi, mode, style, frame(tick));
             let pixels = buffer.pixels(screen.0).unwrap();
             let colored = pixels

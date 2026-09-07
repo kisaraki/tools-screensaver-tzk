@@ -666,6 +666,34 @@ pub(crate) enum NetworkEvent {
     PlayerStalled,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct TravelCaption {
+    pub place: String,
+    pub status: String,
+}
+
+impl Default for TravelCaption {
+    fn default() -> Self {
+        Self {
+            place: "日本旅行模式".into(),
+            status: "靜態預覽・全螢幕啟動後顯示即時影像".into(),
+        }
+    }
+}
+
+impl TravelCaption {
+    pub fn live(place: Option<&str>, state: NetworkState, player_unavailable: bool) -> Self {
+        Self {
+            place: place.unwrap_or("日本旅行模式").to_owned(),
+            status: if player_unavailable {
+                "播放器無法啟動或已停止・請檢查 WebView2 Runtime".into()
+            } else {
+                state.label().into()
+            },
+        }
+    }
+}
+
 impl NetworkState {
     pub fn transition(self, event: NetworkEvent) -> Self {
         match event {
@@ -835,6 +863,21 @@ fn json_string(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn captions_distinguish_preview_playback_and_browser_failure() {
+        let preview = TravelCaption::default();
+        assert!(preview.status.contains("靜態預覽"));
+        assert!(!preview.status.contains("無法"));
+        let playing = TravelCaption::live(Some("京都・中京區"), NetworkState::Playing, false);
+        assert_eq!(playing.place, "京都・中京區");
+        assert_eq!(playing.status, NetworkState::Playing.label());
+        let offline = TravelCaption::live(Some("札幌"), NetworkState::Offline, false);
+        assert_eq!(offline.status, NetworkState::Offline.label());
+        let unavailable = TravelCaption::live(None, NetworkState::Offline, true);
+        assert!(unavailable.status.contains("播放器"));
+        assert_ne!(unavailable.status, offline.status);
+    }
 
     const DETAIL_FIXTURE: &str = r#"
       <html><body>

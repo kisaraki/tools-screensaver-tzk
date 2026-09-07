@@ -1,8 +1,20 @@
 # 視覺參考與實作證據
 
-產品版本：0.5.0<br>
-規格文件：v1.6<br>
+產品版本：0.7.0<br>
+規格文件：v1.8<br>
 更新日期：2026-09-08
+
+## v0.7.0 旅行狀態文字
+
+本版重新匯出 40 張 GDI fixture，包括原有 37 張與新增的 3 種狀態。預覽明確標示為靜態預覽；全螢幕等待與錯誤文字取自該螢幕的狀態。[Phase 11 報告](phase11-report.md) 說明第二螢幕修正與測試邊界。
+
+| 注入狀態 | GDI 文字證據 |
+| --- | --- |
+| 檢查來源 | [travel-checking](evidence/phase11/fixtures/37-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-checking.png) |
+| 播放中與地名 | [travel-playing](evidence/phase11/fixtures/38-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-playing.png) |
+| 播放器不可用 | [travel-unavailable](evidence/phase11/fixtures/39-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-unavailable.png) |
+
+這三張圖片用固定測試資料驗證文字與版面，沒有載入影片；「播放中」fixture 不能當作實際 WebView2 播放證據。
 
 ## v0.5.0 置中版面
 

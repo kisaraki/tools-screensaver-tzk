@@ -1,6 +1,6 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：1.7（修訂版）<br>
+> 文件版本：1.8（修訂版）<br>
 > 修訂日期：2026-09-08<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,9 +16,9 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8，v1.6 新增置中且縮減的離線模式畫布與 Phase 9，v1.7 新增 Setup WebView2 部署與 Phase 10。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
+- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8，v1.6 新增置中且縮減的離線模式畫布與 Phase 9，v1.7 新增 Setup WebView2 部署與 Phase 10，v1.8 修正每個螢幕的旅行播放與狀態隔離並新增 Phase 11。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
 
-### 0.2 v1.2～v1.7 的主要修訂
+### 0.2 v1.2～v1.8 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -26,8 +26,8 @@
 | 網路邊界 | 只有 `/s` 的 `JapanTravel` 可連線；`/p`、`/c` 與另外兩種模式維持零網路請求 | 7、8.6、11、17 |
 | 來源與輪換 | 以 `https://tw.live/japan/` 檢查目錄健康，從 8 個內建 camera seed 隨機解析 detail；成功播放滿 60 秒後換一個不同來源，失敗有界重試及離線 fallback | 8.6、16、17 |
 | 旅行場景 | v1.4 將原 A380 客艙風格命名為「自在飛行」，新增暖色木質車廂、拱形頂棚、窗列與餐桌座位語彙的「列車旅行」；兩者共用來源與播放契約 | 8.6、10～11 |
-| 播放器與旅行框 | 主螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、所選旅行場景及 player 外的地點／狀態；其他螢幕、preview 與 fallback 使用對應 GDI 靜態畫面 | 8.6 |
-| 旅行多螢幕 | 正式 `/s` 只在主螢幕建立一個 autoplay player，其他螢幕顯示靜態伴隨畫面 | 5.2、8.6 |
+| 播放器與旅行框 | 每個螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、所選旅行場景及 player 外的地點／狀態；preview、等待與錯誤 fallback 使用對應 GDI 靜態畫面 | 8.6 |
+| 旅行多螢幕 | 正式 `/s` 每個螢幕各建立一個 autoplay player，獨立來源、計時、狀態與錯誤路由；預覽不得誤標成連線失敗 | 5.2、8.6 |
 | 旅行預覽 | `/p` 與 `/c` 只畫無網路的 GDI 靜態示意，不建立 WebView2 或探測公開網站 | 7.3、11.3 |
 | WebView2 Runtime | 使用靜態 WebView2 loader；v1.7 的 Setup 偵測並補裝電腦層級 Runtime，可取消以使用離線模式；`.scr` 缺少 Runtime 時仍只顯示 fallback，不下載或提權 | 2.2、8.6、15、17、19 |
 | Registry schema | v1.3 將 schema 升為 3 並新增 `DisplayMode=2`；v1.4 升為 4 並新增 `TravelStyle=0/1`。舊設定預設為「自在飛行」，來源清單不寫入 registry | 10 |
@@ -51,7 +51,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v1.7 對應 Setup WebView2 部署階段的目標軟體版號為 `0.6.0`。v0.1.x～v0.5.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
+- 文件版本與軟體版本分開；文件 v1.8 對應多螢幕旅行修正階段的目標軟體版號為 `0.7.0`。v0.1.x～v0.6.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -64,7 +64,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在主螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、其他螢幕及錯誤 fallback 則由 GDI 繪製對應靜態場景。
+建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在每個螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、播放器等待及錯誤 fallback 則由 GDI 繪製對應靜態場景。
 
 ### 1.1 必要功能
 
@@ -88,6 +88,7 @@
 | R16 | 產品、原始碼、建置、安裝、設定路徑、文件與公開網站統一使用 `tools-screensaver-tzk` 識別 | 0、2、10、13～15、19 | 8 | AC19 |
 | R17 | 桌曆時鐘與番茄鐘在一般畫面使用置中的友善可視面積，小型 preview 維持可讀 | 8.1～8.3 | 9 | AC20 |
 | R18 | Setup 偵測與補裝電腦層級 WebView2 Runtime、可略過、失敗不冒充成功；遠端驗證不安裝 | 15.1.1 | 10 | AC21 |
+| R19 | 每個螢幕獨立旅行播放器、來源輪換與狀態；共用退出並清理全部 host；預覽文字如實 | 5.2、8.6 | 11 | AC22 |
 
 ### 1.2 非目標
 
@@ -312,7 +313,7 @@ tools-screensaver-tzk/
 - `/s` 只由一個 coordinator timer 取一次 `GetLocalTime`／`GetTickCount64`，更新同一份快照，再 invalidate 全部顯示器。
 - 各 renderer 不取系統時間、不讀 registry、不啟動 timer。初始快照必須先於第一個可見 paint 建立。
 - 畫面值按同一 generation 同步；不同螢幕的掃描／重繪不是硬體同步，不承諾同一微秒刷新，但不得出現獨立倒數累積漂移。
-- 日本旅行模式由單一 travel coordinator 選擇來源與地名。主螢幕是唯一的 WebView2 host，只建立一個 autoplay player並在切換時重用 controller；其他實體螢幕顯示 GDI 靜態伴隨畫面，不得每分鐘累積 controller 或子程序。
+- 日本旅行模式由共用 coordinator 路由事件與處理退出，每個螢幕各持有一個 TravelHost，獨立保存來源、地名、generation、player channel、60 秒計時與重試狀態。每個 host 只建立一個 autoplay player 並在切換時重用 controller，不得每分鐘累積 controller 或子程序。倒數模式的共用 deadline 不受旅行播放計時影響。
 
 ### 5.3 `unsafe` 與 callback
 
@@ -334,7 +335,7 @@ tools-screensaver-tzk/
 
 列舉失敗或無有效區域，才退回 virtual-screen metrics 建立單一視窗；fallback 仍檢查正尺寸、溢位及 allocation 上限。不得強制更換顯示解析度或獨佔顯示模式。
 
-日本旅行模式在全部 surface 建立並顯示所選 GDI 旅行 fallback 後，於主螢幕探測 Runtime，非同步建立 WebView2 environment／controller 與本機 shell，再由背景 worker 檢查目錄與來源。shell 顯示「正在檢查來源」，其他螢幕與 Runtime 失敗路徑持續顯示可退出的 GDI 旅行 fallback；不得讓使用者在等待期間看見未遮蔽桌面，也不得為等待 Runtime 或網路延後鍵鼠退出。WebView2 缺失、來源失敗或網路中斷不視為整個視窗初始化失敗。
+日本旅行模式在全部 surface 建立並顯示所選 GDI 旅行 fallback 後，為每個螢幕探測 Runtime，非同步建立各自的 WebView2 environment／controller 與本機 shell，再由各自背景 worker 檢查目錄與來源。本機 shell 檔案在所有播放器開始前寫入一次。各螢幕依自己的狀態顯示檢查中、播放中或錯誤；Runtime 失敗路徑持續顯示可退出的 GDI 旅行 fallback；不得讓使用者在等待期間看見未遮蔽桌面，也不得為等待 Runtime 或網路延後鍵鼠退出。WebView2 缺失、來源失敗或網路中斷不視為整個視窗初始化失敗。
 
 ### 6.2 離機作業番茄鐘模式啟動流程
 
@@ -410,7 +411,7 @@ tools-screensaver-tzk/
 
 ### 8.1 共用 layout 與繪圖輸入
 
-- GDI renderer 接收 `RenderContext`：HDC、client rect、有效 DPI、字型／色彩、`FrameSnapshot`、preview 類型與位移。旅行 GDI layout 負責 preview、其他螢幕與 fallback；正式主螢幕的本機 HTML／CSS shell 另以結構測試證明 caption 位於完整 player rect 外。
+- GDI renderer 接收 `RenderContext`：HDC、client rect、有效 DPI、字型／色彩、`FrameSnapshot`、preview 類型與位移。旅行 GDI layout 負責 preview、等待與錯誤 fallback，caption 取自該螢幕的狀態；每個正式螢幕的本機 HTML／CSS shell 另以結構測試證明 caption 位於完整 player rect 外。
 - 幾何先用浮點或定點比例算完，再統一轉成裝置像素；所有乘法／面積／轉型檢查溢位與有限值。
 - client rect 已是繪圖座標，不整張畫面再乘 `DPI/96`；DPI 主要用於筆寬、字型點數及對話框度量。
 - 桌曆時鐘與番茄鐘在 client 寬至少 640 px 且高至少 360 px 時，使用置中 64% 寬、60% 高的內容區；其餘尺寸及日本旅行使用 88% 寬、82% 高。內容之外純黑，安全邊界每軸至少 2%。
@@ -598,7 +599,7 @@ SS = display_seconds % 60
 #### 8.6.2 旅行場景與地名
 
 - 日本旅行模式提供 `FreeFlight=0` 與 `TrainJourney=1` 兩種可保存場景。原 A380 客艙風格的使用者名稱改為「自在飛行」；「列車旅行」使用暖色木質、拱形頂棚、窗列、餐桌及座位的抽象圖形語彙。兩者都由專案自行繪製，不包含使用者附件、第三方照片、商標、車種或航空公司塗裝，也不宣稱與任何運輸業者合作。
-- 主螢幕正式 `/s` 依保存場景產生本機 HTML／CSS shell；`/p`、`/c`、其他螢幕及 Runtime／網路 fallback 使用對應的 GDI 靜態版本。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換或 failover。
+- 每個螢幕正式 `/s` 依保存場景使用本機 HTML／CSS shell；`/p`、`/c`、播放器等待及 Runtime／網路 fallback 使用對應的 GDI 靜態版本。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
 - player 維持完整 16:9 矩形並全部可見。「自在飛行」或「列車旅行」外框、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
@@ -610,7 +611,7 @@ SS = display_seconds % 60
 - 目前來源進入 `PLAYING` 後，立即在背景從排除目前 camera 的 7 個 seed 中隨機排序並預抓下一個來源；使用既有 xorshift32 的純 Rust 有界選擇，seed 可測且 index 永不越界。到 deadline 時載入已準備的來源；若預抓仍在進行，保留目前畫面，並在第一個成功結果到達時切換。
 - HTTP／解析 preflight 在目前影片繼續顯示時執行；候選尚未驗證完成不得先清空 player。取得來源後，在同一 player 呼叫 `loadVideoById` 並更新地點／載入狀態；只有收到新 player 的 `PLAYING` 才建立下一個 60 秒 deadline。
 - 睡眠、暫停或訊息阻塞跨過多個 deadline 時只做一次切換，不補跑漏掉的分鐘。播放中斷則不等到下一分鐘，立即進入有界 failover。
-- 多螢幕只讓排序第一的主螢幕 surface 成為 WebView2 host，整個 process 同時最多一個 autoplay player。其他螢幕顯示 GDI 靜態伴隨畫面；任一過期 source generation 的 worker completion 必須忽略。
+- 每個實體螢幕的 surface 都是獨立 WebView2 host，每個 screen／本機頁面最多一個 autoplay player。來源選擇、每輪最多 3 個候選的預算、首次 PLAYING 後 60 秒計時與重試各自獨立；允許不同螢幕隨機選到同一地點。非同步通知帶入所屬 HWND，由 coordinator 路由回正確 host；拒絕過期 generation／playback token 與關閉後事件。某個來源失敗不得改動其他 host 的狀態或計時。共用退出流程必須關閉所有 host，記憶體與網路預算須考慮播放螢幕數。
 
 #### 8.6.4 Runtime、健康檢查與 fallback
 
@@ -1016,6 +1017,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT32 | 舊 generation 的 HTTP／WebView late completion；切換、resize、shutdown 重入 | 舊結果不覆蓋新來源，handler／controller／worker 只清理一次 |
 | UT33 | `/p`、`/c`、TimeDate、Countdown 與 JapanTravel fallback 的 mock network 計數 | 前四條路徑計數為 0；fallback 不開 browser／dialog／installer、不觸發 UAC |
 | UT34 | 控制字元、空白、極長 CJK 地名；小型、16:9、4K、直向 layout | 文字清理／省略正確；艙框及 label 不與 player rect 相交或超出 client |
+| UT35 | 兩個 message-only host 的通知路由、單一來源失敗、地點／計時隔離、關閉與弱參照回收；前兩模式無 host | 狀態只更新對應 HWND；關閉全部 host 後路由失效；測試不建立可見 UI、player 或網路 |
 
 - Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
 - 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
@@ -1054,7 +1056,7 @@ tools-screensaver-tzk.scr --install-set-current
 | MT15 | 未安裝開發工具／VC++ Redistributable 的乾淨 Windows 10 x64 目標機 | 單一 `.scr` 無 VC/UCRT／WebView2Loader DLL 缺失；前兩模式離線可用，缺 WebView2 時旅行 fallback 可用 |
 | MT16 | Win10 `/s` 日本旅行模式，正常網路，至少連續 5 次輪換 | 實際 `PLAYING`；每次成功播放 60 秒後換不同來源；地名吻合、靜音、player／controls／品牌未遮蔽 |
 | MT17 | tw.live／YouTube 不可達、timeout、所有候選失效、WebView2 Runtime 缺失 | 顯示正確 fallback、retry 有界、鍵鼠可退出；不開對話框／瀏覽器、不下載 Runtime或觸發 UAC |
-| MT18 | 日本旅行模式多螢幕、150%／200%、4K、直向、resize／拓撲變化 | 主螢幕只有一個 player，其他螢幕為 GDI 靜態伴隨畫面；框與 label 不裁切，清理後無殘留 child process |
+| MT18 | 日本旅行模式多螢幕、150%／200%、4K、直向、resize／拓撲變化 | 每個螢幕各有一個 player 與真實地點／狀態；各自輪換與來源失敗互不覆蓋；框與 label 不裁切，清理後無殘留 child process |
 | MT19 | 日本旅行模式 30 分鐘且至少 29 次來源輪換 | parent＋WebView2 process tree 的 CPU、記憶體、handle、controller 與子程序數無每分鐘持續累積 |
 | MT20 | 前兩模式及所有 preview 的網路 capture；旅行模式的 outbound capture | 前者 0 request；後者只有目錄與官方 player 所需流量，無程式遙測、登入、下載、錄影或額外 top-level navigation |
 
@@ -1111,6 +1113,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC19 | 目前工作樹的英文產品識別、輸出檔名、resources、設定路徑、文件與 Pages 均為 `tools-screensaver-tzk`；文字及路徑掃描無舊識別 | Phase 8 report、resource smoke、repository scan、公開網頁與下載檔 |
 | AC20 | 桌曆時鐘與番茄鐘在一般畫面置中於 64%W×60%H，內部元件不裁切；小型 preview 與日本旅行維持可讀面積 | layout tests、Phase 9 GDI fixtures、Phase 9 report |
 | AC21 | Setup 正確略過既有 Runtime、補裝缺少 Runtime、支援取消 task，失敗與需重啟時明確停止；共用 Runtime 不隨產品解除安裝 | Phase 10 report、共用 policy tests、Bootstrapper 簽章與封裝、可互動 Win10 Runtime／網路／UAC 安裝矩陣 |
+| AC22 | 多螢幕各自播放、輪換、地點與狀態正確；單一來源失敗隔離，退出清理所有 host，預覽不冒充連線 | Phase 11 report、雙 host 路由／失敗／清理測試、狀態 GDI fixture，以及可互動 Win10 多螢幕播放／DPI／資源觀察 |
 
 ### 18.2 報告格式
 
@@ -1131,7 +1134,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一，v1.6 的 Phase 9 改善桌曆時鐘與番茄鐘的畫面密度，v1.7 的 Phase 10 新增 Setup WebView2 部署。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一，v1.6 的 Phase 9 改善桌曆時鐘與番茄鐘的畫面密度，v1.7 的 Phase 10 新增 Setup WebView2 部署，v1.8 的 Phase 11 修正旅行多螢幕播放與狀態。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1229,7 +1232,7 @@ powershell -NoProfile -File scripts\smoke-test.ps1
 **目標：** 在不破壞既有兩種離線模式、Windows 契約及遠端無互動驗證邊界的前提下，加入可安全失敗的線上日本旅行窗景。
 
 1. 將軟體版號升為 `0.2.0`、registry schema 升為 3，加入 `JapanTravel=2` 與第三個設定 radio；驗證 v0.1.x 設定相容及較新版 schema 保護。
-2. 完成主螢幕本機 HTML／CSS 客艙 shell、完整 player rect 外的 label、GDI 靜態伴隨／fallback，以及無網路 `/p`／`/c` 預覽。
+2. 當時完成主螢幕本機 HTML／CSS 客艙 shell、完整 player rect 外的 label、GDI 靜態伴隨／fallback，以及無網路 `/p`／`/c` 預覽；多螢幕配置於 Phase 11 改為每螢幕播放。
 3. 加入固定版本 WebView2 binding 與靜態 loader，啟動時只探測 Evergreen Runtime；缺少時不安裝、不提權，前兩模式不載入 WebView2。
 4. 完成 WinHTTP background source worker、tw.live catalog marker／8 個 camera detail parser、固定 HTTPS host、禁止 redirect、size／timeout／文字驗證、process-local session state、generation 及 bounded shutdown 生命週期。
 5. 完成官方 YouTube embed、player 健康事件、靜音、60秒 monotonic 隨機輪換、無立即重複與有界 failover；保持 player 全部可見且不遮 attribution／controls。
@@ -1291,12 +1294,22 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 3. 重跑 build、46 個預設測試、19 個 installer policy checks、smoke 與 package；現有 37 張 GDI 圖片沿用 Phase 9，明列日期與版本。
 4. 更新 README、網頁、規格、Phase 10 與逐項驗收報告、Release 與公開下載；實際 Runtime 安裝、斷網、Proxy、UAC 帳號矩陣仍待可互動 Win10 驗證。
 
+### Phase 11：多螢幕旅行播放修正
+
+目標：修正第二螢幕沒有 player，卻一直顯示連線中／失敗文字的問題。
+
+1. 軟體版本升為 `0.7.0`；每個 surface 建立獨立 TravelHost，來源、播放計時、WebView2 事件、錯誤與狀態依所屬 HWND 路由。
+2. 保持每個螢幕一個 player，切換重用 controller；退出時關閉全部 host，過期結果不再改寫狀態。
+3. GDI 預覽明示「靜態預覽」；等待或錯誤畫面採該螢幕真實狀態與地點，區分網路問題和播放器不可用。
+4. 遠端只執行非互動回歸測試、離屏 GDI 匯出、build／smoke／package；不開正式 player、全螢幕、Setup 或 UAC。實際雙螢幕播放與長時間資源觀察列 `NOT TESTED`。
+5. 更新 README、Pages、逐項報告與 `docs/phase11-report.md`；發布新 Release 與匿名直連下載，核對成品 SHA-256。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v1.7 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v1.8 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1311,7 +1324,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 - 在 `/p`、`/c`、TimeDate 或 Countdown 發出 request，或在 network callback 同步等待、無界 retry、接受非 HTTPS／非允許 top-level navigation。
 - 把 HTTP 200、縮圖或 iframe document 成功寫成影片已播放，或把公開來源暫時可達寫成永久授權／可用性保證。
 - 在 YouTube player 上疊旅行框／地名、遮 controls／branding、同一 screen 同時 autoplay 多個 player，或用錯誤 Referer／nested iframe 規避政策。
-- 讓每螢幕建立自己的deadline、按timer次數遞減或paint時各取不同時間。
+- 讓倒數模式每螢幕建立自己的 deadline、按 timer 次數遞減或 paint 時各取不同時間。旅行模式的來源播放計時依第 8.6 節各自保存。
 - 在preview中顯示輸入框、topmost、隱藏全域游標或啟用fullscreen退出規則。
 - 倒數輸入未完成便鋪全螢幕、吞掉使用者輸入或由保存失敗直接開始。
 - 刪除仍選入DC的GDI object、刪stock object、混用CloseHandle／DeleteObject／DestroyWindow。
@@ -1323,7 +1336,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 
 ## 21. 參考資料與來源限制
 
-既有 Win32 查核日期為2026-09-04；日本旅行來源與播放器規則查核日期為2026-09-06。連結用於 API 契約、第三方限制與既有設計來源，實作仍須以鎖定工具版本編譯及 Windows 實測。
+既有 Win32 查核日期為2026-09-04；日本旅行來源查核日期為2026-09-07，播放器每頁／每螢幕 autoplay 規則於2026-09-08再次查核。連結用於 API 契約、第三方限制與既有設計來源，實作仍須以鎖定工具版本編譯及 Windows 實測。
 
 | 來源 | 用途 |
 | --- | --- |

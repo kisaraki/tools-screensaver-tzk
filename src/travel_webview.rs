@@ -144,6 +144,7 @@ impl TravelWebViewStartup {
             CoreWebView2EnvironmentOptions::default().into();
         let (sender, receiver) = mpsc::channel();
         let completion_coordinator = coordinator as usize;
+        let completion_surface = parent as usize;
         let handler = CreateCoreWebView2EnvironmentCompletedHandler::create(Box::new(
             move |error_code, environment| {
                 let result = error_code.and_then(|()| {
@@ -156,7 +157,7 @@ impl TravelWebViewStartup {
                         PostMessageW(
                             completion_coordinator as SysHwnd,
                             WEBVIEW_STARTUP_CHANGED,
-                            0,
+                            completion_surface,
                             0,
                         );
                     }
@@ -235,6 +236,7 @@ impl TravelWebViewStartup {
         }
         let (sender, receiver) = mpsc::channel();
         let completion_coordinator = self.coordinator as usize;
+        let completion_surface = self.parent as usize;
         let handler = CreateCoreWebView2ControllerCompletedHandler::create(Box::new(
             move |error_code, controller| {
                 let result = error_code
@@ -245,7 +247,7 @@ impl TravelWebViewStartup {
                         PostMessageW(
                             completion_coordinator as SysHwnd,
                             WEBVIEW_STARTUP_CHANGED,
-                            0,
+                            completion_surface,
                             0,
                         );
                     }
@@ -285,7 +287,12 @@ impl TravelWebViewStartup {
             Err(error) => return StartupPoll::Failed(error),
         };
 
-        let notifications = match configure(&controller, &webview, self.coordinator) {
+        let notifications = match configure(
+            &controller,
+            &webview,
+            self.coordinator,
+            self.parent as usize,
+        ) {
             Ok(value) => value,
             Err(error) => return StartupPoll::Failed(error),
         };
@@ -436,6 +443,7 @@ fn configure(
     controller: &ICoreWebView2Controller,
     webview: &ICoreWebView2,
     coordinator: SysHwnd,
+    surface: usize,
 ) -> Result<mpsc::Receiver<PlayerNotification>, String> {
     let (notification_sender, notification_receiver) = mpsc::channel();
     // SAFETY: All COM objects live on their creating STA. Event handlers retain
@@ -489,10 +497,10 @@ fn configure(
                         let value = CoTaskMemPWSTR::from(value).to_string();
                         if value_result.is_ok() {
                             if value == "shell-ready" {
-                                PostMessageW(coordinator, SHELL_READY, 0, 0);
+                                PostMessageW(coordinator, SHELL_READY, surface, 0);
                             } else if let Some(notification) = parse_player_notification(&value) {
                                 if notification_sender.send(notification).is_ok() {
-                                    PostMessageW(coordinator, PLAYER_EVENT, 0, 0);
+                                    PostMessageW(coordinator, PLAYER_EVENT, surface, 0);
                                 }
                             }
                         }
@@ -531,14 +539,14 @@ fn configure(
                 &NavigationCompletedEventHandler::create(Box::new(move |_sender, args| {
                     if completed_shell.replace(false) {
                         let Some(args) = args else {
-                            PostMessageW(coordinator, BROWSER_FAILED, 0, 0);
+                            PostMessageW(coordinator, BROWSER_FAILED, surface, 0);
                             return Ok(());
                         };
                         let mut succeeded = windows::core::BOOL::default();
                         if args.IsSuccess(&mut succeeded).is_err() || !succeeded.as_bool() {
-                            PostMessageW(coordinator, BROWSER_FAILED, 0, 0);
+                            PostMessageW(coordinator, BROWSER_FAILED, surface, 0);
                         } else {
-                            PostMessageW(coordinator, SHELL_NAVIGATED, 0, 0);
+                            PostMessageW(coordinator, SHELL_NAVIGATED, surface, 0);
                         }
                     }
                     Ok(())
@@ -550,7 +558,7 @@ fn configure(
         webview
             .add_ProcessFailed(
                 &ProcessFailedEventHandler::create(Box::new(move |_sender, _args| {
-                    PostMessageW(coordinator, BROWSER_FAILED, 0, 0);
+                    PostMessageW(coordinator, BROWSER_FAILED, surface, 0);
                     Ok(())
                 })),
                 &mut token,

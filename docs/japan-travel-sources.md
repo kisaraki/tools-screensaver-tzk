@@ -1,13 +1,13 @@
 # 日本旅行模式來源、網路與授權紀錄
 
-產品版本：0.2.0<br>
-規格文件：v1.5<br>
-最後非互動 HTTP 檢查：2026-09-07T06:36:23.3366718+08:00<br>
+產品版本：0.7.0<br>
+規格文件：v1.8<br>
+最後非互動 HTTP 檢查：2026-09-07T20:17:11.3035837+08:00<br>
 主要目錄：[tw.live 日本旅行即時影像](https://tw.live/japan/)
 
 ## 文件用途
 
-本文件記錄 v0.4.0 日本旅行模式實際使用的來源契約、當次網路探測，以及尚未完成的播放與權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
+本文件的播放配置更新至 v0.7.0；HTTP 證據沿用 v0.4.0 的 Phase 8 探測，這次沒有重新檢查來源。文件記錄目前來源契約與尚未完成的播放、權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
 
 tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地即時影像並標示資料來源為 YouTube；本程式使用 tw.live camera detail 解析出的 YouTube video ID，交由 YouTube 官方嵌入播放器播放。程式不嵌入 tw.live 整頁，也不執行其 script、廣告或追蹤碼。
 
@@ -51,13 +51,13 @@ tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地
 - 來源解析與健康檢查在背景 worker 執行，不阻塞 Win32 視窗訊息。關閉時停止接受結果；已開始的 WinHTTP request 依有界 timeout 結束後，其晚到資料由關閉的 channel 回收。
 - player 第一次進入 `PLAYING` 時才開始 60,000 ms monotonic 計時，並立即在背景預抓不同 camera。到期時載入已準備的來源；若預抓尚未完成，保留目前畫面並在第一個成功結果到達時切換。睡眠或訊息延遲跨過多個區間只切換一次，不補跑漏掉的分鐘。
 - player error／stall 會立即換候選；HTTP／解析失敗每 30 秒重試。換來源時重用同一個 WebView2 controller，不每分鐘建立新的 player 視窗。
-- 正式多螢幕 `/s` 只在主螢幕建立一個 autoplay player。其他螢幕使用內建 GDI 靜態伴隨畫面，不另建直播 player。
+- 正式多螢幕 `/s` 在每個螢幕各自建立一個 autoplay player。每個 host 獨立選擇來源、計時、重試並接收事件；每輪最多 3 個候選的預算也各自計算。不同螢幕可能隨機選到相同地點，沒有跨螢幕去重保證。網路、記憶體與 GPU 用量隨播放螢幕數增加。
 - Runtime、網路或全部候選不可用時保留可退出的 GDI fallback。程式不下載 Runtime、不顯示安裝 UI，也不觸發 UAC。
 - WebView2 profile 與本機 player shell 儲存在 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`；不保存縮圖、影格、音訊或影片。
 
 ## Player、框架與第三方規則
 
-正式主螢幕可選本專案自製的「自在飛行」或「列車旅行」HTML／CSS shell；完整 16:9 YouTube player 位於框景內，地名與狀態列在 player 矩形外。兩種場景共用相同來源、健康檢查及輪換契約。`/p`、`/c`、其他螢幕及錯誤 fallback 使用對應場景的自製 GDI 靜態畫面。這些畫面不使用 Airbus、列車營運者商標、航空公司塗裝或第三方照片。
+正式全螢幕可選本專案自製的「自在飛行」或「列車旅行」HTML／CSS shell；完整 16:9 YouTube player 位於框景內，地名與狀態列在 player 矩形外。兩種場景共用相同來源、健康檢查及輪換契約。`/p`、`/c`、播放器等待與錯誤 fallback 使用對應場景的自製 GDI 靜態畫面。這些畫面不使用 Airbus、列車營運者商標、航空公司塗裝或第三方照片。
 
 影片固定靜音，播放器控制項保持顯示。程式不遮蔽或裁切 player、YouTube 品牌、廣告或 controls，也不下載、錄製、轉碼、代理或重新託管影片。[YouTube Required Minimum Functionality](https://developers.google.com/youtube/terms/required-minimum-functionality) 說明播放器可見性、最小尺寸、Referer 與 overlay 邊界；[YouTube Developer Policies](https://developers.google.com/youtube/terms/developer-policies-guide) 說明 autoplay、播放完整性及資料處理規則。每次發布都必須重新檢查目前政策。
 
@@ -73,5 +73,5 @@ MIT License 只涵蓋本 repository 的程式碼與自製圖形，不涵蓋 tw.l
 
 1. 在可互動 Windows 10 桌面以產品本身完成至少五次 `PLAYING` 與 60 秒輪換，核對地區／鏡頭文字、靜音及 player 顯示完整性。
 2. 驗證斷網、所有候選失效與 WebView2 Runtime 缺失 fallback；不能以解除安裝 Runtime 作遠端測試，也不能觸發 UAC。
-3. 在實際多螢幕環境驗證主螢幕只有一個 player、其他螢幕為靜態伴隨畫面，以及退出後 WebView2 子程序清理。
+3. 在實際多螢幕環境驗證每個螢幕各有一個 player、各自地點／狀態／60 秒輪換與失敗隔離，以及退出後所有 controller 與 WebView2 子程序清理。
 4. 抽查 8 個候選的原始提供者、官方嵌入是否仍允許及相關使用條款；未完成時在 Release、README、Pages 與 acceptance report 維持 `NOT TESTED`。

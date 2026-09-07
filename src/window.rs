@@ -115,7 +115,7 @@ impl TravelSession {
             generation: 0,
             fetching: false,
             catalog_healthy: false,
-            state: NetworkState::Offline,
+            state: NetworkState::Checking,
             source: None,
             prefetched_source: None,
             shell_ready: false,
@@ -140,74 +140,45 @@ impl TravelSession {
     }
 }
 
-struct Session {
-    mode: Mode,
-    config: Cell<AppConfig>,
-    countdown_seconds: Cell<u32>,
-    windows: RefCell<Vec<HWND>>,
-    coordinator: Cell<HWND>,
-    lifecycle: Cell<Shutdown>,
-    baseline: Cell<Option<InputBaseline>>,
-    last_input_tick: Cell<Option<u32>>,
-    timer: Cell<usize>,
-    input_timer: Cell<usize>,
-    error: Cell<Option<AppError>>,
-    in_loop: Cell<bool>,
-    closing: Cell<bool>,
-    old_cursor: Cell<HCURSOR>,
-    timeline: Cell<Option<Timeline>>,
-    frame: Cell<Option<FrameSnapshot>>,
-    interval: Cell<u32>,
+// Each monitor owns a player, source rotation and event channel. Only the
+// fullscreen window lifecycle and input handling are shared by the session.
+struct TravelHost {
     travel: RefCell<Option<TravelSession>>,
     travel_host: Cell<HWND>,
+    coordinator: Cell<HWND>,
+    owner: std::rc::Weak<Session>,
 }
 
-impl Session {
-    fn new(mode: Mode, config: AppConfig, countdown_seconds: u32) -> Self {
-        // SAFETY: This is only a seed read and has no lifetime or ownership effect.
-        let seed_tick = unsafe { GetTickCount64() } as u32;
-        let travel = (matches!(mode, Mode::Fullscreen)
-            && mode.display(config) == DisplayMode::JapanTravel)
-            .then(|| {
-                TravelSession::new(seed_tick ^ unsafe { GetCurrentProcessId() }.rotate_left(13))
-            });
+impl TravelHost {
+    fn new(owner: &Rc<Session>, host: HWND, seed: u32) -> Self {
         Self {
-            mode,
-            config: Cell::new(config),
-            countdown_seconds: Cell::new(countdown_seconds),
-            windows: RefCell::new(Vec::new()),
-            coordinator: Cell::new(ptr::null_mut()),
-            lifecycle: Cell::new(Shutdown::default()),
-            baseline: Cell::new(None),
-            last_input_tick: Cell::new(None),
-            timer: Cell::new(0),
-            input_timer: Cell::new(0),
-            error: Cell::new(None),
-            in_loop: Cell::new(false),
-            closing: Cell::new(false),
-            old_cursor: Cell::new(ptr::null_mut()),
-            timeline: Cell::new(None),
-            frame: Cell::new(None),
-            interval: Cell::new(1000),
-            travel: RefCell::new(travel),
-            travel_host: Cell::new(ptr::null_mut()),
+            travel: RefCell::new(Some(TravelSession::new(seed))),
+            travel_host: Cell::new(host),
+            coordinator: Cell::new(owner.coordinator.get()),
+            owner: Rc::downgrade(owner),
         }
     }
 
-    fn display(&self) -> DisplayMode {
-        self.mode.display(self.config.get())
+    fn stopping(&self) -> bool {
+        self.owner
+            .upgrade()
+            .is_none_or(|owner| owner.lifecycle.get().stopping)
     }
 
-    fn style(&self) -> Style {
-        match self.mode {
-            #[cfg(debug_assertions)]
-            Mode::Developer(_) => Style::default(),
-            _ => Style::from_config(self.config.get()),
+    fn caption(&self) -> travel::TravelCaption {
+        let slot = self.travel.borrow();
+        match slot.as_ref() {
+            Some(travel) => travel::TravelCaption::live(
+                travel.source.as_ref().map(|source| source.place.as_str()),
+                travel.state,
+                travel.browser_error.is_some(),
+            ),
+            None => travel::TravelCaption::default(),
         }
     }
 
-    fn initialize_travel(&self) {
-        if self.travel.borrow().is_none() || self.lifecycle.get().stopping {
+    fn initialize_travel(&self, storage: &Result<(PathBuf, PathBuf), String>) {
+        if self.travel.borrow().is_none() || self.stopping() {
             return;
         }
         let host = self.travel_host.get();
@@ -216,11 +187,13 @@ impl Session {
             return;
         }
 
-        let shell = travel::travel_html_shell(self.config.get().travel_style);
-        let startup = prepare_travel_storage(&shell).and_then(|(user_data, content)| {
-            TravelWebViewStartup::start(host, coordinator, &user_data, &content)
-        });
-        if self.lifecycle.get().stopping {
+        let startup = storage
+            .as_ref()
+            .map_err(Clone::clone)
+            .and_then(|(user_data, content)| {
+                TravelWebViewStartup::start(host, coordinator, user_data, content)
+            });
+        if self.stopping() {
             drop(startup);
             return;
         }
@@ -234,12 +207,21 @@ impl Session {
             }
         }
         // SAFETY: GetTickCount64 is a monotonic, process-independent clock read.
-        self.begin_travel_fetch(unsafe { GetTickCount64() }, FetchPurpose::Current);
+        if self
+            .travel
+            .borrow()
+            .as_ref()
+            .is_some_and(|travel| travel.browser_error.is_none())
+        {
+            self.begin_travel_fetch(unsafe { GetTickCount64() }, FetchPurpose::Current);
+        } else {
+            self.update_travel_status();
+        }
     }
 
     fn begin_travel_fetch(&self, now: u64, purpose: FetchPurpose) {
         let coordinator = self.coordinator.get();
-        if coordinator.is_null() || self.lifecycle.get().stopping {
+        if coordinator.is_null() || self.stopping() {
             return;
         }
         let (generation, purpose, candidates, sender, check_catalog) = {
@@ -275,6 +257,7 @@ impl Session {
         }
 
         let coordinator_value = coordinator as usize;
+        let host_value = self.travel_host.get() as usize;
         let spawn = thread::Builder::new()
             .name("japan-travel-source-check".into())
             .spawn(move || {
@@ -314,7 +297,7 @@ impl Session {
                     // SAFETY: The HWND is an opaque copied value. Failure means
                     // shutdown won the race; receiver teardown reclaims the value.
                     unsafe {
-                        PostMessageW(coordinator_value as HWND, TRAVEL_FETCH_DONE, 0, 0);
+                        PostMessageW(coordinator_value as HWND, TRAVEL_FETCH_DONE, host_value, 0);
                     }
                 }
             });
@@ -564,21 +547,29 @@ impl Session {
     }
 
     fn receive_travel_webview_startup(&self) {
-        let outcome = self
+        let startup = self
             .travel
             .borrow_mut()
             .as_mut()
-            .and_then(|travel| travel.browser_startup.as_mut())
-            .map(TravelWebViewStartup::poll);
+            .and_then(|travel| travel.browser_startup.take());
+        let Some(mut startup) = startup else {
+            return;
+        };
+        // Controller creation can pump messages. Never hold the state borrow
+        // across a COM call, including when another monitor is starting up.
+        let outcome = startup.poll();
+        if self.stopping() {
+            return;
+        }
         match outcome {
-            Some(StartupPoll::Ready(browser)) => {
+            StartupPoll::Ready(browser) => {
                 if let Some(travel) = self.travel.borrow_mut().as_mut() {
                     travel.browser_startup.take();
                     travel.browser = Some(browser);
                     travel.browser_error = None;
                 }
             }
-            Some(StartupPoll::Failed(error)) => {
+            StartupPoll::Failed(error) => {
                 if let Some(travel) = self.travel.borrow_mut().as_mut() {
                     travel.browser_startup.take();
                     travel.browser_error = Some(error);
@@ -587,7 +578,11 @@ impl Session {
                     travel.retry_at = u64::MAX;
                 }
             }
-            Some(StartupPoll::Pending) | None => {}
+            StartupPoll::Pending => {
+                if let Some(travel) = self.travel.borrow_mut().as_mut() {
+                    travel.browser_startup = Some(startup);
+                }
+            }
         }
         self.update_travel_status();
     }
@@ -621,6 +616,11 @@ impl Session {
     }
 
     fn update_travel_status(&self) {
+        let host = self.travel_host.get();
+        if !host.is_null() && !self.stopping() {
+            // Refresh the owned GDI surface even before a browser exists.
+            unsafe { windows_sys::Win32::Graphics::Gdi::InvalidateRect(host, ptr::null(), 0) };
+        }
         let script = {
             let travel_slot = self.travel.borrow();
             let Some(travel) = travel_slot.as_ref() else {
@@ -651,7 +651,7 @@ impl Session {
             .and_then(|travel| travel.browser.take())
             .ok_or_else(|| "WebView2 player is unavailable".to_owned())?;
         let result = operation(&browser);
-        if !self.lifecycle.get().stopping {
+        if !self.stopping() {
             if let Some(travel) = self.travel.borrow_mut().as_mut() {
                 travel.browser = Some(browser);
                 return result;
@@ -665,6 +665,125 @@ impl Session {
         self.travel_host.set(ptr::null_mut());
         let travel = self.travel.borrow_mut().take();
         drop(travel);
+    }
+}
+
+struct Session {
+    mode: Mode,
+    config: Cell<AppConfig>,
+    countdown_seconds: Cell<u32>,
+    windows: RefCell<Vec<HWND>>,
+    coordinator: Cell<HWND>,
+    lifecycle: Cell<Shutdown>,
+    baseline: Cell<Option<InputBaseline>>,
+    last_input_tick: Cell<Option<u32>>,
+    timer: Cell<usize>,
+    input_timer: Cell<usize>,
+    error: Cell<Option<AppError>>,
+    in_loop: Cell<bool>,
+    closing: Cell<bool>,
+    old_cursor: Cell<HCURSOR>,
+    timeline: Cell<Option<Timeline>>,
+    frame: Cell<Option<FrameSnapshot>>,
+    interval: Cell<u32>,
+    travel_hosts: RefCell<Vec<Rc<TravelHost>>>,
+}
+
+impl Session {
+    fn new(mode: Mode, config: AppConfig, countdown_seconds: u32) -> Self {
+        Self {
+            mode,
+            config: Cell::new(config),
+            countdown_seconds: Cell::new(countdown_seconds),
+            windows: RefCell::new(Vec::new()),
+            coordinator: Cell::new(ptr::null_mut()),
+            lifecycle: Cell::new(Shutdown::default()),
+            baseline: Cell::new(None),
+            last_input_tick: Cell::new(None),
+            timer: Cell::new(0),
+            input_timer: Cell::new(0),
+            error: Cell::new(None),
+            in_loop: Cell::new(false),
+            closing: Cell::new(false),
+            old_cursor: Cell::new(ptr::null_mut()),
+            timeline: Cell::new(None),
+            frame: Cell::new(None),
+            interval: Cell::new(1000),
+            travel_hosts: RefCell::new(Vec::new()),
+        }
+    }
+
+    fn display(&self) -> DisplayMode {
+        self.mode.display(self.config.get())
+    }
+
+    fn style(&self) -> Style {
+        match self.mode {
+            #[cfg(debug_assertions)]
+            Mode::Developer(_) => Style::default(),
+            _ => Style::from_config(self.config.get()),
+        }
+    }
+
+    fn initialize_travel(self: &Rc<Self>, surfaces: &[HWND]) {
+        if !matches!(self.mode, Mode::Fullscreen)
+            || self.display() != DisplayMode::JapanTravel
+            || self.lifecycle.get().stopping
+        {
+            return;
+        }
+        // Write the shared, identical local shell once before any controller
+        // navigates it. Each monitor still has its own WebView and state.
+        let shell = travel::travel_html_shell(self.config.get().travel_style);
+        let storage = prepare_travel_storage(&shell);
+        let seed =
+            unsafe { GetTickCount64() } as u32 ^ unsafe { GetCurrentProcessId() }.rotate_left(13);
+        let hosts: Vec<_> = surfaces
+            .iter()
+            .enumerate()
+            .map(|(index, &hwnd)| {
+                Rc::new(TravelHost::new(
+                    self,
+                    hwnd,
+                    seed ^ (index as u32 + 1).wrapping_mul(0x9e3779b9),
+                ))
+            })
+            .collect();
+        *self.travel_hosts.borrow_mut() = hosts.clone();
+        for host in hosts {
+            host.initialize_travel(&storage);
+        }
+    }
+
+    fn travel_for(&self, hwnd: HWND) -> Option<Rc<TravelHost>> {
+        self.travel_hosts
+            .borrow()
+            .iter()
+            .find(|host| !hwnd.is_null() && host.travel_host.get() == hwnd)
+            .cloned()
+    }
+
+    fn travel_caption(&self, hwnd: HWND) -> travel::TravelCaption {
+        if let Some(host) = self.travel_for(hwnd) {
+            host.caption()
+        } else if matches!(self.mode, Mode::Fullscreen) {
+            travel::TravelCaption::live(None, NetworkState::Checking, false)
+        } else {
+            travel::TravelCaption::default()
+        }
+    }
+
+    fn resize_travel(&self, hwnd: HWND, width: i32, height: i32) {
+        if let Some(host) = self.travel_for(hwnd) {
+            host.resize_travel(hwnd, width, height);
+        }
+    }
+
+    fn close_travel(&self) {
+        let hosts = std::mem::take(&mut *self.travel_hosts.borrow_mut());
+        for host in hosts {
+            host.close_travel();
+        }
     }
 
     fn register(&self, hwnd: HWND) {
@@ -782,7 +901,7 @@ impl Session {
     }
 
     fn check_travel_input(&self) {
-        if self.travel.borrow().is_none() || !matches!(self.mode, Mode::Fullscreen) {
+        if self.travel_hosts.borrow().is_empty() || !matches!(self.mode, Mode::Fullscreen) {
             return;
         }
         let (Some(started), Some(baseline)) = (self.last_input_tick.get(), self.baseline.get())
@@ -855,9 +974,12 @@ impl Session {
             #[cfg(debug_assertions)]
             Mode::Developer(_) => (),
         }
-        if self.travel.borrow().is_some() && !self.lifecycle.get().stopping {
-            // SAFETY: Read the same monotonic clock used for rotation deadlines.
-            self.maintain_travel(unsafe { GetTickCount64() });
+        if !self.lifecycle.get().stopping {
+            let hosts = self.travel_hosts.borrow().clone();
+            let now = unsafe { GetTickCount64() };
+            for host in hosts {
+                host.maintain_travel(now);
+            }
         }
         if !self.lifecycle.get().stopping {
             if let Err(error) = self.sample_frame(restart) {
@@ -1255,14 +1377,7 @@ fn run(
             }
             session.last_input_tick.set(Some(last_input.dwTime));
             session.hide_cursor();
-            if session.display() == DisplayMode::JapanTravel {
-                if let Some(&primary) = surfaces.first() {
-                    session.travel_host.set(primary);
-                    // The already-visible GDI surface remains responsive while
-                    // WebView2 performs its bounded, message-pumping startup.
-                    session.initialize_travel();
-                }
-            }
+            session.initialize_travel(&surfaces);
         }
         Mode::Preview(parent) => {
             session.sample_frame(true)?;
@@ -1326,7 +1441,7 @@ fn run(
         return Err(last_error("SetTimer"));
     }
     session.timer.set(timer);
-    if session.travel.borrow().is_some() {
+    if !session.travel_hosts.borrow().is_empty() {
         // SAFETY: A dedicated short timer catches mouse clicks consumed by the
         // WebView2 child without increasing the renderer's one-second cadence.
         let input_timer = unsafe { SetTimer(coordinator, TRAVEL_INPUT_TIMER, 100, None) };
@@ -1481,6 +1596,7 @@ unsafe extern "system" fn window_proc(
                     } else {
                         (0, 0)
                     };
+                    renderer.set_travel_caption(session.travel_caption(hwnd));
                     let result = renderer.paint(
                         hwnd,
                         dpi,
@@ -1509,33 +1625,28 @@ unsafe extern "system" fn window_proc(
             session.close_all();
             0
         }
-        TRAVEL_FETCH_DONE if role == Role::Coordinator => {
-            // SAFETY: The worker only posts an event; the UI thread drains owned
-            // channel values and applies the latest generation.
-            session.receive_travel_fetch(unsafe { GetTickCount64() });
-            0
-        }
-        WEBVIEW_STARTUP_CHANGED if role == Role::Coordinator => {
-            session.receive_travel_webview_startup();
-            0
-        }
-        SHELL_READY if role == Role::Coordinator => {
-            // SAFETY: Monotonic timestamp for the pending player deadline.
-            session.travel_shell_ready(unsafe { GetTickCount64() });
-            0
-        }
-        PLAYER_EVENT if role == Role::Coordinator => {
-            // SAFETY: Monotonic timestamp validates the tokened player event and
-            // starts the one-minute window only for the current source.
-            session.receive_travel_player_event(unsafe { GetTickCount64() });
-            0
-        }
-        BROWSER_FAILED if role == Role::Coordinator => {
-            session.travel_browser_failed();
-            0
-        }
-        SHELL_NAVIGATED if role == Role::Coordinator => {
-            session.travel_shell_navigated();
+        TRAVEL_FETCH_DONE
+        | WEBVIEW_STARTUP_CHANGED
+        | SHELL_READY
+        | PLAYER_EVENT
+        | BROWSER_FAILED
+        | SHELL_NAVIGATED
+            if role == Role::Coordinator =>
+        {
+            // wParam identifies the owning surface. Ignore stale events after
+            // shutdown and never apply another monitor's token or failure.
+            if let Some(host) = session.travel_for(wparam as HWND) {
+                let now = unsafe { GetTickCount64() };
+                match message {
+                    TRAVEL_FETCH_DONE => host.receive_travel_fetch(now),
+                    WEBVIEW_STARTUP_CHANGED => host.receive_travel_webview_startup(),
+                    SHELL_READY => host.travel_shell_ready(now),
+                    PLAYER_EVENT => host.receive_travel_player_event(now),
+                    BROWSER_FAILED => host.travel_browser_failed(),
+                    SHELL_NAVIGATED => host.travel_shell_navigated(),
+                    _ => unreachable!(),
+                }
+            }
             0
         }
         WM_TIMER if role == Role::Coordinator && wparam == session.timer.get() => {
@@ -1681,6 +1792,108 @@ fn paint_black(hwnd: HWND) -> Result<(), AppError> {
 mod tests {
     use super::*;
     use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+
+    #[test]
+    fn travel_events_and_cleanup_are_isolated_per_monitor() {
+        struct HiddenRoutes([HWND; 2]);
+        impl Drop for HiddenRoutes {
+            fn drop(&mut self) {
+                for hwnd in self.0 {
+                    unsafe { DestroyWindow(hwnd) };
+                }
+            }
+        }
+        let hidden = HiddenRoutes(std::array::from_fn(|_| unsafe {
+            // Message-only STATIC windows cannot appear or steal focus.
+            CreateWindowExW(
+                0,
+                windows_sys::w!("STATIC"),
+                windows_sys::w!(""),
+                0,
+                0,
+                0,
+                0,
+                0,
+                HWND_MESSAGE,
+                ptr::null_mut(),
+                GetModuleHandleW(ptr::null()),
+                ptr::null(),
+            )
+        }));
+        assert!(hidden.0.iter().all(|hwnd| !hwnd.is_null()));
+        let [first_window, second_window] = hidden.0;
+        let owner = Rc::new(Session::new(Mode::Fullscreen, AppConfig::default(), 300));
+        // No visible surface, player or network is created.
+        let first = Rc::new(TravelHost::new(&owner, first_window, 11));
+        let second = Rc::new(TravelHost::new(&owner, second_window, 22));
+        *owner.travel_hosts.borrow_mut() = vec![first.clone(), second.clone()];
+        for (host, place, camera) in [(&first, "京都", "kyoto"), (&second, "札幌", "sapporo")] {
+            let mut slot = host.travel.borrow_mut();
+            let travel = slot.as_mut().unwrap();
+            travel.activate_source(
+                TravelSource {
+                    camera_id: camera.into(),
+                    place: place.into(),
+                    youtube_id: "Ee27soLzJ5c".into(),
+                },
+                100,
+            );
+            travel.state = NetworkState::Playing;
+            travel.awaiting_playback = false;
+            travel.last_playing = 100;
+        }
+        let routed = owner.travel_for(second_window).unwrap();
+        assert!(Rc::ptr_eq(&routed, &second));
+        assert!(owner.travel_for(ptr::null_mut()).is_none());
+        {
+            let slot = routed.travel.borrow();
+            let travel = slot.as_ref().unwrap();
+            travel
+                .sender
+                .send(TravelFetchCompletion {
+                    generation: travel.generation,
+                    purpose: FetchPurpose::Current,
+                    catalog_healthy: false,
+                    source: Err("offline".into()),
+                })
+                .unwrap();
+        }
+        routed.receive_travel_fetch(250);
+        assert_eq!(
+            second.travel.borrow().as_ref().unwrap().state,
+            NetworkState::Offline
+        );
+        assert_eq!(
+            second.travel.borrow().as_ref().unwrap().retry_at,
+            250 + TRAVEL_RETRY_MS
+        );
+        assert_eq!(
+            first.travel.borrow().as_ref().unwrap().state,
+            NetworkState::Playing
+        );
+        assert_eq!(first.travel.borrow().as_ref().unwrap().last_playing, 100);
+        assert_eq!(first.caption().place, "京都");
+        assert_eq!(second.caption().place, "札幌");
+        owner.close_travel();
+        assert!(owner.travel_for(first_window).is_none());
+        assert!(owner.travel_for(second_window).is_none());
+        assert!(first.travel.borrow().is_none() && second.travel.borrow().is_none());
+        drop(owner);
+        assert!(first.stopping() && second.stopping());
+    }
+
+    #[test]
+    fn offline_modes_do_not_create_travel_hosts() {
+        for display_mode in [DisplayMode::TimeDate, DisplayMode::Countdown] {
+            let config = AppConfig {
+                display_mode,
+                ..AppConfig::default()
+            };
+            let owner = Rc::new(Session::new(Mode::Fullscreen, config, 300));
+            owner.initialize_travel(&[ptr::null_mut(), ptr::null_mut()]);
+            assert!(owner.travel_hosts.borrow().is_empty());
+        }
+    }
 
     #[test]
     fn activating_a_source_advances_a_nonzero_playback_token() {
