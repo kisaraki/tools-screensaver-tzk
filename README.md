@@ -17,9 +17,9 @@ MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 | 檔案 | 用途 |
 | --- | --- |
-| [MyDateTimeScreensaver-Setup.exe](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.3.0/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式 |
-| [MyDateTimeScreensaver.scr](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.3.0/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查 |
-| [SHA256SUMS.txt](https://github.com/kisaraki/tools-screensaver-tzk/releases/download/v0.3.0/SHA256SUMS.txt) | 兩個成品的 SHA-256 |
+| [MyDateTimeScreensaver-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/MyDateTimeScreensaver-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [MyDateTimeScreensaver.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/MyDateTimeScreensaver.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 目前 v0.3.0 成品：
 
@@ -144,7 +144,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～6 報告保留各階段當時的版本、hash 與限制；Phase 6 的 v0.2.0 是單一客艙場景的歷史結果。目前下載成品以 v0.3.0 Release 與該 Release 的 `SHA256SUMS.txt` 為準。
+Phase 0～6 報告保留各階段當時的版本、hash 與限制；Phase 6 的 v0.2.0 是單一客艙場景的歷史結果。目前下載成品以 v0.3.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供內容相同的公開成品。
 
 ## 授權
 
