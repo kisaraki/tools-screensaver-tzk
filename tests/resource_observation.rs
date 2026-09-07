@@ -35,7 +35,7 @@ fn windows(process: u32) -> Vec<HWND> {
             let length = GetClassNameW(hwnd, name.as_mut_ptr(), 128);
             if id == (*(data as *const (u32, Vec<HWND>))).0
                 && String::from_utf16_lossy(&name[..length.max(0) as usize])
-                    == "MyDateTimeScreensaver.Window"
+                    == "tools-screensaver-tzk.Window"
             {
                 (*(data as *mut (u32, Vec<HWND>))).1.push(hwnd);
             }
@@ -96,7 +96,7 @@ fn sample(process: HANDLE) -> Sample {
 fn observe_two_debug_modes_for_ten_minutes() {
     let output = PathBuf::from(env::var_os("PHASE2_OBSERVATION").expect("set PHASE2_OBSERVATION"));
     fs::create_dir_all(&output).unwrap();
-    let executable = env!("CARGO_BIN_EXE_my_datetime_screensaver");
+    let executable = env!("CARGO_BIN_EXE_tools-screensaver-tzk");
     let cores = thread::available_parallelism().unwrap().get();
     let mut children = Vec::new();
     for mode in ["time-date", "countdown"] {

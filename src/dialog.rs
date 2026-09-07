@@ -228,7 +228,7 @@ fn show_error(hwnd: HWND, text: &str) {
         MessageBoxW(
             hwnd,
             text.as_ptr(),
-            windows_sys::w!("日期時間螢幕保護程式"),
+            windows_sys::w!("tools-screensaver-tzk"),
             MB_OK | MB_ICONERROR,
         );
     }

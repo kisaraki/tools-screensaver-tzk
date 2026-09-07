@@ -1,7 +1,7 @@
 {
   "capturedAt": "2026-09-05T16:29:38.7800418+08:00",
-  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
-  "temporaryScr": "<TEMP>\\MyDateTimeScreensaver-smoke-508a9186221844e5860df88951f568db\\MyDateTimeScreensaver.scr",
+  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\tools_screensaver_tzk.exe",
+  "temporaryScr": "<TEMP>\\tools-screensaver-tzk-smoke-508a9186221844e5860df88951f568db\\tools-screensaver-tzk.scr",
   "sha256": "88749e4c22e6b77a4a56c63989a4a609c3686aab6d7f6bad47f21c6535235829",
   "bytes": 607232,
   "machine": "0x8664 (x64)",

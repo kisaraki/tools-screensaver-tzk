@@ -2,7 +2,7 @@ Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
 Copyright (C) Microsoft Corporation.  All rights reserved.
 
 
-Dump of file <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+Dump of file <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\release\tools_screensaver_tzk.exe
 
 PE signature found
 
@@ -99,7 +99,7 @@ SECTION HEADER #2
 
         Time Type        Size      RVA  Pointer
     -------- ------- -------- -------- --------
-    6A9BBA01 cv            34 00046F10    45910    Format: RSDS, {BF57AC2C-1209-42A0-A906-32DBF539B147}, 1, my_datetime_screensaver.pdb
+    6A9BBA01 cv            34 00046F10    45910    Format: RSDS, {BF57AC2C-1209-42A0-A906-32DBF539B147}, 1, tools_screensaver_tzk.pdb
     6A9BBA01 feat          14 00046F44    45944    Counts: Pre-VC++ 11.00=1, C/C++=217, /GS=217, /sdl=0, guardN=217
     6A9BBA01 coffgrp      3E0 00046F58    45958
 

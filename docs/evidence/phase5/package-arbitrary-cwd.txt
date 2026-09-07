@@ -3,7 +3,7 @@
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
 [3/4] cargo test --locked
     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
-     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-34f8925e8200c955.exe)
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-34f8925e8200c955.exe)
 
 running 17 tests
 test config::tests::custom_font_binary_and_fields_are_validated_and_normalized ... ok
@@ -81,7 +81,7 @@ test shared_generation_clock_adjustment_and_resume_do_not_change_deadline ... ok
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-   Doc-tests my_datetime_screensaver
+   Doc-tests tools_screensaver_tzk
 
 running 0 tests
 
@@ -91,7 +91,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
     Finished `release` profile [optimized] target(s) in 0.07s
 
 [PASS] Phase 5 build completed.
-Artifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver.scr
+Artifact: <PROJECT_ROOT>\dist\tools-screensaver-tzk.scr
 Version: 0.1.0
 Bytes: 609792
 SHA-256: 4e9d7fd62e6b4dedf265474a1d8a48b630e0cae533ddd828f9419b0e647ab0f2
@@ -104,12 +104,12 @@ Source revision: unavailable (repository has no commit)
 [package] Inno Setup 6.7.3
 
 
-PreprocessingArtifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver.scr
+PreprocessingArtifact: <PROJECT_ROOT>\dist\tools-screensaver-tzk.scr
 Version: 0.1.0
 Bytes: 609792
 SHA-256: 4e9d7fd62e6b4dedf265474a1d8a48b630e0cae533ddd828f9419b0e647ab0f2
 Signature: NotSigned
-Artifact: <PROJECT_ROOT>\dist\MyDateTimeScreensaver-Setup.exe
+Artifact: <PROJECT_ROOT>\dist\tools-screensaver-tzk-Setup.exe
 Version: 0.1.0.0             
 Bytes: 2247164
 SHA-256: 31b96979669a2dc96f1180b56950bd64a79190c45e31f89fbbcd9532dff034e5

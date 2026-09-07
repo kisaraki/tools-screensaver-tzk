@@ -1,6 +1,6 @@
 {
   "capturedAt": "2026-09-05T15:21:22.6089339+08:00",
-  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "artifact": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\tools_screensaver_tzk.exe",
   "artifactSha256": "d74a3221c4fcd02061378117ea3ade6680f796b779e3ca90be7b507e583246b0",
   "tool": ".NET Process counters and Win32 GetGuiResources",
   "controllerPid": 29340,

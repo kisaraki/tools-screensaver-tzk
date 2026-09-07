@@ -4,7 +4,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 set "TOOLCHAIN=1.97.1-x86_64-pc-windows-msvc"
 set "TARGET=x86_64-pc-windows-msvc"
 for %%I in ("%~dp0..") do set "ROOT=%%~fI"
-set "RELEASE_EXE=%ROOT%\target\%TARGET%\release\my_datetime_screensaver.exe"
+set "RELEASE_EXE=%ROOT%\target\%TARGET%\release\tools-screensaver-tzk.exe"
 set "DIST_DIR=%ROOT%\dist"
 set "DIST_SCR=%DIST_DIR%\tools-screensaver-tzk.scr"
 set "DIST_TEMP=%DIST_DIR%\tools-screensaver-tzk.scr.%RANDOM%.%RANDOM%.tmp"

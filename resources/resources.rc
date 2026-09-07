@@ -10,12 +10,12 @@ IDR_MANIFEST RT_MANIFEST "app.manifest"
 
 STRINGTABLE
 BEGIN
-    IDS_APP_NAME "日期時間螢幕保護程式"
+    IDS_APP_NAME "tools-screensaver-tzk"
 END
 
 IDD_CONFIG DIALOGEX 0, 0, 360, 355
 STYLE DS_SHELLFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "日期時間螢幕保護程式設定"
+CAPTION "tools-screensaver-tzk 設定"
 FONT 9, "Microsoft JhengHei UI"
 BEGIN
     GROUPBOX "顯示模式", -1, 8, 7, 164, 74
@@ -82,13 +82,13 @@ BEGIN
     BEGIN
         BLOCK "040404B0"
         BEGIN
-            VALUE "CompanyName", ""
-            VALUE "FileDescription", "日期時間螢幕保護程式"
+            VALUE "CompanyName", "kisaraki"
+            VALUE "FileDescription", "tools-screensaver-tzk 螢幕保護程式"
             VALUE "FileVersion", APP_VERSION_STR
-            VALUE "InternalName", "my_datetime_screensaver"
+            VALUE "InternalName", "tools-screensaver-tzk"
             VALUE "LegalCopyright", "Copyright (c) 2026 kisaraki"
-            VALUE "OriginalFilename", "MyDateTimeScreensaver.scr"
-            VALUE "ProductName", "MyDateTimeScreensaver"
+            VALUE "OriginalFilename", "tools-screensaver-tzk.scr"
+            VALUE "ProductName", "tools-screensaver-tzk"
             VALUE "ProductVersion", APP_VERSION_STR
         END
     END

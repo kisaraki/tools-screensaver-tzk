@@ -1,4 +1,4 @@
-# MyDateTimeScreensaver v0.2.0
+# tools-screensaver-tzk v0.2.0
 
 v0.2.0 新增第三個「日本旅行模式」。主螢幕會在自製 A380 客艙風格窗框中播放 tw.live 所整理的 YouTube 日本即時影像，並在 player 外顯示目前城市／地區；其他螢幕顯示靜態伴隨畫面。
 
@@ -28,8 +28,8 @@ v0.2.0 新增第三個「日本旅行模式」。主螢幕會在自製 A380 客�
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `MyDateTimeScreensaver.scr` | 802,816 | `73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d` |
-| `MyDateTimeScreensaver-Setup.exe` | 2,319,263 | `ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372` |
+| `tools-screensaver-tzk.scr` | 802,816 | `73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d` |
+| `tools-screensaver-tzk-Setup.exe` | 2,319,263 | `ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372` |
 
 兩個成品都沒有 Authenticode 簽章。
 

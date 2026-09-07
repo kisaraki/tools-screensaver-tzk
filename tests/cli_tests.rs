@@ -1,4 +1,4 @@
-use my_datetime_screensaver::cli::{parse, RunMode};
+use tools_screensaver_tzk::cli::{parse, RunMode};
 
 #[test]
 fn no_arguments_opens_configuration() {

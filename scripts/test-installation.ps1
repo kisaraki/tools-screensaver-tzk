@@ -18,8 +18,8 @@ if (-not $OutputDirectory) {
 $setup = (Resolve-Path -LiteralPath $SetupPath).Path
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
-$installedScr = Join-Path $env:SystemRoot 'System32\MyDateTimeScreensaver.scr'
-$productDir = Join-Path $env:ProgramFiles 'MyDateTimeScreensaver'
+$installedScr = Join-Path $env:SystemRoot 'System32\tools-screensaver-tzk.scr'
+$productDir = Join-Path $env:ProgramFiles 'tools-screensaver-tzk'
 $results = [Collections.Generic.List[object]]::new()
 $trackedSaver = $null
 $installedByTest = $false
@@ -96,7 +96,7 @@ function Invoke-Setup([string[]]$Extra, [string]$LogName, [string]$Label) {
 function Get-ProductEntries {
     @(
         Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
-            Where-Object { $_.DisplayName -eq '日期時間螢幕保護程式' }
+            Where-Object { $_.DisplayName -eq 'tools-screensaver-tzk' }
     )
 }
 

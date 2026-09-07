@@ -19,7 +19,7 @@ impl Saver {
     fn start(args: &[&str]) -> Self {
         let executable = env::var_os("SCREENSAVER_TEST_EXE")
             .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_my_datetime_screensaver")));
+            .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_tools-screensaver-tzk")));
         Self(
             Command::new(executable)
                 .args(args)
@@ -198,7 +198,7 @@ unsafe extern "system" fn collect(hwnd: HWND, parameter: LPARAM) -> i32 {
             let length = GetClassNameW(hwnd, name.as_mut_ptr(), name.len() as i32);
             let name = String::from_utf16_lossy(&name[..length.max(0) as usize]);
             // Exclude OS-created IME helper windows; they are not saver surfaces.
-            if name == "MyDateTimeScreensaver.Window" || name == "#32770" {
+            if name == "tools-screensaver-tzk.Window" || name == "#32770" {
                 (*(parameter as *mut (u32, Vec<HWND>))).1.push(hwnd);
             }
         }

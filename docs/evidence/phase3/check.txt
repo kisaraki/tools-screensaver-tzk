@@ -1,2 +1,2 @@
-    Checking my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+    Checking tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s

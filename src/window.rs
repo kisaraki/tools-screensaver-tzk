@@ -33,8 +33,8 @@ use crate::travel_webview::{
     PLAYER_EVENT, SHELL_NAVIGATED, SHELL_READY, WEBVIEW_STARTUP_CHANGED,
 };
 
-const CLASS_NAME: *const u16 = windows_sys::w!("MyDateTimeScreensaver.Window");
-const WINDOW_TITLE: *const u16 = windows_sys::w!("MyDateTimeScreensaver");
+const CLASS_NAME: *const u16 = windows_sys::w!("tools-screensaver-tzk.Window");
+const WINDOW_TITLE: *const u16 = windows_sys::w!("tools-screensaver-tzk");
 const CLOSE_ALL: u32 = WM_APP + 1;
 const CHECK_FOREGROUND: u32 = WM_APP + 2;
 const TRAVEL_FETCH_DONE: u32 = WM_APP + 44;
@@ -973,7 +973,7 @@ fn prepare_travel_storage(shell_html: &str) -> Result<(PathBuf, PathBuf), String
     let local_app_data = env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .ok_or_else(|| "LOCALAPPDATA is unavailable for WebView2 data".to_owned())?;
-    let base = local_app_data.join("KOMSMOS").join("MyDateTimeScreensaver");
+    let base = local_app_data.join("KOMSMOS").join("tools-screensaver-tzk");
     let user_data = base.join("WebView2");
     let content = base.join("TravelContent");
     fs::create_dir_all(&user_data)
@@ -1301,13 +1301,13 @@ fn run(
             session.sample_frame(true)?;
             let title = match session.display() {
                 DisplayMode::TimeDate => {
-                    windows_sys::w!("MyDateTimeScreensaver — Phase 3 / TimeDate (Debug)")
+                    windows_sys::w!("tools-screensaver-tzk — Phase 3 / TimeDate (Debug)")
                 }
                 DisplayMode::Countdown => {
-                    windows_sys::w!("MyDateTimeScreensaver — Phase 3 / Countdown (Debug)")
+                    windows_sys::w!("tools-screensaver-tzk — Phase 3 / Countdown (Debug)")
                 }
                 DisplayMode::JapanTravel => {
-                    windows_sys::w!("MyDateTimeScreensaver — Japan Travel (Debug)")
+                    windows_sys::w!("tools-screensaver-tzk — Japan Travel (Debug)")
                 }
             };
             // SAFETY: Show the fully initialized ordinary developer window.

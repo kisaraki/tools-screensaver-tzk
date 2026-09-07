@@ -5,7 +5,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
-const BINARY_NAME: &str = "my_datetime_screensaver";
+const BINARY_NAME: &str = "tools-screensaver-tzk";
 const TARGET: &str = "x86_64-pc-windows-msvc";
 
 fn main() {

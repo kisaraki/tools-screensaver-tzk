@@ -81,7 +81,7 @@ cargo test --locked --test native_modes -- --include-ignored --test-threads=1 --
 
 ## 成品
 
-- 路徑：`target/x86_64-pc-windows-msvc/release/my_datetime_screensaver.exe`
+- 路徑：`target/x86_64-pc-windows-msvc/release/tools_screensaver_tzk.exe`
 - 大小：505,344 bytes。
 - SHA-256：`C30C03472586533CBC99066C4C08AB7EAA03186C2746FADCD2CAD9C498828D9D`。
 - PE machine `0x8664`，subsystem `2`；FileDescription 明示 Phase 1。

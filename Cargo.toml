@@ -1,6 +1,6 @@
 [package]
-name = "my_datetime_screensaver"
-version = "0.3.0"
+name = "tools-screensaver-tzk"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.97.1"
 description = "Windows calendar clock, away-work Pomodoro, and Japan live-travel screensaver"
@@ -14,7 +14,7 @@ build = "build.rs"
 path = "src/lib.rs"
 
 [[bin]]
-name = "my_datetime_screensaver"
+name = "tools-screensaver-tzk"
 path = "src/main.rs"
 test = false
 bench = false

@@ -1,7 +1,7 @@
 {
     "capturedAt":  "2026-09-06T22:34:06.8018507+08:00",
-    "artifact":  "<PROJECT_ROOT>\\dist\\MyDateTimeScreensaver.scr",
-    "temporaryScr":  "<TEMP>\\MyDateTimeScreensaver-smoke-<RUN_ID>\\MyDateTimeScreensaver.scr",
+    "artifact":  "<PROJECT_ROOT>\\dist\\tools-screensaver-tzk.scr",
+    "temporaryScr":  "<TEMP>\\tools-screensaver-tzk-smoke-<RUN_ID>\\tools-screensaver-tzk.scr",
     "sha256":  "73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d",
     "bytes":  802816,
     "machine":  "0x8664 (x64)",

@@ -2,7 +2,7 @@
 
 use std::process::ExitCode;
 
-use my_datetime_screensaver::app;
+use tools_screensaver_tzk::app;
 
 fn main() -> ExitCode {
     match app::run() {

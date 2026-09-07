@@ -7,7 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use my_datetime_screensaver::{
+use tools_screensaver_tzk::{
     config::{ColorPreset, SettingsStore},
     model::{DisplayMode, FontMode},
     registry::{load_registry, RegistryStore},
@@ -41,7 +41,7 @@ struct Sandbox {
 impl Sandbox {
     fn new() -> Self {
         let path = format!(
-            "Software\\MyDateTimeScreensaver\\Tests\\phase3-native-{}",
+            "Software\\tools-screensaver-tzk\\Tests\\phase3-native-{}",
             std::process::id()
         );
         delete_tree(&path);
@@ -70,7 +70,7 @@ impl Saver {
     fn start(args: &[&str]) -> Self {
         let executable = env::var_os("SCREENSAVER_PHASE3_TEST_EXE")
             .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_my_datetime_screensaver")));
+            .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_tools-screensaver-tzk")));
         Self(
             Command::new(executable)
                 .args(args)
@@ -202,7 +202,7 @@ unsafe extern "system" fn collect(hwnd: HWND, parameter: LPARAM) -> i32 {
         let mut class = [0u16; 64];
         let count = unsafe { GetClassNameW(hwnd, class.as_mut_ptr(), class.len() as i32) };
         let class = String::from_utf16_lossy(&class[..count.max(0) as usize]);
-        if class == "#32770" || class == "MyDateTimeScreensaver.Window" {
+        if class == "#32770" || class == "tools-screensaver-tzk.Window" {
             found.1.push(hwnd);
         }
     }

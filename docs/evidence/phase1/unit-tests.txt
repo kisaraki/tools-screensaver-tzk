@@ -1,6 +1,6 @@
-   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+   Compiling tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)
     Finished `test` profile [unoptimized + debuginfo] target(s) in 1.68s
-     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-86a1d1850feb3f20.exe)
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-86a1d1850feb3f20.exe)
 
 running 7 tests
 test lifecycle::tests::shutdown_is_idempotent_and_quits_after_last_window ... ok
@@ -36,7 +36,7 @@ test invalid_real_command_lines_exit_two_without_windows ... ok
 
 test result: ok. 1 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.63s
 
-   Doc-tests my_datetime_screensaver
+   Doc-tests tools_screensaver_tzk
 
 running 0 tests
 

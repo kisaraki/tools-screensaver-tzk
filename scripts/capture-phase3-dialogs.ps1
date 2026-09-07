@@ -1,5 +1,5 @@
 param(
-    [string]$Executable = (Join-Path $PSScriptRoot '..\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe'),
+    [string]$Executable = (Join-Path $PSScriptRoot '..\target\x86_64-pc-windows-msvc\debug\tools-screensaver-tzk.exe'),
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\docs\evidence\phase3')
 )
 
@@ -28,7 +28,7 @@ public static class Phase3CaptureNative
 
 [void][Phase3CaptureNative]::SetThreadDpiAwarenessContext([IntPtr](-4))
 
-$testKey = 'Software\MyDateTimeScreensaver\Tests\phase3-capture'
+$testKey = 'Software\tools-screensaver-tzk\Tests\phase3-capture'
 $testEnvironment = 'MYDATETIME_SCREENSAVER_TEST_KEY'
 $registry = [Microsoft.Win32.Registry]::CurrentUser
 
@@ -40,7 +40,7 @@ function Remove-TestKey {
     }
     $software = $registry.OpenSubKey('Software', $true)
     try {
-        $product = $software.OpenSubKey('MyDateTimeScreensaver', $true)
+        $product = $software.OpenSubKey('tools-screensaver-tzk', $true)
         if ($null -eq $product) {
             return
         }
@@ -65,7 +65,7 @@ function Remove-TestKey {
             $product.Dispose()
         }
         if ($productValues.Count -eq 0 -and $productChildren.Count -eq 0) {
-            $software.DeleteSubKey('MyDateTimeScreensaver', $false)
+            $software.DeleteSubKey('tools-screensaver-tzk', $false)
         }
     }
     finally {

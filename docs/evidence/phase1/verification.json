@@ -4,7 +4,7 @@
   "phase": 1,
   "productVersion": "0.1.0",
   "fileDescription": "日期時間螢幕保護程式（Phase 1 視窗生命週期）",
-  "executable": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\my_datetime_screensaver.exe",
+  "executable": "<PROJECT_ROOT>\\target\\x86_64-pc-windows-msvc\\release\\tools_screensaver_tzk.exe",
   "bytes": 505344,
   "sha256": "C30C03472586533CBC99066C4C08AB7EAA03186C2746FADCD2CAD9C498828D9D",
   "machine": "0x8664",

@@ -1,13 +1,13 @@
 # 日本旅行模式來源、網路與授權紀錄
 
 產品版本：0.2.0<br>
-規格文件：v1.4<br>
+規格文件：v1.5<br>
 最後非互動 HTTP 檢查：2026-09-07T06:36:23.3366718+08:00<br>
 主要目錄：[tw.live 日本旅行即時影像](https://tw.live/japan/)
 
 ## 文件用途
 
-本文件記錄 v0.3.0 日本旅行模式實際使用的來源契約、當次網路探測，以及尚未完成的播放與權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
+本文件記錄 v0.4.0 日本旅行模式實際使用的來源契約、當次網路探測，以及尚未完成的播放與權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
 
 tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地即時影像並標示資料來源為 YouTube；本程式使用 tw.live camera detail 解析出的 YouTube video ID，交由 YouTube 官方嵌入播放器播放。程式不嵌入 tw.live 整頁，也不執行其 script、廣告或追蹤碼。
 
@@ -25,7 +25,7 @@ tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地
 
 `scripts/check-japan-sources.ps1` 以有界 HTTPS GET 檢查日本目錄與全部 8 個內建 camera seed；每個 request timeout 為 10 秒。每個候選都依序檢查 tw.live detail、解析出的 YouTube oEmbed 及縮圖。腳本沒有開啟 `/s`、`/c`、WebView2、安裝程式或 UAC。
 
-日本目錄回傳 HTTP 200，8／8 候選在檢查當下可解析且三個 HTTP 檢查均成功；`networkHealthy=true`。完整機器可讀證據位於 [source-health.json](evidence/phase7/source-health.json)。
+日本目錄回傳 HTTP 200，8／8 候選在 2026-09-07T20:17:11.3035837+08:00 的檢查當下可解析且三個 HTTP 檢查均成功；`networkHealthy=true`。完整機器可讀證據位於 [source-health.json](evidence/phase8/source-health.json)。
 
 | 內建地點提示 | camera detail | 當次 video ID | detail／oEmbed／縮圖 |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地
 - player error／stall 會立即換候選；HTTP／解析失敗每 30 秒重試。換來源時重用同一個 WebView2 controller，不每分鐘建立新的 player 視窗。
 - 正式多螢幕 `/s` 只在主螢幕建立一個 autoplay player。其他螢幕使用內建 GDI 靜態伴隨畫面，不另建直播 player。
 - Runtime、網路或全部候選不可用時保留可退出的 GDI fallback。程式不下載 Runtime、不顯示安裝 UI，也不觸發 UAC。
-- WebView2 profile 與本機 player shell 儲存在 `%LOCALAPPDATA%\KOMSMOS\MyDateTimeScreensaver\`；不保存縮圖、影格、音訊或影片。
+- WebView2 profile 與本機 player shell 儲存在 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`；不保存縮圖、影格、音訊或影片。
 
 ## Player、框架與第三方規則
 

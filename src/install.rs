@@ -17,7 +17,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
 
 use crate::{error::AppError, utf16};
 
-const INSTALLED_FILENAME: &str = "MyDateTimeScreensaver.scr";
+const INSTALLED_FILENAME: &str = "tools-screensaver-tzk.scr";
 const MAX_WINDOWS_PATH: usize = 32_768;
 
 struct OwnedHandle(HANDLE);

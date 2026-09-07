@@ -1,5 +1,5 @@
-#define MyAppName "MyDateTimeScreensaver"
-#define MyAppDisplayName "日期時間螢幕保護程式"
+#define MyAppName "tools-screensaver-tzk"
+#define MyAppDisplayName "tools-screensaver-tzk"
 #define MyAppPublisher "kisaraki"
 #define MyAppScr AddBackslash(SourcePath) + "..\dist\tools-screensaver-tzk.scr"
 #define MyAppVersion GetFileVersion(MyAppScr)
@@ -16,8 +16,8 @@ VersionInfoDescription={#MyAppDisplayName} 安裝程式
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoCopyright=Copyright (c) 2026 kisaraki
 UninstallDisplayName={#MyAppDisplayName}
-UninstallDisplayIcon={sys}\MyDateTimeScreensaver.scr
-DefaultDirName={autopf}\MyDateTimeScreensaver
+UninstallDisplayIcon={sys}\tools-screensaver-tzk.scr
+DefaultDirName={autopf}\tools-screensaver-tzk
 OutputDir=..\dist
 OutputBaseFilename=tools-screensaver-tzk-Setup
 ArchitecturesAllowed=x64os
@@ -35,7 +35,7 @@ UsePreviousTasks=no
 LicenseFile=..\LICENSE
 
 [Files]
-Source: "{#MyAppScr}"; DestDir: "{sys}"; DestName: "MyDateTimeScreensaver.scr"; Flags: ignoreversion restartreplace uninsrestartdelete
+Source: "{#MyAppScr}"; DestDir: "{sys}"; DestName: "tools-screensaver-tzk.scr"; Flags: ignoreversion restartreplace uninsrestartdelete
 
 [Tasks]
 Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flags: unchecked
@@ -48,7 +48,7 @@ var
 begin
   Log('setcurrent task selected; starting installed helper as original user');
   Started := ExecAsOriginalUser(
-    ExpandConstant('{sys}\MyDateTimeScreensaver.scr'),
+    ExpandConstant('{sys}\tools-screensaver-tzk.scr'),
     '--install-set-current', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   if Started and (ResultCode = 0) then
   begin
@@ -63,7 +63,7 @@ begin
     if not WizardSilent then
       MsgBox(
         '安裝已完成，但尚未設為目前的螢幕保護程式。' + #13#10 +
-        '請登入自己的帳號後，在 Windows 的螢幕保護程式設定中選取「MyDateTimeScreensaver」。',
+        '請登入自己的帳號後，在 Windows 的螢幕保護程式設定中選取「tools-screensaver-tzk」。',
         mbInformation, MB_OK);
   end;
 end;

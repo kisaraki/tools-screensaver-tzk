@@ -1,6 +1,6 @@
 # Phase 0 實作與驗證報告
 
-- 依據：MyDateTimeScreensaver 開發規格 v1.2，Phase 0。
+- 依據：tools-screensaver-tzk 開發規格 v1.2，Phase 0。
 - 軟體版本：0.1.0；驗證日期：2026-09-04（Asia/Taipei）。
 - 結論：**Phase 0 工程基礎完成**。這不是整個螢幕保護程式的產品驗收完成。
 - 驗收範圍補充（2026-09-04）：依使用者指示，目前只要求 Windows 10 驗證；Windows 11 延期，不影響 Phase 0 已完成的結論，也不阻擋後續 Windows 10 開發。
@@ -49,7 +49,7 @@ RC 的負向測試刻意造成建置失敗，是驗證錯誤處理；最終環�
 Release 執行檔：
 
 ```text
-target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+target\x86_64-pc-windows-msvc\release\tools_screensaver_tzk.exe
 ```
 
 - 檔案大小：485,376 bytes（474 KiB）。
@@ -62,7 +62,7 @@ target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
 - GUI subsystem 與程式路徑確認不要求主控台；啟動驗證沒有依賴 console input／output。未開啟 Explorer Properties 視窗，版本與圖示改以直接讀取／載入檢查。
 - 未簽章；未產生 `.scr`、Setup 或 installer。
 
-PE 仍有 MSVC 靜態函式庫引入的 CodeView 記錄，參照本地檔名 `my_datetime_screensaver.pdb`；此檔不是執行期依賴、未納入交付或 Git。Release 已套用 `strip=symbols`；進一步發布用 debug metadata 稽核屬 Phase 4。
+PE 仍有 MSVC 靜態函式庫引入的 CodeView 記錄，參照本地檔名 `tools_screensaver_tzk.pdb`；此檔不是執行期依賴、未納入交付或 Git。Release 已套用 `strip=symbols`；進一步發布用 debug metadata 稽核屬 Phase 4。
 
 原始碼指紋見 [source-sha256.txt](evidence/phase0/source-sha256.txt)。這裡的可追溯／可重建指固定輸入與工具鏈可成功重建，不宣稱不同目錄／時間建置的 PE 位元組完全相同。
 

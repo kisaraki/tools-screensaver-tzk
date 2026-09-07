@@ -686,7 +686,7 @@ mod tests {
     #[test]
     fn actual_registry_adapter_uses_only_a_dedicated_test_subkey() {
         let path = format!(
-            "Software\\Classes\\MyDateTimeScreensaver.Test.{}",
+            "Software\\Classes\\tools-screensaver-tzk.Test.{}",
             std::process::id()
         );
         {

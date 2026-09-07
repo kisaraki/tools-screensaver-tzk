@@ -1,5 +1,5 @@
     Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
-     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\my_datetime_screensaver-d85810a74432ddf7.exe)
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-d85810a74432ddf7.exe)
 
 running 17 tests
 test config::tests::custom_font_binary_and_fields_are_validated_and_normalized ... ok
@@ -76,7 +76,7 @@ test layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling ... o
 
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-   Doc-tests my_datetime_screensaver
+   Doc-tests tools_screensaver_tzk
 
 running 0 tests
 

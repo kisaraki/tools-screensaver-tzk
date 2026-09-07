@@ -1,4 +1,4 @@
-# MyDateTimeScreensaver v0.3.0
+# tools-screensaver-tzk v0.3.0
 
 v0.3.0 擴充日本旅行模式：原 A380 客艙窗框更名為「自在飛行」，並新增依暖色木質觀光列車氛圍自行繪製的「列車旅行」。
 

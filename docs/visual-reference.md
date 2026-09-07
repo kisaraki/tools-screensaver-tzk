@@ -43,4 +43,4 @@ Classroom Timer 網址是倒數畫面的需求來源；開發期間沒有取得�
 
 ## Phase 5 安裝畫面
 
-Setup 已由 Inno Setup 6.7.3 編譯，task 文案和解除安裝提示存在於 `installer/MyDateTimeScreensaver.iss`。本輪 UAC 被取消，未完成安裝精靈、Windows 螢幕保護設定頁列舉或解除安裝提示的實機截圖，因此這些畫面為 `NOT TESTED`，沒有以編譯成功冒充視覺驗證。
+Setup 已由 Inno Setup 6.7.3 編譯，task 文案和解除安裝提示存在於 `installer/tools-screensaver-tzk.iss`。本輪 UAC 被取消，未完成安裝精靈、Windows 螢幕保護設定頁列舉或解除安裝提示的實機截圖，因此這些畫面為 `NOT TESTED`，沒有以編譯成功冒充視覺驗證。

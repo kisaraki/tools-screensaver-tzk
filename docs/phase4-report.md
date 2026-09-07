@@ -1,7 +1,7 @@
 # Phase 4 驗證報告
 
 日期：2026-09-05  
-規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.2（修訂版）  
+規格：`tools-screensaver-tzk_Codex_Spec.md` v1.2（修訂版）<br>
 範圍：品質、FFI／資源稽核、smoke、效能與目前可用 Win10 相容性；未進入 Phase 5
 
 ## 結果
@@ -93,4 +93,4 @@ powershell -NoProfile -File scripts\smoke-test.ps1
 
 完整原始輸出、CSV、JSON、PE／imports、manifest、環境與 source hashes 保存在 `docs/evidence/phase4/`。smoke 預設不顯示 UI；`-Interactive` 才執行短暫 `/c`、`/s`、`/p`。
 
-沒有新增 Cargo dependency、外部字型、網路功能或安裝元件。正式 HKCU 設定鍵與本次子程序已清理。Phase 5 才建立 `dist\MyDateTimeScreensaver.scr`、Inno Setup、System32 安裝、setcurrent helper、升級／解除安裝與 Windows 設定頁完整驗收。
+沒有新增 Cargo dependency、外部字型、網路功能或安裝元件。正式 HKCU 設定鍵與本次子程序已清理。Phase 5 才建立 `dist\tools-screensaver-tzk.scr`、Inno Setup、System32 安裝、setcurrent helper、升級／解除安裝與 Windows 設定頁完整驗收。

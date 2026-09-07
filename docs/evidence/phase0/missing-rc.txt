@@ -1,8 +1,8 @@
-   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
-error: failed to run custom build command for `my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)`
+   Compiling tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)
+error: failed to run custom build command for `tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)`
 
 Caused by:
-  process didn't exit successfully: `<PROJECT_ROOT>\target\release\build\my_datetime_screensaver-c3f967f4b75e1ca6\build-script-build` (exit code: 1)
+  process didn't exit successfully: `<PROJECT_ROOT>\target\release\build\tools_screensaver_tzk-c3f967f4b75e1ca6\build-script-build` (exit code: 1)
   --- stdout
   cargo:rerun-if-changed=Cargo.toml
   cargo:rerun-if-changed=resources/resources.rc

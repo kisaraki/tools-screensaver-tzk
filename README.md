@@ -1,32 +1,32 @@
-# MyDateTimeScreensaver
+# tools-screensaver-tzk
 
 [![Windows CI](https://github.com/kisaraki/tools-screensaver-tzk/actions/workflows/ci.yml/badge.svg)](https://github.com/kisaraki/tools-screensaver-tzk/actions/workflows/ci.yml)
 [![GitHub Pages](https://github.com/kisaraki/tools-screensaver-tzk/actions/workflows/pages.yml/badge.svg)](https://github.com/kisaraki/tools-screensaver-tzk/actions/workflows/pages.yml)
 [![Release](https://img.shields.io/github/v/release/kisaraki/tools-screensaver-tzk?include_prereleases&sort=semver)](https://github.com/kisaraki/tools-screensaver-tzk/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-17d98b.svg)](LICENSE)
 
-MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
+tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.3.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.3.0) · [完整開發規格](MyDateTimeScreensaver_Codex_Spec.md)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.4.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.4.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md)
 
 ![標準桌曆暨時鐘模式：左側指針鐘與右側六列月曆](docs/evidence/phase2/fixtures/02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.png)
 
-> **v0.3.0 是未簽章的開發候選版。** Windows 10 x64 的非互動建置、45 個預設自動測試、兩種旅行場景 fixture、WebView2 Runtime 無視窗探測、產品解析器即時來源測試、來源 HTTP 健康檢查、smoke 與封裝已通過；實際 YouTube player `PLAYING`、連續 60 秒輪換、多螢幕旅行畫面、斷網情境與 30 分鐘資源觀察仍為 `NOT TESTED`。需要 UAC 的安裝／升級／解除安裝矩陣沒有在遠端工作階段執行，Windows 11 也尚未驗證。
+> **v0.4.0 是未簽章的開發候選版。** Windows 10 x64 的非互動建置、45 個預設自動測試、兩種旅行場景 fixture、WebView2 Runtime 無視窗探測、產品解析器即時來源測試、來源 HTTP 健康檢查、smoke 與封裝已通過；實際 YouTube player `PLAYING`、連續 60 秒輪換、多螢幕旅行畫面、斷網情境與 30 分鐘資源觀察仍為 `NOT TESTED`。需要 UAC 的安裝／升級／解除安裝矩陣沒有在遠端工作階段執行，Windows 11 也尚未驗證。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.3.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.4.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
-目前 v0.3.0 成品：
+目前 v0.4.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `tools-screensaver-tzk.scr` | `2211fd40f847d6d3b2b01c95e318caca2da09993bb5b8d25146b2c88630ddb8a` |
-| `tools-screensaver-tzk-Setup.exe` | `69879de0c40c840a9aabdd757d30af77c0c16828eeb6d99488ca23553a1f6042` |
+| `tools-screensaver-tzk.scr` | `870d9e4c6110f5a6a4132cf96dc96c11aebbf4b9ce6d331ef9d374c42985fa37` |
+| `tools-screensaver-tzk-Setup.exe` | `006cd1fb5352106a393fc6b527f286312cda24a877503cfcc978dc9e6d9679fb` |
 
 ## 安裝與使用
 
@@ -37,7 +37,9 @@ MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 日本旅行模式需要目標電腦已安裝 Microsoft Edge WebView2 Evergreen Runtime。程式與 Setup 不會自行下載或安裝 Runtime，也不會為此再觸發 UAC；Runtime 缺少或 player 建立失敗時，螢幕保護程式會保留可退出的靜態 fallback。Microsoft 提供 [WebView2 Runtime 官方下載與部署說明](https://developer.microsoft.com/microsoft-edge/webview2/)。
 
-成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\MyDateTimeScreensaver`。
+成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。解除安裝不會猜測使用者身分，也不會自動清除任何帳號目前選用的 `SCRNSAVE.EXE`。若解除安裝前仍選用本程式，請先在 Windows 設定改選其他項目或「無」。個人顯示偏好保留於 `HKCU\Software\tools-screensaver-tzk`。
+
+v0.4.0 將產品內部識別、System32 檔名、Registry key 與 WebView2 資料目錄統一為 `tools-screensaver-tzk`。改名前版本的個人偏好不會自動遷移；實際覆蓋升級與舊 System32 檔清理需在可顯示 UAC 的 Win10 環境驗證，目前為 `NOT TESTED`。
 
 ## 功能
 
@@ -60,7 +62,7 @@ MyDateTimeScreensaver 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 啟動此模式會向 tw.live、YouTube／Google 與影片來源使用的 CDN 傳送正常連線所需的 IP 位址、User-Agent、時間與播放器資料。tw.live、YouTube、攝影機提供者及影片內容不受本專案 MIT License 授權；來源可能改址、下線、限制地區或撤回嵌入。最新候選、探測結果與權利邊界見 [日本旅行模式來源、網路與授權紀錄](docs/japan-travel-sources.md)。
 
-WebView2 的 per-user profile 與本機 player shell 位於 `%LOCALAPPDATA%\KOMSMOS\MyDateTimeScreensaver\`。其中不保存影片、音訊或歷史影格。
+WebView2 的 per-user profile 與本機 player shell 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`。其中不保存影片、音訊或歷史影格。
 
 ## 命令列模式
 
@@ -110,10 +112,10 @@ rustup toolchain install 1.97.1 --profile minimal `
 ```powershell
 .\scripts\build.bat
 powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
-  -OutputDirectory (Join-Path $env:TEMP 'MyDateTimeScreensaver-smoke')
+  -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.3.0 本次預設測試共 45 個通過，另有 9 個互動、長時間或環境測試維持 ignored；其中 WebView2 Runtime、產品解析器即時來源測試及兩種 GDI 旅行 fixture 另行明確執行並通過。預設 smoke test 已通過 PE 架構、resources、manifest、版本、imports、靜態 CRT、第三模式、兩種場景與網路說明字串、無 UI 的錯誤參數，以及安裝 helper 從非 System32 路徑拒絕時不改系統設定。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.4.0 本次預設測試共 45 個通過，另有 9 個互動、長時間或環境測試維持 ignored；其中 WebView2 Runtime、產品解析器即時來源測試及兩種 GDI 旅行 fixture 另行明確執行並通過。預設 smoke test 已通過 PE 架構、resources、manifest、版本、imports、靜態 CRT、第三模式、兩種場景與網路說明字串、無 UI 的錯誤參數，以及安裝 helper 從非 System32 路徑拒絕時不改系統設定。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -121,7 +123,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
 powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 ```
 
-2026-09-07T06:36:23.3366718+08:00 的結果為 tw.live 日本目錄正常、8／8 內建候選可解析，詳見 [source-health.json](docs/evidence/phase7/source-health.json)。同一輪也以產品實際使用的 WinHTTP 與 HTML parser 明確執行即時來源測試並通過；這些結果仍不代表影片已進入 `PLAYING`。
+2026-09-07T20:17:11.3035837+08:00 的結果為 tw.live 日本目錄正常、8／8 內建候選可解析，詳見 [source-health.json](docs/evidence/phase8/source-health.json)。同一輪也以產品實際使用的 WinHTTP 與 HTML parser 明確執行即時來源測試並通過；這些結果仍不代表影片已進入 `PLAYING`。
 
 下列項目只供有本機桌面且可接受視窗／UAC、並已安排復原措施的人工驗收，不由遠端工作階段或 CI 執行：
 
@@ -135,7 +137,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [Codex 開發規格 v1.4](MyDateTimeScreensaver_Codex_Spec.md)
+- [Codex 開發規格 v1.5](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 8 產品識別統一與驗證報告](docs/phase8-report.md)
 - [Phase 7 雙旅行場景實作與驗證報告](docs/phase7-report.md)
 - [Phase 6 日本旅行模式實作與驗證報告](docs/phase6-report.md)
 - [日本旅行模式來源、網路與授權紀錄](docs/japan-travel-sources.md)
@@ -144,7 +147,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～6 報告保留各階段當時的版本、hash 與限制；Phase 6 的 v0.2.0 是單一客艙場景的歷史結果。目前下載成品以 v0.3.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供內容相同的公開成品。
+Phase 0～8 報告記錄各階段當時的版本、hash 與限制；Phase 6 的 v0.2.0 是單一客艙場景的歷史結果。目前下載成品以 v0.4.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供內容相同的公開成品。
 
 ## 授權
 

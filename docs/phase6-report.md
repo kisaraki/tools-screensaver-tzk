@@ -2,7 +2,7 @@
 
 日期：2026-09-06<br>
 目標軟體版本：0.2.0<br>
-規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.3<br>
+規格：`tools-screensaver-tzk_Codex_Spec.md` v1.3<br>
 必要平台：Windows 10 x64；Windows 11 依使用者指示延期
 
 ## 結論
@@ -63,8 +63,8 @@ Runtime probe 只證明本次 Windows 10 主機有可用 Runtime，不代表 Web
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `MyDateTimeScreensaver.scr` | 802,816 | `73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d` | Build／smoke PASS；NotSigned |
-| `MyDateTimeScreensaver-Setup.exe` | 2,319,263 | `ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
+| `tools-screensaver-tzk.scr` | 802,816 | `73e971462502b98e06531fac92d356cc01e60095d8f7fe2d34f861c91756b21d` | Build／smoke PASS；NotSigned |
+| `tools-screensaver-tzk-Setup.exe` | 2,319,263 | `ddc3a86d0d9d8aeb2ac353b1cc1a97b1e0bd3f53807bf2cc931fbd89e3935372` | Package／版本檢查 PASS；實際安裝 NOT TESTED；NotSigned |
 
 ## Win10 實機項目
 

@@ -2,7 +2,7 @@
 
 日期：2026-09-06<br>
 軟體版本：0.1.1<br>
-規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.2（修訂版）  
+規格：`tools-screensaver-tzk_Codex_Spec.md` v1.2（修訂版）<br>
 必要平台：Windows 10 x64；Windows 11 依使用者指示延期
 
 ## 結果
@@ -13,9 +13,9 @@ Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、�
 
 ## 實作
 
-- `scripts/build.bat`：可由任意目錄執行；檢查 Rust 1.97.1、x64 MSVC target、rustfmt、Clippy、RC 與 MSVC x64 linker，依序執行 fmt、Clippy、tests、locked Release build，再以同目錄暫存檔替換 `dist/MyDateTimeScreensaver.scr`。失敗不會把舊檔標成新成果。
+- `scripts/build.bat`：可由任意目錄執行；檢查 Rust 1.97.1、x64 MSVC target、rustfmt、Clippy、RC 與 MSVC x64 linker，依序執行 fmt、Clippy、tests、locked Release build，再以同目錄暫存檔替換 `dist/tools-screensaver-tzk.scr`。失敗不會把舊檔標成新成果。
 - `scripts/package.bat`：先呼叫 build；只接受已登錄的 Inno Setup 6.7.3；在 repository `target/package-stage-*` 編譯，驗證 Setup 與 `.scr` 版本後才替換正式 Setup；輸出兩檔大小、SHA-256 和簽章存在狀態。
-- `installer/MyDateTimeScreensaver.iss`：固定 AppId `{E4D6978B-A2A2-4D9A-8FD8-8F0C3A4E94E1}`，限定 `x64os`／64-bit install mode／Windows 10 build 15063 以上，`.scr` 只安裝到 `{sys}`，uninstaller 放 `{autopf}\MyDateTimeScreensaver`。
+- `installer/tools-screensaver-tzk.iss`：固定 AppId `{E4D6978B-A2A2-4D9A-8FD8-8F0C3A4E94E1}`，限定 `x64os`／64-bit install mode／Windows 10 build 15063 以上，`.scr` 只安裝到 `{sys}`，uninstaller 放 `{autopf}\tools-screensaver-tzk`。
 - `src/install.rs`：單一 `--install-set-current` helper；先驗證自身完整路徑是 64 位元 System32 的預期檔名，再驗證 token 未提權，只寫目前 token 的 `HKCU\Control Panel\Desktop\SCRNSAVE.EXE`，讀回查核，最後以 5 秒 timeout 廣播 `WM_SETTINGCHANGE`。
 - Setup 的 set-current task 預設不勾；只有勾選時以 `ExecAsOriginalUser` 等待 helper。code 4 或無法啟動時安裝本體可完成，但互動安裝會顯示尚未設定與 Windows 設定頁指引，靜默安裝寫入 log。
 - Uninstaller 不清除 `SCRNSAVE.EXE`，不枚舉其他使用者 hive，並在互動解除安裝前提示使用者改選其他項目。產品 HKCU 偏好保留。
@@ -25,8 +25,8 @@ Phase 5 的原始碼、建置與封裝已完成，產生可重建的 `.scr`、�
 
 | 檔案 | 版本 | Bytes | SHA-256 | Authenticode |
 | --- | --- | ---: | --- | --- |
-| `dist/MyDateTimeScreensaver.scr` | 0.1.1 | 609,792 | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` | NotSigned |
-| `dist/MyDateTimeScreensaver-Setup.exe` | 0.1.1.0 | 2,247,614 | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` | NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 0.1.1 | 609,792 | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` | NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 0.1.1.0 | 2,247,614 | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` | NotSigned |
 
 `dist/SHA256SUMS.txt` 由成功 package 產生。專案擁有者已指定 MIT License 並授權建立公開 GitHub repository、Release 與 Pages；v0.1.0 保留既有成品，這次模式改名與設定畫面品牌更新另以 v0.1.1 未簽章開發候選版發布。若日後取得憑證，須依序簽 `.scr`、重封 Setup、簽 Setup，再重建最終雜湊。
 

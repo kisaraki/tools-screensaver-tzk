@@ -184,7 +184,7 @@ function Get-ScreensaverSystemSnapshot {
 
 $tracked = [Collections.Generic.List[Diagnostics.Process]]::new()
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
-$smokeTemp = Join-Path $tempRoot ("MyDateTimeScreensaver-smoke-" + [Guid]::NewGuid().ToString('N'))
+$smokeTemp = Join-Path $tempRoot ("tools-screensaver-tzk-smoke-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $smokeTemp | Out-Null
 $smokeTemp = (Resolve-Path -LiteralPath $smokeTemp).Path
 $smokeCopy = Join-Path $smokeTemp 'tools-screensaver-tzk.scr'
@@ -220,7 +220,10 @@ try {
     $versionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($smokeCopy)
     if ($versionInfo.FileVersion -ne $expectedVersion -or
         $versionInfo.ProductVersion -ne $expectedVersion -or
-        $versionInfo.ProductName -ne 'MyDateTimeScreensaver') {
+        $versionInfo.ProductName -ne 'tools-screensaver-tzk' -or
+        $versionInfo.InternalName -ne 'tools-screensaver-tzk' -or
+        $versionInfo.OriginalFilename -ne 'tools-screensaver-tzk.scr' -or
+        $versionInfo.FileDescription -ne 'tools-screensaver-tzk 螢幕保護程式') {
         throw 'Embedded VERSIONINFO does not match Cargo metadata.'
     }
 
@@ -238,6 +241,7 @@ try {
     $configDialogBytes = [Phase5ResourceReader]::GetResource($smokeCopy, 2003, 5)
     $configDialogText = [Text.Encoding]::Unicode.GetString($configDialogBytes)
     $expectedDialogLabels = @(
+        'tools-screensaver-tzk',
         '標準桌曆暨時鐘模式(&T)',
         '離機作業番茄鐘模式(&C)',
         '日本旅行模式(&J)',
@@ -257,7 +261,8 @@ try {
     $expectedAssemblyVersion = "$expectedVersion.0"
     foreach ($token in @('level="asInvoker"', 'uiAccess="false"', 'PerMonitorV2',
             'Microsoft.Windows.Common-Controls', 'processorArchitecture="amd64"',
-            "version=`"$expectedAssemblyVersion`"", '{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}')) {
+            'name="tools-screensaver-tzk"', "version=`"$expectedAssemblyVersion`"",
+            '{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}')) {
         if (-not $manifest.Contains($token)) { throw "Embedded manifest is missing: $token" }
     }
     [IO.File]::WriteAllText((Join-Path $output 'embedded.manifest'), $manifest, [Text.UTF8Encoding]::new($false))
@@ -358,7 +363,7 @@ try {
     }
     $resolvedTemp = [IO.Path]::GetFullPath($smokeTemp)
     if (-not $resolvedTemp.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or
-        [IO.Path]::GetFileName($resolvedTemp) -notlike 'MyDateTimeScreensaver-smoke-*') {
+        [IO.Path]::GetFileName($resolvedTemp) -notlike 'tools-screensaver-tzk-smoke-*') {
         throw "Refusing to clean unexpected temporary path: $resolvedTemp"
     }
     if (Test-Path -LiteralPath $resolvedTemp) {

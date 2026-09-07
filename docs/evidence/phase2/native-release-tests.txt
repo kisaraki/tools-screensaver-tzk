@@ -1,4 +1,4 @@
-   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+   Compiling tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)
     Finished `release` profile [optimized] target(s) in 12.96s
      Running tests\native_modes.rs (target\x86_64-pc-windows-msvc\release\deps\native_modes-0f0bbc6cf4220d2d.exe)
 

@@ -1,7 +1,7 @@
 # Phase 3 驗證報告
 
 日期：2026-09-05  
-規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.2（修訂版）  
+規格：`tools-screensaver-tzk_Codex_Spec.md` v1.2（修訂版）<br>
 範圍：設定、系統字型、registry、即時預覽與倒數輸入；未進入 Phase 4／5
 
 ## 結果

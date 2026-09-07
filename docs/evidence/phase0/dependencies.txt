@@ -2,7 +2,7 @@ Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
 Copyright (C) Microsoft Corporation.  All rights reserved.
 
 
-Dump of file <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+Dump of file <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\release\tools_screensaver_tzk.exe
 
 File Type: EXECUTABLE IMAGE
 

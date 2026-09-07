@@ -87,7 +87,7 @@ Release 整合 harness 顯示 `5 passed`，其中前景轉移測試只完成同�
 | 10 分鐘初步資源觀察 | PASS，1 個長時間測試、600.44 秒 | [resource-observation.txt](evidence/phase2/resource-observation.txt) |
 | `cargo build --release --locked --offline` | PASS | [release-build.txt](evidence/phase2/release-build.txt) |
 
-- Release 執行檔：`target/x86_64-pc-windows-msvc/release/my_datetime_screensaver.exe`
+- Release 執行檔：`target/x86_64-pc-windows-msvc/release/tools_screensaver_tzk.exe`
 - 大小：555,520 bytes。
 - SHA-256：`9729DC2F8131611CE6F79D83E7B52BAE027DE48F365EB24F4D84B6A56A1A22D6`。
 - FileVersion：0.1.0；當時實測的 FileDescription 為 `日期時間螢幕保護程式（Phase 2 畫面與時間邏輯）`。這是 Phase 2 成品的歷史 metadata，不是目前的使用者可見模式名稱。

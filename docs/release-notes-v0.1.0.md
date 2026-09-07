@@ -1,4 +1,4 @@
-# MyDateTimeScreensaver v0.1.0
+# tools-screensaver-tzk v0.1.0
 
 第一個公開開發候選版，提供 Windows x64 的時間日期與倒數計時兩種螢幕保護畫面。
 
@@ -13,12 +13,12 @@
 
 ## 下載與驗證
 
-建議下載 `MyDateTimeScreensaver-Setup.exe` 與 `SHA256SUMS.txt`。安裝程式需要系統管理員權限；「將它設為目前的螢幕保護程式」預設不勾。
+建議下載 `tools-screensaver-tzk-Setup.exe` 與 `SHA256SUMS.txt`。安裝程式需要系統管理員權限；「將它設為目前的螢幕保護程式」預設不勾。
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941` |
-| `MyDateTimeScreensaver-Setup.exe` | `2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78` |
+| `tools-screensaver-tzk.scr` | `30e49516ed210d1f7b2e506f1841a0929ee8863cbbb63485f7e7bbc11b907941` |
+| `tools-screensaver-tzk-Setup.exe` | `2aa1fda583a94ea249a6265d8357afffd943507d836038b16e5bfc6a43a40d78` |
 
 ## 已知限制
 

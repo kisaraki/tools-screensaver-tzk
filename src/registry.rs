@@ -6,7 +6,7 @@ use windows_sys::Win32::System::Registry::*;
 
 use crate::config::{self, AppConfig, RawValue, SettingsStore, StoreError};
 
-const KEY_PATH: &str = "Software\\MyDateTimeScreensaver";
+const KEY_PATH: &str = "Software\\tools-screensaver-tzk";
 const MAX_VALUE_BYTES: u32 = 4096;
 
 struct Key(HKEY);
@@ -206,7 +206,7 @@ pub fn load_registry() -> AppConfig {
 
 #[cfg(debug_assertions)]
 fn registry_path() -> String {
-    const PREFIX: &str = "Software\\MyDateTimeScreensaver\\Tests\\";
+    const PREFIX: &str = "Software\\tools-screensaver-tzk\\Tests\\";
     std::env::var("MYDATETIME_SCREENSAVER_TEST_KEY")
         .ok()
         .filter(|path| path.starts_with(PREFIX) && !path.contains(".."))

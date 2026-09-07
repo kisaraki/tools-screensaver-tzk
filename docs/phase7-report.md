@@ -2,7 +2,7 @@
 
 日期：2026-09-07<br>
 目標軟體版本：0.3.0<br>
-規格：`MyDateTimeScreensaver_Codex_Spec.md` v1.4<br>
+規格：`tools-screensaver-tzk_Codex_Spec.md` v1.4<br>
 必要平台：Windows 10 x64；Windows 11 依使用者指示延期
 
 ## 結論

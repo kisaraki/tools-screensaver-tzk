@@ -1,4 +1,4 @@
-# MyDateTimeScreensaver v0.1.1
+# tools-screensaver-tzk v0.1.1
 
 此版本更新使用者可見的模式名稱與設定畫面產品識別，功能與原有設定相容。
 
@@ -11,12 +11,12 @@
 
 ## 下載與驗證
 
-建議下載 `MyDateTimeScreensaver-Setup.exe` 與 `SHA256SUMS.txt`。安裝程式需要系統管理員權限；「將它設為目前的螢幕保護程式」預設不勾。
+建議下載 `tools-screensaver-tzk-Setup.exe` 與 `SHA256SUMS.txt`。安裝程式需要系統管理員權限；「將它設為目前的螢幕保護程式」預設不勾。
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `MyDateTimeScreensaver.scr` | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` |
-| `MyDateTimeScreensaver-Setup.exe` | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` |
+| `tools-screensaver-tzk.scr` | `02f34b45a2ca65069721aae3fd5401d9fa0becf3498645bdc0e234ad38387d2a` |
+| `tools-screensaver-tzk-Setup.exe` | `6e3cd998e5d220aa07ead08686528544dc4f24fecba67c634c0bf2a292e82712` |
 
 ## 驗證狀態與限制
 

@@ -3,7 +3,7 @@ setlocal EnableExtensions DisableDelayedExpansion
 
 set "EXPECTED_ISCC_VERSION=6.7.3"
 for %%I in ("%~dp0..") do set "ROOT=%%~fI"
-set "ISS=%ROOT%\installer\MyDateTimeScreensaver.iss"
+set "ISS=%ROOT%\installer\tools-screensaver-tzk.iss"
 set "DIST=%ROOT%\dist"
 set "SCR=%DIST%\tools-screensaver-tzk.scr"
 set "SETUP=%DIST%\tools-screensaver-tzk-Setup.exe"
@@ -46,7 +46,7 @@ if not exist "%STAGED_SETUP%" (
 
 set "STAGED_SETUP_PATH=%STAGED_SETUP%"
 set "SCR_PATH=%SCR%"
-powershell -NoProfile -Command "$scr=[Diagnostics.FileVersionInfo]::GetVersionInfo($env:SCR_PATH); $setup=[Diagnostics.FileVersionInfo]::GetVersionInfo($env:STAGED_SETUP_PATH); if(-not $scr.FileVersion -or -not $setup.FileVersion){ Write-Error 'Missing embedded file version'; exit 1 }; $a=([version]$scr.FileVersion.Trim()).ToString(3); $b=([version]$setup.FileVersion.Trim()).ToString(3); if($a -ne $b){ Write-Error ('Version mismatch: scr='+$a+', setup='+$b); exit 1 }; if($setup.ProductName.Trim() -ne 'MyDateTimeScreensaver'){ Write-Error ('Unexpected Setup ProductName: '+$setup.ProductName); exit 1 }"
+powershell -NoProfile -Command "$scr=[Diagnostics.FileVersionInfo]::GetVersionInfo($env:SCR_PATH); $setup=[Diagnostics.FileVersionInfo]::GetVersionInfo($env:STAGED_SETUP_PATH); if(-not $scr.FileVersion -or -not $setup.FileVersion){ Write-Error 'Missing embedded file version'; exit 1 }; $a=([version]$scr.FileVersion.Trim()).ToString(3); $b=([version]$setup.FileVersion.Trim()).ToString(3); if($a -ne $b){ Write-Error ('Version mismatch: scr='+$a+', setup='+$b); exit 1 }; if($setup.ProductName.Trim() -ne 'tools-screensaver-tzk'){ Write-Error ('Unexpected Setup ProductName: '+$setup.ProductName); exit 1 }"
 if errorlevel 1 goto :fail
 
 move /Y "%STAGED_SETUP%" "%SETUP_TEMP%" >nul

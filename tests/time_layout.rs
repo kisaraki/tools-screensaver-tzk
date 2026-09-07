@@ -1,4 +1,4 @@
-use my_datetime_screensaver::{
+use tools_screensaver_tzk::{
     layout::{buffer_bytes, offset_range, Drift, Layout},
     model::*,
 };

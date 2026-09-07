@@ -1,4 +1,4 @@
-   Compiling my_datetime_screensaver v0.1.0 (<PROJECT_ROOT>)
+   Compiling tools_screensaver_tzk v0.1.0 (<PROJECT_ROOT>)
    Compiling windows-link v0.2.1
    Compiling windows-sys v0.61.2
     Finished `release` profile [optimized] target(s) in 15.23s

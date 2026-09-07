@@ -1,2 +1,2 @@
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
-     Running `target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe --dev-render=countdown`
+     Running `target\x86_64-pc-windows-msvc\debug\tools_screensaver_tzk.exe --dev-render=countdown`

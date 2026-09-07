@@ -2,8 +2,8 @@
 $ErrorActionPreference = 'Stop'
 $phase2Root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $phase2Evidence = Join-Path $phase2Root 'docs/evidence/phase2'
-$phase2DebugPath = Join-Path $phase2Root 'target/x86_64-pc-windows-msvc/debug/my_datetime_screensaver.exe'
-$phase2ReleasePath = Join-Path $phase2Root 'target/x86_64-pc-windows-msvc/release/my_datetime_screensaver.exe'
+$phase2DebugPath = Join-Path $phase2Root 'target/x86_64-pc-windows-msvc/debug/tools-screensaver-tzk.exe'
+$phase2ReleasePath = Join-Path $phase2Root 'target/x86_64-pc-windows-msvc/release/tools-screensaver-tzk.exe'
 New-Item -ItemType Directory -Path $phase2Evidence -Force | Out-Null
 if (-not ('Phase2EntryWindow' -as [type])) {
     Add-Type @'

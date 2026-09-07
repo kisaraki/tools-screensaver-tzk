@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 if (-not $ArtifactPath) {
-    $ArtifactPath = Join-Path $projectRoot 'target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe'
+    $ArtifactPath = Join-Path $projectRoot 'target\x86_64-pc-windows-msvc\release\tools-screensaver-tzk.exe'
 }
 $artifact = (Resolve-Path -LiteralPath $ArtifactPath).Path
 if (-not $OutputDirectory) {
@@ -119,7 +119,7 @@ public sealed class Phase4PreviewHost : IDisposable {
     void Run(int x, int y, int width, int height) {
         try {
             SetThreadDpiAwarenessContext(new IntPtr(-1)); // DPI unaware: 96-DPI baseline.
-            string name = "MyDateTimeScreensaver.Phase4Host." + Guid.NewGuid().ToString("N");
+            string name = "tools-screensaver-tzk.Phase4Host." + Guid.NewGuid().ToString("N");
             var wc = new WNDCLASSW();
             wc.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(Callback);
             wc.hInstance = GetModuleHandleW(null);
@@ -296,11 +296,11 @@ function Observe-Mode([int]$ModeValue, [string]$ModeName) {
     }
 }
 
-$registryPath = 'HKCU:\Software\MyDateTimeScreensaver'
+$registryPath = 'HKCU:\Software\tools-screensaver-tzk'
 $leaseName = 'Phase4ObservationLease'
 $lease = [Guid]::NewGuid().ToString('N')
 if (Test-Path -LiteralPath $registryPath) {
-    throw 'Refusing to run: HKCU\Software\MyDateTimeScreensaver already exists. Preserve the user setting and use a clean test account.'
+    throw 'Refusing to run: HKCU\Software\tools-screensaver-tzk already exists. Preserve the user setting and use a clean test account.'
 }
 
 $children = [Collections.Generic.List[Diagnostics.Process]]::new()

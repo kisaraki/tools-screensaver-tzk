@@ -1,6 +1,6 @@
-# MyDateTimeScreensaver 開發規格書
+# tools-screensaver-tzk 開發規格書
 
-> 文件版本：1.4（修訂版）<br>
+> 文件版本：1.5（修訂版）<br>
 > 修訂日期：2026-09-07<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,9 +16,9 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
+- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
 
-### 0.2 v1.2～v1.4 的主要修訂
+### 0.2 v1.2～v1.5 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -31,6 +31,7 @@
 | 旅行預覽 | `/p` 與 `/c` 只畫無網路的 GDI 靜態示意，不建立 WebView2 或探測公開網站 | 7.3、11.3 |
 | WebView2 Runtime | 使用靜態 WebView2 loader，不另帶 `WebView2Loader.dll`；目標機缺 Evergreen Runtime 時顯示內建 fallback，不自動下載、安裝或觸發 UAC | 2.2、8.6、15、17 |
 | Registry schema | v1.3 將 schema 升為 3 並新增 `DisplayMode=2`；v1.4 升為 4 並新增 `TravelStyle=0/1`。舊設定預設為「自在飛行」，來源清單不寫入 registry | 10 |
+| 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
 | 增量階段 | 已完成的 Phase 0～5 保持歷史事實；第三模式由 Phase 6 實作、測試及發布 | 19.2 |
 | 倒數每次先輸入 | 保留；補上系統閒置／安全桌面實機驗證，不能僅憑直接執行 `/s` 宣稱支援 | 6.2、17.3 |
 | 全螢幕顯示時機 | 先建立隱藏視窗，全部成功後才顯示；建立時不加 `WS_VISIBLE` | 6.1 |
@@ -49,7 +50,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v1.4 對應雙旅行場景的目標軟體版號為 `0.3.0`。既有 v0.1.x／v0.2.0 tag、報告與 evidence 是歷史成果，不得回寫成已包含「列車旅行」。
+- 文件版本與軟體版本分開；文件 v1.5 對應完整產品改名的目標軟體版號為 `0.4.0`。v0.1.x～v0.3.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -83,6 +84,7 @@
 | R13 | 「自在飛行」與「列車旅行」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7 | AC16 |
 | R14 | 每 60 秒隨機換來源、來源健康檢查、有界 failover | 5、8.6、16～17 | 6 | AC17 |
 | R15 | 前兩模式與所有 preview 無網路；Runtime／斷線安全 fallback 與第三方揭露 | 2、7～8、15～18、22 | 6 | AC18 |
+| R16 | 產品、原始碼、建置、安裝、設定路徑、文件與公開網站統一使用 `tools-screensaver-tzk` 識別 | 0、2、10、13～15、19 | 8 | AC19 |
 
 ### 1.2 非目標
 
@@ -169,7 +171,7 @@ rustflags = ["-C", "target-feature=+crt-static"]
 因此正式來源檔案路徑統一為：
 
 ```text
-target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
+target\x86_64-pc-windows-msvc\release\tools-screensaver-tzk.exe
 ```
 
 靜態 CRT 是建置設定，仍須檢查成品 PE imports 並在未安裝開發工具／VC++ Redistributable 的乾淨系統測試。Windows 內建 DLL 與 API-set imports 合法，不要求完全無 DLL。[Rust：C runtime linkage](https://doc.rust-lang.org/reference/linkage.html#static-and-dynamic-c-runtimes)
@@ -184,11 +186,11 @@ target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe
 ## 3. 專案結構與模組責任
 
 ```text
-MyDateTimeScreensaver/
+tools-screensaver-tzk/
 ├─ .cargo/config.toml
 ├─ .gitignore
 ├─ rust-toolchain.toml
-├─ MyDateTimeScreensaver_Codex_Spec.md
+├─ tools-screensaver-tzk_Codex_Spec.md
 ├─ assets/
 │  ├─ app.ico
 │  └─ generate-icon.ps1
@@ -592,7 +594,7 @@ SS = display_seconds % 60
 
 - 日本旅行模式提供 `FreeFlight=0` 與 `TrainJourney=1` 兩種可保存場景。原 A380 客艙風格的使用者名稱改為「自在飛行」；「列車旅行」使用暖色木質、拱形頂棚、窗列、餐桌及座位的抽象圖形語彙。兩者都由專案自行繪製，不包含使用者附件、第三方照片、商標、車種或航空公司塗裝，也不宣稱與任何運輸業者合作。
 - 主螢幕正式 `/s` 依保存場景產生本機 HTML／CSS shell；`/p`、`/c`、其他螢幕及 Runtime／網路 fallback 使用對應的 GDI 靜態版本。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換或 failover。
-- 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\MyDateTimeScreensaver\`，不從遠端網站取得產品 UI。
+- 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
 - player 維持完整 16:9 矩形並全部可見。「自在飛行」或「列車旅行」外框、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
 - 影片固定靜音，不播放來源音訊。不得隱藏播放器原生 attribution／controls；螢幕保護程式的一般鍵鼠退出規則仍優先，使用者輸入不轉成對遠端 player 的自動操作。
@@ -675,7 +677,7 @@ SS = display_seconds % 60
 ### 10.1 路徑及 schema
 
 ```text
-HKEY_CURRENT_USER\Software\MyDateTimeScreensaver
+HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 ```
 
 `.scr` 本體以 `asInvoker` 執行，讀寫偏好不需要管理員權限。
@@ -851,7 +853,7 @@ cargo test --locked
 cargo build --release --locked
 ```
 
-4. 確認 `target\x86_64-pc-windows-msvc\release\my_datetime_screensaver.exe` 是本次成功產物。
+4. 確認 `target\x86_64-pc-windows-msvc\release\tools-screensaver-tzk.exe` 是本次成功產物。
 5. 建立 `dist`，先複製至暫存名稱，成功後替換 `dist\tools-screensaver-tzk.scr`。
 6. 回報完整路徑、版本、檔案 bytes、SHA-256、工具版本及原始碼 revision（若有 Git）。
 
@@ -879,12 +881,12 @@ ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
 PrivilegesRequired=admin
 MinVersion=10.0.15063
-DefaultDirName={autopf}\MyDateTimeScreensaver
+DefaultDirName={autopf}\tools-screensaver-tzk
 OutputBaseFilename=tools-screensaver-tzk-Setup
 ```
 
 - 固定 AppId，版本升級不更換；uninstaller 放產品目錄，不能把解除安裝 metadata 任意散落 System32。
-- 公開下載與 `dist` 使用 `tools-screensaver-tzk` 檔名前綴；`.scr` 安裝時仍放到 `{sys}\MyDateTimeScreensaver.scr`，以固定 AppId 與既有檔名維持升級、解除安裝及已保存 `SCRNSAVE.EXE` 路徑相容，並明確使用 64-bit install mode 的實體 System32。
+- 公開下載、`dist` 與 System32 安裝檔均使用 `tools-screensaver-tzk` 檔名前綴；`.scr` 安裝為 `{sys}\tools-screensaver-tzk.scr`，並明確使用 64-bit install mode 的實體 System32。Installer 繼續使用固定 AppId 以保留升級識別；改名前版本的實際升級與舊檔清理必須在可互動 Win10 環境另行驗證，未驗證前記為 `NOT TESTED`。
 - `x64compatible` 也接受部分 ARM64 Windows，因此不符合本版限定範圍；這是產品支援範圍的選擇，不是聲稱 x64 程式技術上不能模擬執行。[Inno architecture identifiers](https://jrsoftware.org/ishelp/topic_archidentifiers.htm)
 - 安裝成功建立標準解除安裝項目；不安裝字型、WebView2 Runtime、參考截圖或額外常駐程序。Setup 可用無副作用方式探測 Runtime 並說明旅行模式需求，但不得在遠端／靜默驗證中下載 bootstrapper、接受授權或觸發另一段安裝／UAC。
 - `.scr` 與 installer 的權限分開：installer 提權不代表日後 `.scr` 提權。
@@ -910,7 +912,7 @@ Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flag
 本版採同一 `.scr` 的單用途內部命令：
 
 ```text
-MyDateTimeScreensaver.scr --install-set-current
+tools-screensaver-tzk.scr --install-set-current
 ```
 
 - 此命令只接受完整的一個旗標，不接受任意 registry key、檔案路徑或外部程式參數。
@@ -1092,6 +1094,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC16 | 日本旅行的自製「自在飛行」與「列車旅行」窗框、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT26、UT34、MT16、MT18、視覺證據 |
 | AC17 | 來源發現、60秒隨機輪換、三層健康檢查、failover、timeout 與 shutdown 均有界 | UT27～UT32、MT16～MT19 |
 | AC18 | 前兩模式與 preview 無網路；旅行模式 Runtime／斷線 fallback、outbound／隱私／授權揭露完整 | UT30～UT33、MT17、MT20、來源清單 |
+| AC19 | 目前工作樹的英文產品識別、輸出檔名、resources、設定路徑、文件與 Pages 均為 `tools-screensaver-tzk`；文字及路徑掃描無舊識別 | Phase 8 report、resource smoke、repository scan、公開網頁與下載檔 |
 
 ### 18.2 報告格式
 
@@ -1112,7 +1115,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1241,12 +1244,23 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 執行 noninteractive build、兩種 shell／GDI fixture、registry migration、resource smoke 與封裝；不開啟 `/s`、設定 dialog、安裝程式或 UAC。
 6. 更新 v1.4 規格、README、Pages、acceptance report、Phase 7 report、v0.3.0 release notes 與 SHA-256，再發布 GitHub Release。
 
+### Phase 8：產品識別統一
+
+**目標：** 將 repository 中目前版本的產品、原始碼、建置、安裝、設定儲存、文件與公開網頁識別完整統一為 `tools-screensaver-tzk`。
+
+1. 軟體版號升為 `0.4.0`；Cargo package／binary 與輸出 EXE 使用 `tools-screensaver-tzk`，Rust crate 因識別字規則使用 `tools_screensaver_tzk`。
+2. 更名主要規格與 Inno source 檔，並統一 VERSIONINFO、manifest、window class／title、Registry key、WebView2 資料目錄、User-Agent、腳本、測試與 CI artifact。
+3. 保留 installer 固定 AppId；不在遠端工作階段執行需 UAC 的改名前版本升級矩陣。Registry 與 WebView2 資料路徑改用新識別，既有個人設定不自動遷移。
+4. 在當前工作樹對文字內容及路徑做大小寫無關掃描，不得殘留改名前的英文識別；Git commit／tag 歷史不改寫。
+5. 執行 noninteractive fmt、Clippy、45 個預設測試、Release build、resource／PE／registry smoke、Runtime probe、即時來源 probe 與 Inno Setup 封裝，全程不開啟交互畫面或觸發 UAC。
+6. 更新 v1.5 規格、README、Pages、acceptance report、Phase 8 report、v0.4.0 release notes、公開下載檔與 SHA-256，發布 GitHub Release 後驗證匿名直連。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 MyDateTimeScreensaver_Codex_Spec.md v1.4 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v1.5 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1313,7 +1327,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 9. `docs/acceptance-report.md`，逐項 AC／UT／MT、環境及真實結果。
 10. `docs/visual-reference.md` 與實作截圖，說明參考範圍、色彩差異、旅行 player 邊界及 fixture 條件。
 11. `docs/japan-travel-sources.md`，列來源、原始提供者、最後 HTTP／播放檢查、授權與可用性限制。
-12. `docs/phase6-report.md`、`docs/phase7-report.md` 與各版 release notes；不得改寫既有歷史證據。
+12. `docs/phase6-report.md`、`docs/phase7-report.md`、`docs/phase8-report.md` 與各版 release notes。
 13. README：安裝工具、build/test/package、`/s`／`/p`／`/c`、三種模式、WebView2／網路／隱私邊界、離線 fallback、字型fallback、registry、倒數閒置互動限制、原使用者setcurrent、解除安裝提示、已知未測項與簽章狀態。
 14. MIT License 與素材來源說明；MIT 不涵蓋第三方影片，使用者附件只留在已忽略的本機開發參考目錄，不進公開 repository 或 installer。
 

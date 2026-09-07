@@ -28,7 +28,7 @@ use crate::model::{TravelStyle, Xorshift32};
 
 const SOURCE_HOST: &str = "tw.live";
 const CAMERA_PATH_PREFIX: &str = "/cam/?id=";
-const USER_AGENT: &str = "MyDateTimeScreensaver/0.3 (Windows 10; Japan travel mode)";
+const USER_AGENT: &str = "tools-screensaver-tzk/0.4 (Windows 10; Japan travel mode)";
 const MAX_RESPONSE_BYTES: usize = 512 * 1024;
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(15);
 const IO_TIMEOUT_MS: i32 = 4_000;

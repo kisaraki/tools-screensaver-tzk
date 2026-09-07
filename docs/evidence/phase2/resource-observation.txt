@@ -2,8 +2,8 @@
      Running tests\resource_observation.rs (target\x86_64-pc-windows-msvc\debug\deps\resource_observation-7154861310c85380.exe)
 
 running 1 test
-time-date: PID 14896, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe
-countdown: PID 32344, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\my_datetime_screensaver.exe
+time-date: PID 14896, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\tools_screensaver_tzk.exe
+countdown: PID 32344, executable <PROJECT_ROOT>\target\x86_64-pc-windows-msvc\debug\tools_screensaver_tzk.exe
 0.0s time-date: GDI 26, USER 15, private 1871872, CPU 0.000%
 0.0s countdown: GDI 19, USER 11, private 2002944, CPU 0.000%
 test observe_two_debug_modes_for_ten_minutes has been running for over 60 seconds
