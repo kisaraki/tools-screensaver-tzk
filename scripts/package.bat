@@ -33,6 +33,10 @@ if not exist "%ISS%" (
     echo [FAIL] Inno source is missing: %ISS%
     goto :fail
 )
+powershell -NoProfile -NonInteractive -File "%~dp0prepare-webview2.ps1"
+if errorlevel 1 goto :fail
+powershell -NoProfile -NonInteractive -File "%~dp0test-webview2-installer.ps1" -IsccPath "%ISCC%"
+if errorlevel 1 goto :fail
 mkdir "%STAGE%"
 if errorlevel 1 goto :fail
 

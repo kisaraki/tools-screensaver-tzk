@@ -7,26 +7,26 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.5.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.5.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.6.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.6.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
-![v0.5.0 標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
+![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.5.0 是未簽章的開發候選版。** 桌曆時鐘與番茄鐘改為置中、留白較多的版面。Windows 10 x64 的非互動建置、46 個預設測試、37 張 GDI fixture、smoke 與封裝已通過。旅行來源及 Runtime 探測沿用 v0.4.0 的具日期紀錄；實際影片播放、連續輪換、多螢幕旅行畫面與長時間資源觀察仍為 `NOT TESTED`。安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
+> **v0.6.0 是未簽章的開發候選版。** Setup 新增 WebView2 Runtime 偵測與缺少時補裝。Windows 10 x64 的非互動建置、46 個預設測試、19 個安裝判斷測試、smoke 與封裝已通過。37 張 GDI fixture 沿用 v0.5.0；旅行來源紀錄沿用 v0.4.0，Runtime 僅重做唯讀偵測；實際影片播放、連續輪換、多螢幕旅行畫面與長時間資源觀察仍為 `NOT TESTED`。安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.5.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.6.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.6.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.6.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
-目前 v0.5.0 成品：
+目前 v0.6.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `tools-screensaver-tzk.scr` | `08bc4c39579606124abfc76afc86c74d0bdac2dfd61910eb6baf74b9a3fc4e5b` |
-| `tools-screensaver-tzk-Setup.exe` | `60f773c1d645b2347b82a805398055e65154d01229f3ffd05237fc53701b5eb7` |
+| `tools-screensaver-tzk.scr` | `3f4e1f1ea7e4ef86a8438467483814989356e075d6605f71f541beafdfaf9cf8` |
+| `tools-screensaver-tzk-Setup.exe` | `f5c2cc3843aa9d35153b4b20ab496d9978e164a944b30813afe0376bf73a6c97` |
 
 ## 安裝與使用
 
@@ -35,7 +35,17 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 3. 「將它設為目前的螢幕保護程式」預設不勾；需要時可在安裝時勾選，或稍後從 Windows 的螢幕保護程式設定選取。
 4. 以 `/c` 開啟設定，選擇畫面、主色與字型；日本旅行模式另可選「自在飛行」或「列車旅行」。按「確定」才會保存個人設定，設定畫面不會立即連網。
 
-日本旅行模式需要目標電腦已安裝 Microsoft Edge WebView2 Evergreen Runtime。程式與 Setup 不會自行下載或安裝 Runtime，也不會為此再觸發 UAC；Runtime 缺少或 player 建立失敗時，螢幕保護程式會保留可退出的靜態 fallback。Microsoft 提供 [WebView2 Runtime 官方下載與部署說明](https://developer.microsoft.com/microsoft-edge/webview2/)。
+### Setup 的 WebView2 Runtime 階段
+
+日本旅行模式需要 Microsoft Edge WebView2 Evergreen Runtime。Setup 會檢查電腦層級的 Runtime，並在「準備安裝」摘要顯示偵測結果：
+
+- **已安裝**：顯示版本並略過 Runtime 安裝。
+- **尚未安裝**：預設勾選安裝 WebView2，使用內附的 Microsoft 官方 Evergreen Bootstrapper 連網下載並靜默安裝，再重新檢查是否安裝成功。此程序沿用 Setup 的系統管理員權限。
+- **只使用離線模式**：可取消 WebView2 選項，日期時鐘與番茄鐘仍可使用。若網路、Proxy 或公司原則導致安裝失敗，Setup 會停止並顯示錯誤，讓你重試或返回取消該選項；若 Runtime 要求重新啟動，請重啟後再執行 Setup。
+
+本 Setup 為所有使用者安裝 `.scr`，因此以電腦層級 Runtime 為準；只存在於某個帳號的 Runtime 不視為所有使用者皆可用，Setup 會提供電腦層級安裝。只有下載 `.scr` 而未使用 Setup 時，需自行準備 Runtime。[Microsoft 官方下載與部署說明](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)
+
+Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載；它是共用元件，依 Microsoft 相關條款使用，不屬於本專案 MIT License。來源與封裝驗證見 [WebView2 部署紀錄](docs/webview2-setup.md)。螢幕保護程式本身不會下載、安裝 Runtime 或要求提權；缺少 Runtime 或 player 建立失敗時保留可退出的靜態 fallback。
 
 成品沒有 Authenticode 簽章，因此 Windows 會顯示未驗證發行者或 SmartScreen 提示。
 
@@ -80,7 +90,7 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
 - **執行邊界**：前兩種模式、`/p` 系統預覽及 `/c` 設定預覽不建立 WebView2，也不連公開網站；程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
 
-![v0.5.0 離機作業番茄鐘模式：置中的數字、沙漏與進度線](docs/evidence/phase9/fixtures/15-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
+![離機作業番茄鐘模式：置中的數字、沙漏與進度線](docs/evidence/phase9/fixtures/15-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
 
 ## 日本旅行模式的網路與隱私
 
@@ -141,7 +151,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.5.0 的 46 個預設測試通過，另有 9 個互動、長時間或環境測試預設 ignored；GDI 圖片匯出另行執行並通過，共產生 37 張 fixture，涵蓋置中桌曆時鐘、番茄鐘、大小畫面與旅行場景。smoke 已通過 PE、resources、manifest、版本、imports、靜態 CRT 與無 UI 錯誤路徑檢查；安裝 helper 在非 System32 路徑拒絕時沒有改動系統設定。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.6.0 的 46 個預設測試通過，另有 9 個互動、長時間或環境測試預設 ignored；19 個 installer policy checks 在不建立精靈、不提權的 harness 通過；GDI 圖片沿用 v0.5.0 的 37 張 fixture，涵蓋置中桌曆時鐘、番茄鐘、大小畫面與旅行場景。smoke 已通過 PE、resources、manifest、版本、imports、靜態 CRT 與無 UI 錯誤路徑檢查；安裝 helper 在非 System32 路徑拒絕時沒有改動系統設定。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -163,7 +173,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [Codex 開發規格 v1.6](tools-screensaver-tzk_Codex_Spec.md)
+- [Codex 開發規格 v1.7](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 10 WebView2 安裝階段與驗證報告](docs/phase10-report.md)
 - [Phase 9 置中版面與驗證報告](docs/phase9-report.md)
 - [Phase 8 產品識別統一與驗證報告](docs/phase8-report.md)
 - [Phase 7 雙旅行場景實作與驗證報告](docs/phase7-report.md)
@@ -174,7 +185,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～9 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.5.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～10 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.6.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 
