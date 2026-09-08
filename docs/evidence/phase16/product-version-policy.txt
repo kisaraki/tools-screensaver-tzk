@@ -1,0 +1,7 @@
+
+
+PreprocessingPASS: 15 product version policy checks
+machineProductPresent=1
+machineProductVersion=0.10.0.0
+interactive=false; processExecuted=false; prompts=false; registryWrites=false
+

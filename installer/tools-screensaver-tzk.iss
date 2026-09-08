@@ -3,6 +3,7 @@
 #define MyAppPublisher "kisaraki"
 #define MyAppScr AddBackslash(SourcePath) + "..\dist\tools-screensaver-tzk.scr"
 #define MyAppVersion GetFileVersion(MyAppScr)
+#define MyAppUninstallKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E4D6978B-A2A2-4D9A-8FD8-8F0C3A4E94E1}_is1"
 #define WebView2Bootstrapper AddBackslash(SourcePath) + "..\target\webview2\MicrosoftEdgeWebview2Setup.exe"
 #include "..\target\webview2\verified-bootstrapper.iss"
 #if GetSHA256OfFile(WebView2Bootstrapper) != WebView2BootstrapperSHA256
@@ -49,6 +50,107 @@ Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flag
 
 [Code]
 #include "webview2-policy.iss"
+#include "product-version-policy.iss"
+
+var
+  PreviousVersionNeedsRemoval: Boolean;
+  PreviousVersion: String;
+  PreviousUninstaller: String;
+
+function InitializeSetup(): Boolean;
+var
+  Installed, SameVersion, RemovalAccepted: Boolean;
+  Action: TProductInstallAction;
+begin
+  Result := True;
+  Installed := DetectInstalledProduct('{#MyAppUninstallKey}',
+    PreviousVersion, PreviousUninstaller);
+  if not Installed then
+  begin
+    Log('No installed tools-screensaver-tzk version detected.');
+    Exit;
+  end;
+
+  SameVersion := ProductVersionsEqual(PreviousVersion, '{#MyAppVersion}');
+  if SameVersion then
+  begin
+    Log('Installed version matches Setup; repair installation may continue: ' +
+      PreviousVersion);
+    Exit;
+  end;
+
+  if WizardSilent then
+  begin
+    Log('Silent installation blocked by a different installed version: ' +
+      PreviousVersion + '; Setup=' + '{#MyAppVersion}');
+    Result := False;
+    Exit;
+  end;
+
+  if (PreviousUninstaller = '') or (not FileExists(PreviousUninstaller)) then
+  begin
+    MsgBox(
+      '偵測到不同版本的 tools-screensaver-tzk，但找不到其解除安裝程式。' + #13#10 +
+      '已安裝版本：' + PreviousVersion + #13#10 +
+      '準備安裝版本：{#MyAppVersion}' + #13#10#13#10 +
+      '請先從 Windows「應用程式與功能」移除舊版，再重新執行本安裝程式。',
+      mbError, MB_OK);
+    Result := False;
+    Exit;
+  end;
+
+  RemovalAccepted := MsgBox(
+    '系統中已有不同版本的 tools-screensaver-tzk。' + #13#10 +
+    '已安裝版本：' + PreviousVersion + #13#10 +
+    '準備安裝版本：{#MyAppVersion}' + #13#10#13#10 +
+    '要先移除已安裝版本，再安裝本版嗎？' + #13#10 +
+    '個人模式與外觀設定將予以保留。',
+    mbConfirmation, MB_YESNO) = IDYES;
+  Action := ProductInstallAction(True, False, False, RemovalAccepted);
+  case Action of
+    piaRemovePrevious: PreviousVersionNeedsRemoval := True;
+    piaCancel: Result := False;
+  end;
+end;
+
+function RemovePreviousProduct(var NeedsRestart: Boolean): String;
+var
+  Started, StillInstalled: Boolean;
+  ExitCode: Integer;
+  RemainingVersion, RemainingUninstaller: String;
+begin
+  Result := '';
+  Log('Removing installed tools-screensaver-tzk version ' + PreviousVersion +
+    ' before installing {#MyAppVersion}.');
+  Started := Exec(PreviousUninstaller,
+    '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE,
+    ewWaitUntilTerminated, ExitCode);
+  if not Started then
+  begin
+    Result := '無法啟動舊版解除安裝程式（Win32 錯誤 ' +
+      IntToStr(ExitCode) + '）。安裝已停止，請手動移除舊版後重試。';
+    Exit;
+  end;
+  if (ExitCode = 3010) or (ExitCode = 1641) then
+    NeedsRestart := True
+  else if ExitCode <> 0 then
+  begin
+    Result := '舊版解除安裝失敗（代碼 ' + IntToStr(ExitCode) +
+      '）。安裝已停止，系統不會同時保留兩個版本。';
+    Exit;
+  end;
+
+  StillInstalled := DetectInstalledProduct('{#MyAppUninstallKey}',
+    RemainingVersion, RemainingUninstaller);
+  if StillInstalled then
+  begin
+    Result := '解除安裝後仍偵測到 tools-screensaver-tzk ' +
+      RemainingVersion + '。安裝已停止，請重新啟動 Windows 或手動移除舊版後重試。';
+    Exit;
+  end;
+  PreviousVersionNeedsRemoval := False;
+  Log('Previous tools-screensaver-tzk version removed successfully.');
+end;
 
 function NeedsWebView2(): Boolean;
 var
@@ -79,6 +181,12 @@ var
   Installed, Started: Boolean;
 begin
   Result := '';
+  if PreviousVersionNeedsRemoval then
+  begin
+    Result := RemovePreviousProduct(NeedsRestart);
+    if Result <> '' then
+      Exit;
+  end;
   Installed := DetectMachineWebView2(Version);
   if not WebView2ShouldInstall(Installed, WizardIsTaskSelected('webview2')) then
   begin

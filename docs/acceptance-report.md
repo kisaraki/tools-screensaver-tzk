@@ -1,15 +1,15 @@
 # tools-screensaver-tzk 驗收報告
 
-軟體版本：0.10.1 開發候選版<br>
-規格文件：v2.2（修訂版）<br>
+軟體版本：0.10.2 開發候選版<br>
+規格文件：v2.3（修訂版）<br>
 執行日期：2026-09-07～2026-09-09（建置與續作驗證）<br>
-Source revision：本報告隨 Git tag `v0.10.1` 鎖定；Phase 0～5 歷史結果由 tag `v0.1.1` 追溯<br>
+Source revision：本報告隨 Git tag `v0.10.2` 鎖定；Phase 0～5 歷史結果由 tag `v0.1.1` 追溯<br>
 環境：Windows 10 Education 22H2 x64，build 19045.6456；Intel Core i5-8259U，4 cores／8 logical processors，約 24 GiB RAM；Intel Iris Plus Graphics 655；雙 3840×2160、兩者 144 DPI／150%，左側螢幕為負 X<br>
 工具：Rust／Cargo 1.97.1、MSVC x64 toolset 14.51.36231（link.exe 14.51.36256.0）、Windows SDK RC 10.0.26100.0、Inno Setup 6.7.3、WebView2 Evergreen Runtime 152.0.4191.66
 
 狀態只使用 `PASS`、`FAIL`、`NOT TESTED`、`NOT APPLICABLE`。必要實機情境只完成一部分時，整項仍列 `NOT TESTED` 並說明局部證據。本報告沒有已知 `FAIL`，但仍有必要項目 `NOT TESTED`，所以不宣稱日本旅行模式或 Windows 10 完整驗收完成。
 
-## v0.10.1 非互動驗證摘要
+## v0.10.2 非互動驗證摘要
 
 | 項目 | 狀態 | 結果／證據 |
 | --- | --- | --- |
@@ -19,20 +19,20 @@ Source revision：本報告隨 Git tag `v0.10.1` 鎖定；Phase 0～5 歷史結�
 | Runtime registry 偵測 | PASS | 2026-09-08：使用 Setup 同一個唯讀函式偵測到電腦層級 Runtime 152.0.4191.66；沒有啟動 Runtime |
 | 產品識別掃描 | PASS | 目前工作樹的文字與路徑以大小寫無關檢查，沒有改名前的英文識別；[Phase 8 report](phase8-report.md) |
 | 來源 HTTP probe | PASS | 2026-09-08：tw.live 目錄正常、8／8 候選可解析，4／4 指定 playlist embed endpoint 回傳 HTTP 200；[source-health.json](evidence/phase14/source-health.json) |
-| 非互動 smoke | PASS | v0.10.1、五種旅行場景、七個色彩 radio、來源切換欄位、imports、靜態 CRT、無 UI 錯誤參數與 registry 不變；[smoke-report.json](evidence/phase15/smoke/smoke-report.json) |
+| 非互動 smoke | PASS | v0.10.2、五種旅行場景、七個色彩 radio、來源切換欄位、imports、靜態 CRT、無 UI 錯誤參數與 registry 不變；[smoke-report.json](evidence/phase16/smoke/smoke-report.json) |
 | Package | PASS | Inno Setup 6.7.3 封裝成功；`.scr` 與 Setup 版本一致且均 NotSigned |
 | WebView2 Bootstrapper | PASS | 官方 `1.3.265.7`；有效 Microsoft Corporation 簽章；版本／大小／SHA-256 鎖定且編譯時再次核對；[部署紀錄](webview2-setup.md) |
-| Installer policy | PASS | 共用 Pascal policy 的 19 個非互動 checks，最低權限 harness 在 wizard 建立前結束；[Phase 10 report](phase10-report.md) |
+| Installer policy | PASS | 19 個 WebView2 與 15 個產品版本 checks；兩個最低權限 harness 都在 wizard 建立前結束，未顯示提示、執行程序或寫 registry；[Phase 16 report](phase16-report.md) |
 
 另完成 10 張離線 headless Edge 靜態 HTML 版面檢查；產品播放器腳本已移除，阻擋 host 解析，只顯示影片位置色塊，沒有建立實際 player。證據見 [Phase 15 report](phase15-report.md)。
 
 上述驗證沒有開啟 `/s`、WebView2 player、設定畫面或正式 Setup，沒有執行 Microsoft Bootstrapper，也沒有寫 System32、改螢幕保護設定或觸發 UAC。獨立 policy harness 在 wizard 建立前結束。HTTP 可達及 Runtime 可偵測均不能代替影片 `PLAYING`。
 
-## AC01～AC29
+## AC01～AC30
 
 | ID | 狀態 | 環境／實際結果 | 證據 | 失敗原因或缺少條件 |
 | --- | --- | --- | --- | --- |
-| AC01 | NOT TESTED | v0.10.1 fmt、Clippy、tests、Release、PE／resources／imports 全部實跑通過 | Phase 15 report、smoke | MT15 的無開發工具乾淨 Win10 尚無環境 |
+| AC01 | NOT TESTED | v0.10.2 fmt、Clippy、tests、Release、PE／resources／imports 全部實跑通過 | Phase 16 report、smoke | MT15 的無開發工具乾淨 Win10 尚無環境 |
 | AC02 | PASS | Debug／Release 真實命令列與原生視窗測試沿用 Phase 4 證據；v0.9.0 無 UI 錯誤參數重跑通過 | Phase 4 `native-release.txt`、UT01～03、Phase 13 smoke | — |
 | AC03 | NOT TESTED | 真實跨程序 parent、三種 host DPI context、resize／退出／刷新已有基線證據 | Phase 3 native、Phase 4 native Release | v0.9.0 未重跑互動 host；缺實體混合 100%／150%／200% 桌面與 Windows 設定頁 |
 | AC04 | NOT TESTED | 原生設定、preview、ChooseFont、提交／取消閉環已有 Phase 3 證據；v0.10.1 五場景及七色 radio resource 通過 | Phase 3 report／截圖、Phase 15 smoke | 安裝後 Windows 設定頁調度及新增選項互動預覽未測 |
@@ -44,7 +44,7 @@ Source revision：本報告隨 Git tag `v0.10.1` 鎖定；Phase 0～5 歷史結�
 | AC10 | PASS | 專用測試 key 與 fake store 驗證型別、schema 7、TravelStyle 0～4 與 ColorPreset 0～6 round-trip、舊 schema 回退、取消、rollback、未知值 | UT20～24、UT26 | — |
 | AC11 | NOT TESTED | 指定鍵鼠、4px／500ms、同程序焦點與清理已有 Phase 1／4 證據；旅行 WebView accelerator／mouse poll 已建置 | Phase 1／4 native、Phase 6 build | 旅行 player 實際輸入退出、外部 foreground 成功分支與登出未測 |
 | AC12 | NOT TESTED | 前兩種 GDI 模式 Release preview 各 30 分鐘、各 59 次 cache 循環穩定 | Phase 4 resource report | 正式 Countdown 10 Hz 與旅行 WebView2 30 分鐘資源觀察未測 |
-| AC13 | NOT TESTED | v0.10.1 Setup 已編譯且版本／hash 一致 | Phase 15 report、`SHA256SUMS.txt` | 沒有實際安裝、列舉、移除或覆蓋升級；遠端不觸發 UAC |
+| AC13 | NOT TESTED | v0.10.2 Setup 已編譯且版本／hash 一致 | Phase 16 report、`SHA256SUMS.txt` | 沒有實際安裝、列舉、移除或覆蓋升級；遠端不觸發 UAC |
 | AC14 | NOT TESTED | 非 System32 helper code 4 且四個螢幕保護 registry 值不變 | Phase 13 smoke | 原使用者成功路徑、另一管理員 UAC、直接提權 installer 未測 |
 | AC15 | PASS | README、規格、來源紀錄、測試、`.scr`、Setup、hash、Phase 6～13 與逐項報告均存在 | repository 交付清單 | 成品明列 NotSigned 與未測限制 |
 | AC16 | NOT TESTED | 五場景 HTML／CSS shell、GDI fallback、player rect／外部 caption 的 deterministic test 及 fixture 通過 | UT26、UT34、UT39、Phase 15 report | 五種場景的實際 player、地點文字及多螢幕未觀察 |
@@ -61,8 +61,9 @@ Source revision：本報告隨 Git tag `v0.10.1` 鎖定；Phase 0～5 歷史結�
 | AC27 | NOT TESTED | schema 6 新色 round-trip；暗淺藍／琥珀色 fixture 與自動色彩 120 秒邊界、完整循環測試通過 | UT26、UT40、Phase 13 fixtures／smoke | 正式設定視窗與多螢幕長時間自動換色未測 |
 | AC28 | NOT TESTED | 四份指定 playlist ID、IFrame API refresh／shuffle／隨機選片、結束重播及 5 秒清單 timeout 的 deterministic test 通過；4／4 embed HTTP 200 | UT41、Phase 14 source health | 正式 WebView2 的清單內容、地區限制、嵌入允許及實際 `PLAYING` 未測 |
 | AC29 | NOT TESTED | 列車駕駛中央 16:9 player 與兩側設備、散步全畫面徑向暗角及無血管素材皆通過 WIC／GDI／HTML fixture；700 ms 眨眼與 300 ms 換片點由測試固定 | UT34、UT39、UT41、Phase 15 fixtures | 實際影片中的暗角／眨眼、多螢幕與 GPU 表現未觀察 |
+| AC30 | NOT TESTED | 15 個共用 Pascal policy checks 驗證同版、較舊／較新／異常版本、接受／拒絕移除、靜默衝突及命令解析；本機唯讀辨識既有 0.10.0.0 | UT42、Phase 16 policy report | 遵守遠端限制，未顯示詢問、未執行舊 uninstaller、未安裝本版或觸發 UAC |
 
-## UT01～UT41
+## UT01～UT42
 
 | ID | 狀態 | 證據／限制 |
 | --- | --- | --- |
@@ -87,6 +88,7 @@ Source revision：本報告隨 Git tag `v0.10.1` 鎖定；Phase 0～5 歷史結�
 | UT39 | PASS | 五張 1586×992 PNG 解碼成 32-bpp、快取重用、無效 PNG 拒絕、既有 MTA 生命週期保留與離屏 GDI 繪製 |
 | UT40 | PASS | 自動色彩 119,999／120,000 ms 邊界、六色循環及 720,000 ms 回到第一色 |
 | UT41 | PASS | 四份指定 playlist 映射、官方 player 的 load／shuffle／getPlaylist／隨機 loadVideoById、同片重播、散步眨眼 keyframes 與延遲載入結構 |
+| UT42 | PASS | 15 個 Inno Pascal 版本 policy checks；最低權限、無 wizard／prompt／Exec／registry write；唯讀產品偵測命中 0.10.0.0 |
 
 Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.9.0 也重跑通過。來源 probe 沿用 Phase 8；本次 Runtime 只以 Setup 共用函式讀取 registry，沒有建立 WebView2 controller 或執行 Runtime installer。
 
@@ -106,7 +108,7 @@ Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.
 | MT10 | NOT TESTED | 合成 display change、session end、close 已測 | 實際拔線、外部前景成功切換分支與登出 |
 | MT11 | NOT TESTED | helper 身分檢查已實作 | 獨立標準帳號與另一管理員 UAC |
 | MT12 | NOT TESTED | helper 非安裝路徑拒絕已測 | Setup 從已提權程序啟動及安裝後 elevated helper |
-| MT13 | NOT TESTED | 固定 AppId／restartreplace／保留偏好規則已編譯 | 實際同版覆蓋、v0.1.1 升級、檔案使用中、解除安裝 |
+| MT13 | NOT TESTED | 固定 AppId、版本比較、詢問／拒絕、先移除再安裝、靜默衝突阻擋及保留偏好規則已編譯；15 個 policy checks 通過 | 實際較舊／較新版升降級、拒絕、同版修復、檔案使用中、解除安裝與 UAC |
 | MT14 | NOT TESTED | 前兩種 GDI 模式 Release preview 各 30 分鐘與 59 次循環通過 | 全螢幕 10 Hz 長測與實體 DPI 變更 |
 | MT15 | NOT TESTED | fresh offline hash、靜態 CRT、無 VC/UCRT／WebView2Loader 動態 import | 無未裝開發工具／VC++ Redistributable 的乾淨 Win10；缺 Runtime fallback 也未實機驗證 |
 | MT16 | NOT TESTED | player shell、狀態模型、來源與 60 秒 deadline tests PASS | 實際 `PLAYING`、靜音、地點吻合、至少 5 次輪換、自訂分鐘與不切換長測 |
@@ -117,11 +119,11 @@ Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.
 
 Windows 11：`NOT TESTED`，依使用者指示延期；這不阻擋目前 Windows 10 候選版交付，也不能被寫成已支援通過。
 
-## v0.10.1 成品
+## v0.10.2 成品
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `dist/tools-screensaver-tzk.scr` | 9,542,656 | `dedbededfb2bf064d2b1bf31a00df2e4dd62bee59aac872e3ade7c7624f5be3e` | Build／smoke PASS；NotSigned |
-| `dist/tools-screensaver-tzk-Setup.exe` | 12,603,059 | `633967a0f7138f4ce233b999c729fdbd39293e45d1be5ebc895481d87b2c0ad0` | Package PASS；實際安裝 NOT TESTED；NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 9,542,656 | `e1f414cc830d976771b503aa5c1f52b5d91ffaed1cfc8adc67109dbfd0f9cc2a` | Build／smoke PASS；NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 12,604,353 | `a33e1a8269242091abb810f3af19bd71a59a30e2c8ace7ab52b3632c22ae6305` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
 
-Phase 5 的 v0.1.1 hash 保留在 Phase 5 報告與該 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.10.1 成品維持 NotSigned。
+Phase 5 的 v0.1.1 hash 保留在 Phase 5 報告與該 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.10.2 成品維持 NotSigned。

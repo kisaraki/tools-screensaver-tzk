@@ -1,6 +1,6 @@
 [package]
 name = "tools-screensaver-tzk"
-version = "0.10.1"
+version = "0.10.2"
 edition = "2021"
 rust-version = "1.97.1"
 description = "Windows calendar clock, away-work Pomodoro, and Japan live-travel screensaver"
