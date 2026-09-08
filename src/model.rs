@@ -30,6 +30,7 @@ impl DisplayMode {
 pub enum TravelStyle {
     FreeFlight,
     TrainJourney,
+    JapaneseInn,
 }
 
 impl TravelStyle {
@@ -37,6 +38,7 @@ impl TravelStyle {
         match value {
             0 => Some(Self::FreeFlight),
             1 => Some(Self::TrainJourney),
+            2 => Some(Self::JapaneseInn),
             _ => None,
         }
     }
@@ -45,6 +47,7 @@ impl TravelStyle {
         match self {
             Self::FreeFlight => 0,
             Self::TrainJourney => 1,
+            Self::JapaneseInn => 2,
         }
     }
 }

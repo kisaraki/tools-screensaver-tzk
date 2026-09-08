@@ -1,6 +1,6 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：1.9（修訂版）<br>
+> 文件版本：2.0（修訂版）<br>
 > 修訂日期：2026-09-08<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,21 +16,22 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種顏色、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3 新增第三種「日本旅行模式」與 Phase 6，v1.4 再加入兩種可保存的旅行場景與 Phase 7，v1.5 將專案與產品識別統一為 `tools-screensaver-tzk` 並新增 Phase 8，v1.6 新增置中且縮減的離線模式畫布與 Phase 9，v1.7 新增 Setup WebView2 部署與 Phase 10，v1.8 修正每個螢幕的旅行播放與狀態隔離並新增 Phase 11，v1.9 的 Phase 12 縮小鐘面數字、改用擬真旅行圖像，並新增來源切換時間設定。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
+- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留；v1.3～v1.9 依序加入日本旅行、旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定。v2.0 的 Phase 13 新增「日式旅館」、暗淺藍、琥珀色與每 2 分鐘自動換色。以下表格列明修訂判定，避免開發者自行猜測或把新功能倒填成舊階段成果。
 
-### 0.2 v1.2～v1.9 的主要修訂
+### 0.2 v1.2～v2.0 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
 | 第三種畫面 | v1.3 新增「日本旅行模式」，內部識別 `JapanTravel`；不改動既有 `TimeDate=0`、`Countdown=1` | 1、8.6、10 |
 | 網路邊界 | 只有 `/s` 的 `JapanTravel` 可連線；`/p`、`/c` 與另外兩種模式維持零網路請求 | 7、8.6、11、17 |
 | 來源與輪換 | 以 `https://tw.live/japan/` 檢查目錄健康，從 8 個內建 camera seed 隨機解析 detail；預設成功播放滿 1 分鐘後換不同來源，可選 1～1440 分鐘或不切換；失敗始終有界重試及離線 fallback | 8.6、10～11、16～17 |
-| 旅行場景 | v1.4 命名「自在飛行」並新增「列車旅行」；v1.9 兩者改用專案原創 AI 擬真點陣圖，描繪虛構機艙與木質列車，並非真實 A380 或特定列車照片 | 8.6、10～11 |
+| 旅行場景 | v1.4 命名「自在飛行」並新增「列車旅行」；v1.9 兩者改用原創 AI 擬真圖；v2.0 新增原創擬真的 `JapaneseInn=2`（日式旅館）庭園窗景 | 8.6、10～11 |
 | 播放器與旅行框 | 每個螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、所選旅行場景及 player 外的地點／狀態；preview、等待與錯誤 fallback 使用對應 GDI 靜態畫面 | 8.6 |
 | 旅行多螢幕 | 正式 `/s` 每個螢幕各建立一個 autoplay player，獨立來源、計時、狀態與錯誤路由；預覽不得誤標成連線失敗 | 5.2、8.6 |
 | 旅行預覽 | `/p` 與 `/c` 只畫無網路的 GDI 靜態示意，不建立 WebView2 或探測公開網站 | 7.3、11.3 |
 | WebView2 Runtime | 使用靜態 WebView2 loader；v1.7 的 Setup 偵測並補裝電腦層級 Runtime，可取消以使用離線模式；`.scr` 缺少 Runtime 時仍只顯示 fallback，不下載或提權 | 2.2、8.6、15、17、19 |
-| Registry schema | v1.3 新增 `DisplayMode=2`，v1.4 新增 `TravelStyle=0/1`；v1.9 升為 5 並新增 `TravelSwitchMinutes=0～1440`，0 為不切換，預設 1。舊設定保留合法場景並預設每 1 分鐘，來源清單不寫入 registry | 10 |
+| Registry schema | v1.9 schema 5 新增 `TravelSwitchMinutes`；v2.0 升為 6，新增 `TravelStyle=2` 與 `ColorPreset=4/5/6`。舊設定逐欄相容，來源清單不寫入 registry | 10 |
+| 桌曆時鐘色彩 | v2.0 新增暗淺藍與琥珀色；自動模式依共同 `GetTickCount64` 時基，每 120 秒循環六種實色，多螢幕保持一致 | 9、10～11 |
 | 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
 | 離線模式畫面密度 | v1.6 將桌曆時鐘與番茄鐘的大型畫面置中於 64%W×60%H 安全區，降低視覺壓迫；小型 Windows preview 保留較大可視面積，日本旅行 player 不縮小 | 8.1～8.3、19 |
 | 鐘面數字間距 | v1.9 的 12／3／6／9 目標字高由 0.40R 降為 0.30R，中心距離由 0.62R 內收到 0.58R，避免與外刻度黏連 | 8.2、17、19 |
@@ -52,7 +53,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v1.9 對應鐘面、擬真旅行場景與切換設定階段的目標軟體版號為 `0.8.0`。v0.1.x～v0.7.0 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
+- 文件版本與軟體版本分開；文件 v2.0 對應日式旅館與新增色彩階段的目標軟體版號為 `0.9.0`。舊 tag 與 commit 是歷史成果，保留於 Git 歷史；目前分支、新版文件及成品不得殘留改名前的英文識別。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -65,7 +66,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」或「列車旅行」，在每個螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、播放器等待及錯誤 fallback 則由 GDI 繪製對應靜態場景。
+建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`；這些技術名稱不是使用者可見標籤。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」、「列車旅行」或「日式旅館」，在每個螢幕以本機 HTML／CSS shell 與 WebView2 播放經驗證的線上影片，preview、播放器等待及錯誤 fallback 則由 GDI 繪製對應靜態場景。
 
 ### 1.1 必要功能
 
@@ -76,14 +77,14 @@
 | R03 | 倒數開始前輸入時、分、秒 | 6.2、11.5 | 3 | AC06 |
 | R04 | 七段數字、沙漏、LCD 面板、剩餘比例線 | 8.3 | 2 | AC07 |
 | R05 | 多螢幕、負座標、混合 DPI | 5～8 | 1、2、4 | AC08 |
-| R06 | 四種顏色、四種字型模式與系統選字型 | 9、11 | 3 | AC09 |
+| R06 | 六種固定顏色、自動換色、四種字型模式與系統選字型 | 9、11 | 3、13 | AC09、AC27 |
 | R07 | HKCU 保存、取消不提交、異常資料回退 | 10、11 | 3 | AC10 |
 | R08 | 全螢幕輸入退出、預覽不搶焦點 | 6.3、7 | 1 | AC03、AC11 |
 | R09 | 群組位移、雙緩衝與資源穩定 | 8.4、8.5、12 | 2、4 | AC12 |
 | R10 | 單一 `.scr` 與 Inno Setup 安裝 EXE | 13～15 | 0、5 | AC01、AC13 |
 | R11 | 安裝／移除不擅改安全設定、不影響其他帳號 | 15 | 5 | AC14 |
 | R12 | 實際測試紀錄、版本與雜湊可追溯 | 17～19、22 | 4、5 | AC15 |
-| R13 | 「自在飛行」與「列車旅行」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7 | AC16 |
+| R13 | 「自在飛行」、「列車旅行」與「日式旅館」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7、13 | AC16、AC26 |
 | R14 | 預設每 1 分鐘隨機換來源、來源健康檢查、有界 failover；可設定分鐘或不切換 | 5、8.6、10～11、16～17 | 6、12 | AC17、AC25 |
 | R15 | 前兩模式與所有 preview 無網路；Runtime／斷線安全 fallback 與第三方揭露 | 2、7～8、15～18、22 | 6 | AC18 |
 | R16 | 產品、原始碼、建置、安裝、設定路徑、文件與公開網站統一使用 `tools-screensaver-tzk` 識別 | 0、2、10、13～15、19 | 8 | AC19 |
@@ -91,8 +92,9 @@
 | R18 | Setup 偵測與補裝電腦層級 WebView2 Runtime、可略過、失敗不冒充成功；遠端驗證不安裝 | 15.1.1 | 10 | AC21 |
 | R19 | 每個螢幕獨立旅行播放器、來源輪換與狀態；共用退出並清理全部 host；預覽文字如實 | 5.2、8.6 | 11 | AC22 |
 | R20 | 鐘面 12／3／6／9 縮小並內收，與外側刻度保持間距 | 8.2 | 12 | AC23 |
-| R21 | 兩種旅行場景使用內附原創 AI 擬真圖，預覽離線，完整 player 不受遮蔽 | 7、8.6 | 12 | AC24 |
+| R21 | 三種旅行場景使用內附原創 AI 擬真圖，預覽離線，完整 player 不受遮蔽 | 7、8.6 | 12～13 | AC24、AC26 |
 | R22 | 保存旅行來源切換分鐘，預設 1、0 為不切換、1～1440 為整數分鐘；舊設定相容，失效復原保持啟用 | 8.6、10～11 | 12 | AC25 |
+| R23 | 新增日式旅館場景；新增暗淺藍、琥珀色與每 2 分鐘自動換色 | 8.6、9～11 | 13 | AC26～AC27 |
 
 ### 1.2 非目標
 
@@ -528,7 +530,7 @@ r = R / (abs(u)^6 + abs(v)^6)^(1/6)
 - 沙漏包含上下端蓋、玻璃輪廓、上／下砂區及落砂細線，皆由 geometry 產生。
 - 上砂高度按 `ratio` 變少，下砂按 `1-ratio` 變多；屬原稿指定的線性高度效果，不要求真實物理沙量模擬。
 - 用玻璃形狀 clip 砂區，不能把矩形砂畫到外面；到零移除落砂細線。
-- 金屬／玻璃輪廓使用中性灰，砂使用主色；四種色票下都要可辨識。
+- 金屬／玻璃輪廓使用中性灰，砂使用主色；六種固定色票下都要可辨識。
 - LCD 內紅色垂直比例線由右往左，`x=inner_left+ratio×inner_width`；中心座標須縮進半個筆寬，確保線的外框也在內框內。
 - 主線 `RGB(255,32,32)`，寬度約 3 個 96-DPI 邏輯像素，再依內框可用尺寸限制；可加較寬暗紅底線。
 - 繪製順序：背景 → 沙漏 → LCD 底及框 → 比例線 → 數字 → 外框警示。比例線不能遮掉數字的主要筆畫。
@@ -602,11 +604,11 @@ SS = display_seconds % 60
 
 #### 8.6.2 旅行場景與地名
 
-- 日本旅行模式提供 `FreeFlight=0`（自在飛行）與 `TrainJourney=1`（列車旅行）兩種可保存場景。兩者使用內附的原創 AI 擬真點陣圖：機艙窗框呈現逼真的材質與照明；列車呈現木質車廂、窗框、座位與景深。它們是虛構室內場景，不宣稱是真實 A380、特定列車或業者照片，不包含使用者附件、第三方照片、商標或航空公司塗裝，也不宣稱與任何運輸業者合作。
-- 原始 PNG 位於 `assets/travel/free-flight.png` 與 `assets/travel/train-journey.png`，內附於產品並供本機 shell／GDI 預覽使用；GitHub Pages 顯示相同素材。來源與 AI 生成性質須在 README、Pages 及視覺文件中如實揭露，不能用第三方影片截圖冒充自製背景。
+- 日本旅行模式提供 `FreeFlight=0`（自在飛行）、`TrainJourney=1`（列車旅行）與 `JapaneseInn=2`（日式旅館）三種可保存場景。三者使用內附的原創 AI 擬真點陣圖；日式旅館呈現障子、榻榻米、自然木構與庭園窗景。它們是虛構室內場景，不宣稱是真實 A380、特定列車、旅館或業者照片，不包含使用者附件像素、第三方照片或商標，也不宣稱與任何業者合作。
+- 原始 PNG 位於 `assets/travel/free-flight.png`、`assets/travel/train-journey.png` 與 `assets/travel/japanese-inn.png`，內附於產品並供本機 shell／GDI 預覽使用；GitHub Pages 顯示相同素材。來源與 AI 生成性質須在 README、Pages 及視覺文件中如實揭露，不能用第三方影片截圖冒充自製背景。
 - 每個螢幕正式 `/s` 依保存場景使用本機 HTML／CSS shell 及擬真場景圖；`/p`、`/c`、播放器等待及 Runtime／網路 fallback 由 GDI 繪製對應內附靜態圖片，不連網。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換設定或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
-- player 維持完整 16:9 矩形並全部可見。「自在飛行」或「列車旅行」外框、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
+- player 維持完整 16:9 矩形並全部可見。三種場景的外框、障子、陰影、地名及狀態區位於 player element 外，不得覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
 - 影片固定靜音，不播放來源音訊。不得隱藏播放器原生 attribution／controls；螢幕保護程式的一般鍵鼠退出規則仍優先，使用者輸入不轉成對遠端 player 的自動操作。
 
@@ -645,8 +647,11 @@ SS = display_seconds % 60
 | 1 | 深橘 | 255, 140, 0 | `#FF8C00` |
 | 2 | 亮綠（預設） | 0, 255, 0 | `#00FF00` |
 | 3 | 灰白 | 245, 245, 245 | `#F5F5F5` |
+| 4 | 暗淺藍 | 101, 151, 178 | `#6597B2` |
+| 5 | 琥珀色 | 255, 191, 0 | `#FFBF00` |
+| 6 | 自動切換 | 每 120 秒循環識別值 0～5 | — |
 
-`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅；四種色票都須在黑底及 LCD 上驗收。
+`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環六種固定色；不得依每個螢幕各自取時。六種固定色都須在黑底及 LCD 上驗收。
 
 ### 9.2 字型模式
 
@@ -696,11 +701,11 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 
 | 名稱 | 型別 | 有效範圍／內容 | 預設 |
 | --- | --- | --- | --- |
-| SchemaVersion | REG_DWORD | 目前為 5 | 5 |
+| SchemaVersion | REG_DWORD | 目前為 6 | 6 |
 | DisplayMode | REG_DWORD | 0=TimeDate、1=Countdown、2=JapanTravel | 0 |
-| TravelStyle | REG_DWORD | 0=FreeFlight（自在飛行）、1=TrainJourney（列車旅行） | 0 |
+| TravelStyle | REG_DWORD | 0=FreeFlight、1=TrainJourney、2=JapaneseInn（日式旅館） | 0 |
 | TravelSwitchMinutes | REG_DWORD | 0=不切換；1～1440=切換間隔整數分鐘 | 1 |
-| ColorPreset | REG_DWORD | 0～3 | 2 |
+| ColorPreset | REG_DWORD | 0～6；6=每 2 分鐘自動切換 | 2 |
 | FontMode | REG_DWORD | 0～3 | 0 |
 | CustomLogFont | REG_BINARY | 完整、已驗證 LOGFONTW | 無 |
 | CustomPointSizeTenth | REG_DWORD | 180～2400 | 480 |
@@ -711,8 +716,9 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - SchemaVersion=3：`DisplayMode=2` 對應 `JapanTravel`；沒有 `TravelStyle`，一律使用 `FreeFlight`。
 - SchemaVersion=4：正常驗證既有欄位；`TravelStyle` 非 0／1 或型別錯誤時只回退為 `FreeFlight`。schema 1～4 沒有切換時間設定，`TravelSwitchMinutes` 一律使用預設 1，不因舊 key 恰有同名資料而改為不切換。
 - SchemaVersion=5：`TravelSwitchMinutes` 為 0 時表示不切換，1～1440 表示整數分鐘；缺值、型別或長度錯誤、超界只回退本欄為 1。使用者明確提交成功才寫 version 5；讀取與預覽不主動遷移。
+- SchemaVersion=6：新增 `TravelStyle=2` 與 `ColorPreset=4/5/6`；舊 schema 中偶然存在這些值時必須回退，不能提前套用新版語意。明確提交成功才寫 version 6。
 - schema 型別損壞／0：視為損壞資料，使用預設，允許下一次明確提交修復已知值。
-- SchemaVersion>5：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
+- SchemaVersion>6：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
 
 ### 10.2 讀取
 
@@ -748,6 +754,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 #define IDC_MODE_JAPAN_TRAVEL   1003
 #define IDC_TRAVEL_FREE_FLIGHT  1004
 #define IDC_TRAVEL_TRAIN_JOURNEY 1005
+#define IDC_TRAVEL_JAPANESE_INN 1006
 #define IDC_TRAVEL_SWITCH_MODE  1010
 #define IDC_TRAVEL_SWITCH_MINUTES 1011
 #define IDC_TRAVEL_SWITCH_LABEL 1012
@@ -756,6 +763,9 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 #define IDC_COLOR_DARK_ORANGE   1102
 #define IDC_COLOR_BRIGHT_GREEN  1103
 #define IDC_COLOR_OFF_WHITE     1104
+#define IDC_COLOR_MUTED_LIGHT_BLUE 1105
+#define IDC_COLOR_AMBER         1106
+#define IDC_COLOR_AUTO          1107
 #define IDC_FONT_COMBO          1201
 #define IDC_CHOOSE_FONT         1202
 #define IDC_PREVIEW             1301
@@ -765,11 +775,11 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 ```
 
 - 模式群組：「標準桌曆暨時鐘模式」／「離機作業番茄鐘模式」／「日本旅行模式」三個 radio 選項。
-- 日本旅行場景群組：「自在飛行」／「列車旅行」兩個 radio；非日本旅行模式時停用但保留草稿值，切回日本旅行時恢復可選。
+- 日本旅行場景群組：「自在飛行」／「列車旅行」／「日式旅館」三個 radio；非日本旅行模式時停用但保留草稿值，切回日本旅行時恢復可選。
 - 日本旅行的「來源切換」使用不可自由輸入的 combo，選擇「不切換」或「每隔」；分鐘 Edit 預設 1，只接受 1～1440 的 ASCII 整數，設定 `ES_NUMBER` 與 4 字元長度上限後仍以程式驗證。空值、負數、0、超界、全形數字、小數、符號或非法黏貼一律拒絕提交，清楚標示問題欄位。
 - 「不切換」對應保存值 0 並停用分鐘 Edit；切回「每隔」時保留合法草稿分鐘或恢復預設 1。非日本旅行模式時停用來源切換控制項，但保留草稿偏好；不能因停用欄位中的未使用文字阻擋其他模式保存。按「確定」才保存，取消不提交；全螢幕使用下一次啟動的設定快照。
 - 日本旅行 radio 附近以非互動文字說明「需要網路；會連線至 tw.live 與 YouTube，影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
-- 顏色群組：四個 radio；各組正確設 `WS_GROUP`，不能兩组互相取消。
+- 顏色群組：深紅、深橘、亮綠、灰白、暗淺藍、琥珀色與「自動切換（2 分鐘）」七個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
 - 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
@@ -792,7 +802,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - 模式／顏色變更只更新草稿、必要 cache 並 invalidate；只有字型／尺寸／DPI 變更才重建 font cache。
 - 標準桌曆暨時鐘模式（`TimeDate`）每秒以目前本機時間更新；不能只在選項改變時更新時鐘。
 - 離機作業番茄鐘模式（`Countdown`）靜態示範：remaining=300 秒、total=600 秒、顯示 `00:05:00`、ratio=0.5、上下各半砂量，不播放落砂動畫或警示。
-- 日本旅行模式（`JapanTravel`）依草稿以 GDI 繪製內附的「自在飛行」或「列車旅行」擬真圖、示例地名與靜態預覽文字；PNG 由 Windows Imaging Component（WIC）在本機解碼，不下載圖片、不建立 WebView2、不發 request、不以歷史縮圖冒充即時影片。
+- 日本旅行模式（`JapanTravel`）依草稿以 GDI 繪製內附的「自在飛行」、「列車旅行」或「日式旅館」擬真圖、示例地名與靜態預覽文字；PNG 由 Windows Imaging Component（WIC）在本機解碼，不下載圖片、不建立 WebView2、不發 request、不以歷史縮圖冒充即時影片。
 - `/c` 預覽永遠採草稿，不由 `/p` 的 registry poll 蓋掉尚未保存的修改。
 - 所有預覽不位移；字型失敗時 fallback，不使對話框失去操作能力。
 
@@ -1022,7 +1032,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT23 | 取消、ChooseFont 取消 | 保存呼叫次數=0 |
 | UT24 | 模擬第 N 次寫入失敗，rollback 成功／失敗 | 顯示對應保存狀態，未修改未知值 |
 | UT25 | 多視窗同 generation、連續 shutdown request | 共用秒數／ratio，關閉一次，最後才 quit |
-| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema >5 | 舊值相容、schema 3 預設自在飛行、兩種場景 round-trip、未知新版禁止降版寫入 |
+| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema 6 的 TravelStyle 2 與 ColorPreset 4～6；schema >6 | 舊值相容、新三場景／色彩 round-trip、未知新版禁止降版寫入 |
 | UT27 | 固定 seed；來源數 0／1／2／N；目前 index 位於頭尾 | 可重現、永不越界；候選多於一個時不立即重複目前來源 |
 | UT28 | PLAYING 後 59999／60000 ms、一次跳過多分鐘、睡眠恢復 | 未到不切、到時只切一次、不補跑漏掉的分鐘 |
 | UT29 | 固定 tw.live catalog marker／detail HTML fixtures；entity、缺欄、錯誤 host、非法 camera／video ID、控制字元與超長資料 | 只產生合法有界 metadata；格式錯誤可辨識，無 panic 或把不可信資料當程式碼 |
@@ -1035,7 +1045,8 @@ tools-screensaver-tzk.scr --install-set-current
 | UT36 | schema 1～4／5／未知新版、TravelSwitchMinutes 0／1／1440／1441、錯誤型別／長度與取消 | 舊 schema 預設 1；本版合法值 round-trip；非法欄位回退，未知新版禁止寫入；取消不保存 |
 | UT37 | 分鐘輸入空白、0、1、1440、1441、負數、小數、全形數字；切換模式與停用欄位 | 合法整數可提交；非法使用中欄位拒絕；不切換寫 0，其他模式不受停用輸入影響 |
 | UT38 | 0／1／2／1440 分鐘設定、deadline 前後、最後 1 分鐘前後、睡眠跳過與失效 | 0 無排程／預抓但仍復原；長間隔僅最後 1 分鐘預抓，到時切一次；以 `PLAYING` 起算 |
-| UT39 | 兩個內附 PNG 的 WIC 解碼、輸出大小與離屏繪製 | 圖片完整、像素尺寸合法、資源釋放；無需網路、player 或可見 UI |
+| UT39 | 三個內附 PNG 的 WIC 解碼、輸出大小與離屏繪製 | 圖片完整、像素尺寸合法、資源釋放；無需網路、player 或可見 UI |
+| UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 回到第一色，多螢幕共用 tick |
 
 - Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
 - 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
@@ -1118,14 +1129,14 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC06 | 倒數每次輸入一次，有效值開始、取消無全螢幕，真實閒置流程可用 | UT08～UT09、MT07～MT08 |
 | AC07 | 六位數、沙漏、比例線、最後十秒／四次閃爍／保持零皆正確 | UT10～UT15、MT07、MT09 |
 | AC08 | 多螢幕共用快照、負座標／混合 DPI 正確、拓撲變化清理 | UT25、MT03～MT04、MT10 |
-| AC09 | 四色／四字型可用、缺字fallback、LCD對比與極端點數不裁切 | UT18～UT22、視覺證據 |
+| AC09 | 六種固定色、自動色彩與四字型可用、缺字fallback、LCD對比與極端點數不裁切 | UT18～UT22、UT40、視覺證據 |
 | AC10 | 設定型別／schema／取消／部分失敗符合契約，不破壞未知值 | UT20～UT24、隔離registry測試 |
 | AC11 | 所有指定輸入可退出；4px／500ms、同程序焦點、游標恢復正確 | MT02～MT03、MT10 |
 | AC12 | 無busy loop／已知handle leak；兩種 GDI 模式與旅行模式各有30分鐘資源紀錄 | MT14、MT19、效能報告 |
 | AC13 | Setup安裝至64位元System32、可由Windows選取、版本一致 | MT01、MT13、成品hash |
 | AC14 | setcurrent身分正確／失敗可辨；不改安全／逾時／啟用及其他帳號設定 | MT11～MT13、前後值比較 |
 | AC15 | README、原始碼、測試、必要成品及逐項驗收報告完整 | 第22節清單 |
-| AC16 | 日本旅行的自製「自在飛行」與「列車旅行」窗框、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT26、UT34、MT16、MT18、視覺證據 |
+| AC16 | 日本旅行的三種原創擬真場景、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT26、UT34、UT39、MT16、MT18、視覺證據 |
 | AC17 | 來源發現、預設 1 分鐘隨機輪換、三層健康檢查、failover、timeout 與 shutdown 均有界；自訂間隔與不切換符合 AC25 | UT27～UT32、UT38、MT16～MT19 |
 | AC18 | 前兩模式與 preview 無網路；旅行模式 Runtime／斷線 fallback、outbound／隱私／授權揭露完整 | UT30～UT33、MT17、MT20、來源清單 |
 | AC19 | 目前工作樹的英文產品識別、輸出檔名、resources、設定路徑、文件與 Pages 均為 `tools-screensaver-tzk`；文字及路徑掃描無舊識別 | Phase 8 report、resource smoke、repository scan、公開網頁與下載檔 |
@@ -1135,6 +1146,8 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC23 | 鐘面 12／3／6／9 目標字高 0.30R、中心距離 0.58R，與刻度分離；一般、小型、直向與高 DPI 版面無裁切 | Phase 12 GDI fixtures、視覺檢查 |
 | AC24 | 兩種原創 AI 擬真場景內附於成品，GDI 預覽離線使用同圖，完整 16:9 player 與地名／狀態互不遮蔽；圖像來源如實揭露 | UT34、UT39、Phase 12 GDI fixtures、實際 Win10 player 視覺驗收 |
 | AC25 | 設定可選不切換或 1～1440 整數分鐘，預設 1；schema 5 保存／舊版相容、取消不寫入、每螢幕獨立計時；不切換無預抓但失效可復原 | UT36～UT38、Phase 12 report、可互動 Win10 設定／播放驗收 |
+| AC26 | 日式旅館擬真 PNG 內附於 SCR，本機 HTML 與 GDI 使用同圖；完整 16:9 player 位於無遮蔽庭園窗孔，來源如實揭露 | UT34、UT39、Phase 13 fixtures、實際 Win10 player 視覺驗收 |
+| AC27 | 暗淺藍、琥珀色與自動模式可保存；自動模式每 120 秒循環六色且多螢幕一致，schema 6 舊值相容 | UT20～UT26、UT40、Phase 13 GDI fixtures、可互動 Win10 設定驗收 |
 
 ### 18.2 報告格式
 
@@ -1155,7 +1168,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；v1.3 的 Phase 6 加入日本旅行模式，v1.4 的 Phase 7 加入雙旅行場景，v1.5 的 Phase 8 完成產品識別統一，v1.6 的 Phase 9 改善桌曆時鐘與番茄鐘的畫面密度，v1.7 的 Phase 10 新增 Setup WebView2 部署，v1.8 的 Phase 11 修正旅行多螢幕播放與狀態，v1.9 的 Phase 12 縮小鐘面數字並加入擬真旅行場景與來源切換設定。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；v2.0 的 Phase 13 加入日式旅館與桌曆時鐘新色彩。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1336,12 +1349,23 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 執行非互動回歸測試、WIC 解碼、離屏 GDI 匯出、build／smoke／package；不開設定 dialog、正式 player、全螢幕、Setup 或 UAC。實際播放、自訂間隔、不切換、多螢幕及長時間資源觀察列明驗證缺口。
 6. 更新 README、Pages、來源／視覺文件、逐項報告及 `docs/phase12-report.md`；發布新 Release 與匿名直連下載，核對成品 SHA-256。
 
+### Phase 13：日式旅館與桌曆時鐘色彩
+
+目標：新增安靜的日式旅館旅行場景，並擴充桌曆時鐘主色與自動換色。
+
+1. 軟體版本升為 `0.9.0`、schema 升為 6；加入 `JapaneseInn=2`、暗淺藍、琥珀色與自動色彩的 registry round-trip，舊 schema 不誤解新版 enum。
+2. 以使用者附件作空間風格參考，產生不複製附件像素、無真實旅館識別的原創擬真 PNG；內附於 SCR、本機 HTML 與 GDI fallback，保留完整無遮蔽 16:9 player。
+3. 自動色彩使用共同 monotonic tick，每 120 秒依序循環六種固定色；加入精確邊界與完整循環測試。
+4. 設定畫面新增第三場景及三個色彩 radio；選取、保存、草稿預覽、鍵盤分組與舊設定相容。
+5. 執行非互動 build、測試、離屏 GDI／headless HTML、smoke 與 package；不開正式 UI、player、Setup 或 UAC。實際多螢幕 player、設定畫面 DPI 與長時間自動色彩列明驗證缺口。
+6. 更新 README、Pages、視覺／素材／驗收文件及 `docs/phase13-report.md`；發布 v0.9.0 Release 與匿名 Pages 直連下載。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v1.9 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v2.0 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。

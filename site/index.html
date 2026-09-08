@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#070a08">
     <meta
       name="description"
-      content="tools-screensaver-tzk：Windows 10 x64 的桌曆時鐘、離機作業番茄鐘與日本旅行螢幕保護程式。下載 v0.8.0 開發候選版。"
+      content="tools-screensaver-tzk：Windows 10 x64 的桌曆時鐘、離機作業番茄鐘與日本旅行螢幕保護程式。下載 v0.9.0 開發候選版。"
     >
     <title>tools-screensaver-tzk — 桌曆時鐘、離機作業番茄鐘與日本旅行</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -34,14 +34,14 @@
     <main id="top">
       <section class="hero section">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span> Windows 10 x64 · v0.8.0</p>
+          <p class="eyebrow"><span></span> Windows 10 x64 · v0.9.0</p>
           <h1>讓時間在黑色畫布上<br><em>安靜地運行。</em></h1>
           <p class="lead">
             Windows 螢幕保護程式，提供標準桌曆暨時鐘、離機作業番茄鐘與日本旅行三種模式。
-            桌曆時鐘與番茄鐘收進螢幕中央，鐘面數字更精巧；日本旅行改用擬真機艙與列車窗景，每個螢幕獨立播放，來源可按分鐘切換或保持不切換。
+            桌曆時鐘新增暗淺藍、琥珀色與每 2 分鐘自動換色；日本旅行提供擬真機艙、列車與日式旅館窗景，每個螢幕獨立播放。
           </p>
           <div class="actions">
-            <a class="button primary" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/tools-screensaver-tzk-Setup.exe" download>
+            <a class="button primary" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.9.0/tools-screensaver-tzk-Setup.exe" download>
               下載安裝程式
             </a>
             <a class="button secondary" href="#download">
@@ -50,8 +50,8 @@
           </div>
           <ul class="facts" aria-label="版本摘要">
             <li><strong>3</strong><span>顯示模式</span></li>
-            <li><strong>4</strong><span>主色選擇</span></li>
-            <li><strong>75</strong><span>非互動測試</span></li>
+            <li><strong>7</strong><span>主色選擇</span></li>
+            <li><strong>76</strong><span>非互動測試</span></li>
           </ul>
         </div>
         <figure class="hero-visual">
@@ -68,7 +68,7 @@
         <div>
           <h2>開發候選版，成品尚未簽章</h2>
           <p>
-            Windows 10 x64 的建置、56 個程式測試、19 個安裝判斷測試與非互動 smoke 已通過；實際雙螢幕影片播放與長時間觀察尚未在遠端工作階段執行。
+            Windows 10 x64 的建置、57 個程式測試、19 個安裝判斷測試與非互動 smoke 已通過；實際雙螢幕影片播放與長時間觀察尚未在遠端工作階段執行。
             需要 UAC 的完整安裝矩陣未在遠端工作階段執行，Windows 11 也尚未驗證。
             下載後請先核對 SHA-256；Windows 可能顯示未驗證發行者或 SmartScreen 提示。
           </p>
@@ -88,7 +88,7 @@
             <div class="mode-copy">
               <p class="index">01</p>
               <h3>標準桌曆暨時鐘模式</h3>
-              <p>指針鐘與六列月曆置中呈現，四周留白。鐘面 12／3／6／9 縮小 25% 並略向內收，避免與刻度相黏；保留連續指針與清楚的今天標示。</p>
+              <p>指針鐘與六列月曆置中呈現，四周留白。新增暗淺藍、琥珀色，以及每 2 分鐘循環六色的自動模式。</p>
             </div>
           </article>
           <article class="mode-card">
@@ -111,12 +111,16 @@
                 <img src="assets/train-journey.png" width="1586" height="992" style="width: 100%; height: auto" alt="列車旅行：原創 AI 擬真木質車廂窗景">
                 <figcaption>列車旅行</figcaption>
               </figure>
+              <figure class="mode-image inn-image" style="aspect-ratio: 1586 / 992">
+                <img src="assets/japanese-inn.png" width="1586" height="992" style="width: 100%; height: auto" alt="日式旅館：原創 AI 擬真障子與庭園窗景">
+                <figcaption>日式旅館</figcaption>
+              </figure>
             </div>
             <div class="mode-copy">
               <p class="index">03</p>
               <h3>日本旅行模式</h3>
-              <p>可選「自在飛行」或「列車旅行」的擬真場景，完整 16:9 影片放在窗景中，外側標示目前地區。預設每 1 分鐘隨機切換，可改為 1～1440 分鐘或「不切換」。</p>
-              <p class="mode-note">以上為專案原創 AI 靜態素材，描繪虛構機艙與列車，並非特定機型或列車照片。本站不載入第三方影片。</p>
+              <p>可選「自在飛行」、「列車旅行」或「日式旅館」的擬真場景，完整 16:9 影片放在窗景中，外側標示目前地區。預設每 1 分鐘隨機切換，可改為 1～1440 分鐘或「不切換」。</p>
+              <p class="mode-note">以上為專案原創 AI 靜態素材，描繪虛構機艙、列車與旅館，並非特定場所或運具照片。本站不載入第三方影片。</p>
             </div>
           </article>
         </div>
@@ -142,25 +146,25 @@
       <section class="download-section section" id="download">
         <div class="section-heading">
           <p class="eyebrow"><span></span> DOWNLOAD</p>
-          <h2>下載 v0.8.0</h2>
+          <h2>下載 v0.9.0</h2>
           <p>選擇安裝程式，或直接取得獨立 <code>.scr</code> 與校驗清單。</p>
           <p class="download-access-note">檔案由本站直接提供，無需 GitHub 帳號、登入或雙因素驗證。</p>
         </div>
         <div class="download-grid">
-          <a class="download-card recommended" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/tools-screensaver-tzk-Setup.exe" download>
+          <a class="download-card recommended" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.9.0/tools-screensaver-tzk-Setup.exe" download>
             <span class="tag">建議</span>
             <span class="file-type">EXE</span>
             <strong>Windows 安裝程式</strong>
-            <span>tools-screensaver-tzk-Setup.exe · 7,619,663 bytes</span>
+            <span>tools-screensaver-tzk-Setup.exe · 10,208,748 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/tools-screensaver-tzk.scr" download>
+          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.9.0/tools-screensaver-tzk.scr" download>
             <span class="file-type">SCR</span>
             <strong>獨立程式檔</strong>
-            <span>tools-screensaver-tzk.scr · 4,484,096 bytes</span>
+            <span>tools-screensaver-tzk.scr · 7,099,904 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/SHA256SUMS.txt" download>
+          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.9.0/SHA256SUMS.txt" download>
             <span class="file-type">SHA</span>
             <strong>SHA-256 清單</strong>
             <span>SHA256SUMS.txt</span>
@@ -168,10 +172,10 @@
           </a>
         </div>
         <div class="hashes">
-          <h3>v0.8.0 SHA-256</h3>
+          <h3>v0.9.0 SHA-256</h3>
           <dl>
-            <div><dt>SCR</dt><dd>827e0c9b45e4820cb00dc337cac7321bdcb0a3e06ff06f1c2e35c3028f45b281</dd></div>
-            <div><dt>SETUP</dt><dd>f92160cb1334db2a707014181916d82810cd876ee45b5d6ee505b334741a3e95</dd></div>
+            <div><dt>SCR</dt><dd>09f7e63fbcb8b46b58016b8009e023f7b5d26de8074c3b02d57138a6aaaca8aa</dd></div>
+            <div><dt>SETUP</dt><dd>fe83b4c0135247107111c9aab8bb3c18afe1082ad2dbe7be49f0104dfe8b1176</dd></div>
           </dl>
         </div>
       </section>
@@ -213,7 +217,8 @@
               <p><i class="radio checked"></i>標準桌曆暨時鐘模式</p>
               <p><i class="radio"></i>離機作業番茄鐘模式</p>
               <p><i class="radio"></i>日本旅行模式</p>
-              <p class="sub-option"><i class="radio checked"></i>自在飛行　 <i class="radio"></i>列車旅行</p>
+              <p class="sub-option"><i class="radio checked"></i>自在飛行　 <i class="radio"></i>列車旅行　 <i class="radio"></i>日式旅館</p>
+              <p class="sub-option">主色：暗淺藍／琥珀色／自動切換（2 分鐘）</p>
               <p class="sub-option">來源切換：每 1 分鐘（可選不切換）</p>
               <small>需要網路；全螢幕時連線至 tw.live 與 YouTube，影片靜音。</small>
             </div>
@@ -270,7 +275,7 @@
           <h2>驗證範圍透明可查</h2>
         </div>
         <div class="compat-grid">
-          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、56 個程式測試及 19 個安裝判斷測試；40 張 GDI 圖片重新匯出，含縮小鐘面數字、擬真旅行場景與狀態文字；影片播放仍待實機驗證。</p></div>
+          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、57 個程式測試及 19 個安裝判斷測試；50 張 GDI 與 6 張封鎖網路的 HTML 圖片通過；影片播放仍待實機驗證。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>UAC 安裝矩陣</strong><p>遠端測試刻意不顯示 UAC，也不寫入 System32。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>Windows 11</strong><p>目前沒有 Windows 11 開發環境，保留為後續相容性驗證。</p></div>
         </div>
@@ -287,7 +292,7 @@
         </div>
         <div class="source-actions">
           <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk">檢視原始碼</a>
-          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/tools-screensaver-tzk_Codex_Spec.md">開發規格 v1.9</a>
+          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/tools-screensaver-tzk_Codex_Spec.md">開發規格 v2.0</a>
         </div>
       </section>
     </main>

@@ -750,14 +750,17 @@ body{display:grid;place-items:center}
 .scene{position:relative;width:100%;aspect-ratio:1586/992;background-size:100% 100%;background-repeat:no-repeat;box-shadow:0 12px 40px #000}
 .free-flight .scene{background-image:url('free-flight.png')}
 .train-journey .scene{background-image:url('train-journey.png')}
+.japanese-inn .scene{background-image:url('japanese-inn.png')}
 .window{position:absolute;left:11%;top:21%;width:78.5%;height:56%;display:grid;place-items:center;background:#000;border-radius:2%}
 .train-journey .window{left:17.8%;top:20%;width:64.4%;height:54.5%}
+.japanese-inn .window{left:16.5%;top:18.5%;width:68%;height:57%;border-radius:0}
 .screen{height:100%;aspect-ratio:16/9;max-width:100%;background:#000}
 #player,#player iframe{display:block;width:100%;height:100%;border:0}
 .caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.35em 1em;align-items:center;padding:clamp(9px,1.2vw,18px) 0;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere}
 #place{font-size:clamp(16px,2.2vw,34px);color:#fff}
 #status{font-size:clamp(12px,1.2vw,18px);color:#c8f3ff;text-align:right}
 .train-journey #place{color:#ffe1a6}.train-journey #status{color:#ffd7a1}
+.japanese-inn #place{color:#ffe0a3}.japanese-inn #status{color:#dbe9d1}
 </style>
 </head>
 <body>
@@ -830,6 +833,7 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
     let (class, label) = match style {
         TravelStyle::FreeFlight => ("free-flight", "自在飛行客艙窗景"),
         TravelStyle::TrainJourney => ("train-journey", "列車旅行車廂窗景"),
+        TravelStyle::JapaneseInn => ("japanese-inn", "日式旅館庭園窗景"),
     };
     TRAVEL_HTML_TEMPLATE
         .replace("__TRAVEL_SCENE_CLASS__", class)
@@ -1032,6 +1036,7 @@ mod tests {
                 "train-journey",
                 "列車旅行車廂窗景",
             ),
+            (TravelStyle::JapaneseInn, "japanese-inn", "日式旅館庭園窗景"),
         ] {
             let shell = travel_html_shell(style);
             assert_eq!(shell.matches("id=\"player\"").count(), 1);
@@ -1042,6 +1047,7 @@ mod tests {
             assert!(shell.contains(label));
             assert!(shell.contains("background-image:url('free-flight.png')"));
             assert!(shell.contains("background-image:url('train-journey.png')"));
+            assert!(shell.contains("background-image:url('japanese-inn.png')"));
             assert!(shell.contains("aspect-ratio:1586/992"));
             assert!(shell.contains("aspect-ratio:16/9"));
             assert!(!shell.contains("__TRAVEL_SCENE_"));

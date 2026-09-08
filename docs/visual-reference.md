@@ -1,8 +1,27 @@
 # 視覺參考與實作證據
 
-產品版本：0.8.0<br>
-規格文件：v1.9<br>
+產品版本：0.9.0<br>
+規格文件：v2.0<br>
 更新日期：2026-09-08
+
+## v0.9.0 日式旅館與桌曆時鐘色彩
+
+桌曆時鐘新增暗淺藍 `#6597B2`、琥珀色 `#FFBF00` 與每 2 分鐘自動切換。固定 tick 的離屏圖驗證兩種新色可完整畫出鐘面、指針與月曆；自動模式另由 119,999／120,000 ms 邊界與 720,000 ms 完整循環測試驗證。
+
+| 色彩 | GDI 證據 |
+| --- | --- |
+| 暗淺藍 | [800×369 桌曆時鐘](evidence/phase13/fixtures/04-TimeDate-800x369-dpi96-p4-SevenSegment-palette.png) |
+| 琥珀色 | [800×369 桌曆時鐘](evidence/phase13/fixtures/05-TimeDate-800x369-dpi96-p5-SevenSegment-palette.png) |
+
+「日式旅館」使用原創 AI 擬真點陣圖，呈現自然木構、障子、榻榻米與庭園窗景。使用者附件只作空間語彙參考，沒有複製附件像素、家具配置或可識別旅館；素材沒有文字、商標或人物。
+
+![日式旅館原創 AI 場景素材](../assets/travel/japanese-inn.png)
+
+- [日式旅館 GDI fallback](evidence/phase13/fixtures/46-JapanTravel-800x450-dpi96-p2-SevenSegment-japanese-inn.png)
+- [日式旅館 HTML 橫向窗孔驗證](evidence/phase13/html/japanese-inn-1600x1000.png)
+- [三場景 HTML 幾何結果](evidence/phase13/html/geometry.json)
+
+Phase 13 共重新匯出 50 張 GDI fixture 與 6 張封鎖網路的 headless HTML fixture。HTML 圖中的純色色塊代表完整 16:9 player 位置，沒有載入 YouTube 或即時影像；左上 2 px 綠色測試標記不屬於產品畫面。[Phase 13 報告](phase13-report.md)及 [生成提示與來源](travel-artwork.md)記錄驗證邊界與素材來源。
 
 ## v0.8.0 鐘面數字與擬真旅行場景
 

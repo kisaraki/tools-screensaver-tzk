@@ -1,4 +1,4 @@
-param([string]$OutputDirectory = 'docs/evidence/phase12/html')
+param([string]$OutputDirectory = 'docs/evidence/phase13/html')
 $ErrorActionPreference = 'Stop'
 # Render only the product's local HTML/CSS with its player scripts removed.
 # A new disposable browser profile and blocked host resolution avoid using the
@@ -10,7 +10,7 @@ if (!(Test-Path -LiteralPath $edge)) { throw 'Microsoft Edge is required for the
 $null = New-Item -ItemType Directory -Path $output -Force
 $work = Join-Path $repoRoot ('target/travel-shell-fixtures-' + [Guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $work
-Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/travel/free-flight.png'),(Join-Path $repoRoot 'assets/travel/train-journey.png') -Destination $work
+Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/travel/free-flight.png'),(Join-Path $repoRoot 'assets/travel/train-journey.png'),(Join-Path $repoRoot 'assets/travel/japanese-inn.png') -Destination $work
 $source = [IO.File]::ReadAllText((Join-Path $repoRoot 'src/travel.rs'))
 $template = [regex]::Match($source,'(?s)const TRAVEL_HTML_TEMPLATE: &str = r#"(.*?)"#;').Groups[1].Value
 if (!$template) { throw 'Travel HTML template not found' }
@@ -35,12 +35,16 @@ window.addEventListener('load', () => {
 '@
 Add-Type -AssemblyName System.Drawing
 $reports = @()
-foreach ($style in @('free-flight','train-journey')) {
-    $label = if ($style -eq 'free-flight') { '自在飛行・擬真窗框' } else { '列車旅行・擬真窗框' }
+foreach ($style in @('free-flight','train-journey','japanese-inn')) {
+    $label = switch ($style) {
+        'free-flight' { 'Free flight realistic frame' }
+        'train-journey' { 'Train journey realistic frame' }
+        default { 'Japanese inn realistic frame' }
+    }
     $html = $template.Replace('__TRAVEL_SCENE_CLASS__',$style).Replace('__TRAVEL_SCENE_LABEL__',$label)
-    $html = $html.Replace('<span id="place">日本旅行模式</span>',"<span id=`"place`">$label</span>")
-    $html = $html.Replace('正在檢查來源網路…','離線版面驗證・未載入直播')
-    $html = $html.Replace('<div id="player"></div>','<div id="player" style="background:#172d3d;display:grid;place-items:center;font-size:clamp(12px,1.3vw,22px)">完整 16:9 影片區域</div>')
+    $html = [regex]::Replace($html,'<span id="place">.*?</span>',"<span id=`"place`">$label</span>")
+    $html = [regex]::Replace($html,'<span id="status">.*?</span>','<span id="status">Offline layout validation</span>')
+    $html = $html.Replace('<div id="player"></div>','<div id="player" style="background:#172d3d;display:grid;place-items:center;font-size:clamp(12px,1.3vw,22px)">Full 16:9 player area</div>')
     $html = $html.Replace('</body>',$validation + '</body>')
     $page = Join-Path $work "$style.html"
     [IO.File]::WriteAllText($page,$html,[Text.UTF8Encoding]::new($false))
@@ -71,4 +75,4 @@ foreach ($style in @('free-flight','train-journey')) {
 }
 $report = [pscustomobject]@{capturedAt=[DateTimeOffset]::Now.ToString('o');browserVersion=(Get-Item -LiteralPath $edge).VersionInfo.FileVersion;interactive=$false;livePlayer=$false;result='PASS';fixtures=$reports}
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'geometry.json') -Encoding utf8
-'PASS: four offline headless HTML screenshots; player rectangles remain 16:9 and captions stay outside the artwork.'
+'PASS: six offline headless HTML screenshots; player rectangles remain 16:9 and captions stay outside the artwork.'

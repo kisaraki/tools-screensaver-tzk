@@ -253,10 +253,11 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_TRAVEL_FREE_FLIGHT),
-            i32::from(resource_ids::IDC_TRAVEL_TRAIN_JOURNEY),
+            i32::from(resource_ids::IDC_TRAVEL_JAPANESE_INN),
             i32::from(match draft.travel_style {
                 TravelStyle::FreeFlight => resource_ids::IDC_TRAVEL_FREE_FLIGHT,
                 TravelStyle::TrainJourney => resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+                TravelStyle::JapaneseInn => resource_ids::IDC_TRAVEL_JAPANESE_INN,
             }),
         ) == 0
         {
@@ -302,12 +303,15 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_COLOR_DARK_RED),
-            i32::from(resource_ids::IDC_COLOR_OFF_WHITE),
+            i32::from(resource_ids::IDC_COLOR_AUTO),
             i32::from(match draft.color_preset {
                 ColorPreset::DarkRed => resource_ids::IDC_COLOR_DARK_RED,
                 ColorPreset::DarkOrange => resource_ids::IDC_COLOR_DARK_ORANGE,
                 ColorPreset::BrightGreen => resource_ids::IDC_COLOR_BRIGHT_GREEN,
                 ColorPreset::OffWhite => resource_ids::IDC_COLOR_OFF_WHITE,
+                ColorPreset::MutedLightBlue => resource_ids::IDC_COLOR_MUTED_LIGHT_BLUE,
+                ColorPreset::Amber => resource_ids::IDC_COLOR_AMBER,
+                ColorPreset::Auto => resource_ids::IDC_COLOR_AUTO,
             }),
         ) == 0
         {
@@ -358,14 +362,18 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
     draft.travel_style = match id {
         value if value == resource_ids::IDC_TRAVEL_FREE_FLIGHT => TravelStyle::FreeFlight,
         value if value == resource_ids::IDC_TRAVEL_TRAIN_JOURNEY => TravelStyle::TrainJourney,
+        value if value == resource_ids::IDC_TRAVEL_JAPANESE_INN => TravelStyle::JapaneseInn,
         _ => draft.travel_style,
     };
-    if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE).contains(&id) {
+    if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO).contains(&id) {
         draft.color_preset = match id {
             resource_ids::IDC_COLOR_DARK_RED => ColorPreset::DarkRed,
             resource_ids::IDC_COLOR_DARK_ORANGE => ColorPreset::DarkOrange,
             resource_ids::IDC_COLOR_BRIGHT_GREEN => ColorPreset::BrightGreen,
-            _ => ColorPreset::OffWhite,
+            resource_ids::IDC_COLOR_OFF_WHITE => ColorPreset::OffWhite,
+            resource_ids::IDC_COLOR_MUTED_LIGHT_BLUE => ColorPreset::MutedLightBlue,
+            resource_ids::IDC_COLOR_AMBER => ColorPreset::Amber,
+            _ => ColorPreset::Auto,
         };
     }
     state.draft.set(draft);
@@ -377,6 +385,7 @@ fn set_travel_controls_enabled(hwnd: HWND, enabled: bool) {
         for id in [
             resource_ids::IDC_TRAVEL_FREE_FLIGHT,
             resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+            resource_ids::IDC_TRAVEL_JAPANESE_INN,
             resource_ids::IDC_TRAVEL_SWITCH_MODE,
             resource_ids::IDC_TRAVEL_SWITCH_LABEL,
         ] {
@@ -627,9 +636,9 @@ unsafe extern "system" fn config_proc(
                 && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
                     .contains(&id)
                     || (resource_ids::IDC_TRAVEL_FREE_FLIGHT
-                        ..=resource_ids::IDC_TRAVEL_TRAIN_JOURNEY)
+                        ..=resource_ids::IDC_TRAVEL_JAPANESE_INN)
                         .contains(&id)
-                    || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_OFF_WHITE)
+                    || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO)
                         .contains(&id)) =>
         {
             update_draft_from_command(state, id);

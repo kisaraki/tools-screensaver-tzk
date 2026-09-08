@@ -1119,6 +1119,7 @@ fn prepare_travel_storage(shell_html: &str) -> Result<(PathBuf, PathBuf), String
     for style in [
         crate::model::TravelStyle::FreeFlight,
         crate::model::TravelStyle::TrainJourney,
+        crate::model::TravelStyle::JapaneseInn,
     ] {
         let path = content.join(crate::travel_art::file_name(style));
         let bytes = crate::travel_art::png(style);

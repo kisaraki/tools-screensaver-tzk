@@ -27,6 +27,7 @@ use windows_sys::Win32::Graphics::Gdi::{
 
 const FREE_FLIGHT: &[u8] = include_bytes!("../assets/travel/free-flight.png");
 const TRAIN_JOURNEY: &[u8] = include_bytes!("../assets/travel/train-journey.png");
+const JAPANESE_INN: &[u8] = include_bytes!("../assets/travel/japanese-inn.png");
 const PNG_SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
 const MAX_ENCODED_BYTES: usize = 16 * 1024 * 1024;
 const MAX_DIMENSION: u32 = 4096;
@@ -36,6 +37,7 @@ pub fn png(style: TravelStyle) -> &'static [u8] {
     match style {
         TravelStyle::FreeFlight => FREE_FLIGHT,
         TravelStyle::TrainJourney => TRAIN_JOURNEY,
+        TravelStyle::JapaneseInn => JAPANESE_INN,
     }
 }
 
@@ -43,6 +45,7 @@ pub fn file_name(style: TravelStyle) -> &'static str {
     match style {
         TravelStyle::FreeFlight => "free-flight.png",
         TravelStyle::TrainJourney => "train-journey.png",
+        TravelStyle::JapaneseInn => "japanese-inn.png",
     }
 }
 
@@ -85,11 +88,13 @@ struct Pixels {
 
 static FLIGHT_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
 static TRAIN_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
+static INN_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
 
 fn cached_pixels(style: TravelStyle) -> Result<&'static Pixels, AppError> {
     let cache = match style {
         TravelStyle::FreeFlight => &FLIGHT_PIXELS,
         TravelStyle::TrainJourney => &TRAIN_PIXELS,
+        TravelStyle::JapaneseInn => &INN_PIXELS,
     };
     cache
         .get_or_init(|| decode(png(style)))
@@ -254,7 +259,11 @@ mod tests {
 
     #[test]
     fn embedded_artwork_decodes_and_preserves_existing_com_apartments() {
-        for style in [TravelStyle::FreeFlight, TravelStyle::TrainJourney] {
+        for style in [
+            TravelStyle::FreeFlight,
+            TravelStyle::TrainJourney,
+            TravelStyle::JapaneseInn,
+        ] {
             let pixels = cached_pixels(style).unwrap();
             assert_eq!((pixels.width, pixels.height), (1586, 992));
             assert_eq!(pixels.bytes.len(), 1586 * 992 * 4);
@@ -272,7 +281,11 @@ mod tests {
                 .ok()
                 .unwrap();
             let _mta = ComApartment { uninitialize: true };
-            for style in [TravelStyle::FreeFlight, TravelStyle::TrainJourney] {
+            for style in [
+                TravelStyle::FreeFlight,
+                TravelStyle::TrainJourney,
+                TravelStyle::JapaneseInn,
+            ] {
                 assert_eq!(decode(png(style)).unwrap().bytes.len(), 1586 * 992 * 4);
             }
             let (mut apartment, mut qualifier) = (APTTYPE_MTA, APTTYPEQUALIFIER_NONE);

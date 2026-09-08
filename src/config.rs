@@ -6,7 +6,7 @@ use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
 
-pub const SCHEMA_VERSION: u32 = 5;
+pub const SCHEMA_VERSION: u32 = 6;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
 pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
@@ -19,6 +19,9 @@ pub enum ColorPreset {
     DarkOrange,
     BrightGreen,
     OffWhite,
+    MutedLightBlue,
+    Amber,
+    Auto,
 }
 
 impl ColorPreset {
@@ -28,6 +31,9 @@ impl ColorPreset {
             1 => Some(Self::DarkOrange),
             2 => Some(Self::BrightGreen),
             3 => Some(Self::OffWhite),
+            4 => Some(Self::MutedLightBlue),
+            5 => Some(Self::Amber),
+            6 => Some(Self::Auto),
             _ => None,
         }
     }
@@ -38,6 +44,9 @@ impl ColorPreset {
             Self::DarkOrange => 1,
             Self::BrightGreen => 2,
             Self::OffWhite => 3,
+            Self::MutedLightBlue => 4,
+            Self::Amber => 5,
+            Self::Auto => 6,
         }
     }
 }
@@ -202,7 +211,11 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .unwrap_or(DisplayMode::TimeDate);
     let travel_style = dword(get(store, TRAVEL_STYLE))
         .and_then(TravelStyle::from_registry)
-        .filter(|_| schema.is_some_and(|version| version >= 4))
+        .filter(|style| {
+            schema.is_some_and(|version| {
+                version >= 4 && (*style != TravelStyle::JapaneseInn || version >= 6)
+            })
+        })
         .unwrap_or(TravelStyle::FreeFlight);
     let travel_switch_minutes = dword(get(store, TRAVEL_SWITCH_MINUTES))
         .filter(|_| schema.is_some_and(|version| version >= 5))
@@ -210,6 +223,12 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .unwrap_or(DEFAULT_TRAVEL_SWITCH_MINUTES);
     let color_preset = dword(get(store, COLOR_PRESET))
         .and_then(ColorPreset::from_registry)
+        .filter(|preset| {
+            !matches!(
+                preset,
+                ColorPreset::MutedLightBlue | ColorPreset::Amber | ColorPreset::Auto
+            ) || schema.is_some_and(|version| version >= 6)
+        })
         .unwrap_or(ColorPreset::BrightGreen);
     let font_mode = dword(get(store, FONT_MODE))
         .and_then(FontMode::from_registry)
@@ -457,22 +476,29 @@ mod tests {
         }
         assert_eq!(DisplayMode::from_registry(3), None);
 
-        for (raw, expected) in [(0, TravelStyle::FreeFlight), (1, TravelStyle::TrainJourney)] {
+        for (raw, expected) in [
+            (0, TravelStyle::FreeFlight),
+            (1, TravelStyle::TrainJourney),
+            (2, TravelStyle::JapaneseInn),
+        ] {
             assert_eq!(TravelStyle::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(TravelStyle::from_registry(2), None);
+        assert_eq!(TravelStyle::from_registry(3), None);
 
         for (raw, expected) in [
             (0, ColorPreset::DarkRed),
             (1, ColorPreset::DarkOrange),
             (2, ColorPreset::BrightGreen),
             (3, ColorPreset::OffWhite),
+            (4, ColorPreset::MutedLightBlue),
+            (5, ColorPreset::Amber),
+            (6, ColorPreset::Auto),
         ] {
             assert_eq!(ColorPreset::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(ColorPreset::from_registry(4), None);
+        assert_eq!(ColorPreset::from_registry(7), None);
 
         for (raw, expected) in [
             (0, FontMode::SevenSegment),
@@ -528,7 +554,7 @@ mod tests {
 
     #[test]
     fn schema_states_and_future_write_protection() {
-        for schema in [None, Some(1), Some(2), Some(3), Some(4), Some(5)] {
+        for schema in [None, Some(1), Some(2), Some(3), Some(4), Some(5), Some(6)] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
                 store.values.insert(SCHEMA.into(), RawValue::dword(schema));
@@ -550,8 +576,19 @@ mod tests {
         assert_eq!(load(&legacy).travel_style, TravelStyle::FreeFlight);
         legacy.values.insert(SCHEMA.into(), RawValue::dword(4));
         assert_eq!(load(&legacy).travel_style, TravelStyle::TrainJourney);
+        legacy
+            .values
+            .insert(TRAVEL_STYLE.into(), RawValue::dword(2));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::FreeFlight);
+        legacy
+            .values
+            .insert(COLOR_PRESET.into(), RawValue::dword(6));
+        assert_eq!(load(&legacy).color_preset, ColorPreset::BrightGreen);
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(6));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::JapaneseInn);
+        assert_eq!(load(&legacy).color_preset, ColorPreset::Auto);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(6));
+        future.values.insert(SCHEMA.into(), RawValue::dword(7));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -559,9 +596,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(6))
+            Err(SaveError::FutureSchema(7))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(6));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(7));
 
         for broken_schema in [
             RawValue::dword(0),
@@ -697,7 +734,10 @@ mod tests {
             draft.travel_switch_minutes = minutes;
             save_draft(&mut store, draft).unwrap();
             assert_eq!(load(&store).travel_switch_minutes, minutes);
-            assert_eq!(dword(store.values.get(SCHEMA).cloned()), Some(5));
+            assert_eq!(
+                dword(store.values.get(SCHEMA).cloned()),
+                Some(SCHEMA_VERSION)
+            );
             save_countdown(&mut store, 90).unwrap();
             assert_eq!(load(&store).travel_switch_minutes, minutes);
         }

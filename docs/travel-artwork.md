@@ -1,9 +1,10 @@
 # 旅行擬真圖像來源
 
-製作日期：2026-09-08。使用內建 image_gen（imagegen 技能）生成；兩張圖皆為原創 AI 擬真圖像，並非實際 A380 或特定列車的攝影照片。沒有使用第三方照片、商標或附件像素。PNG 原檔隨專案封裝，離線預覽亦使用相同圖像；第三方即時影片不包含在圖檔中。
+製作日期：2026-09-08。使用內建 imagegen 工具（imagegen 技能）生成；三張圖皆為原創 AI 擬真圖像，並非實際 A380、特定列車或旅館的攝影照片。使用者提供的旅館附件只作空間語彙參考，沒有複製其像素、家具配置或可識別細節。沒有使用第三方照片或商標。PNG 原檔隨專案封裝，離線預覽亦使用相同圖像；第三方即時影片不包含在圖檔中。
 
 - `assets/travel/free-flight.png`：暖白客機艙壁、銀灰多層窗框與天空。
 - `assets/travel/train-journey.png`：暖木質豪華列車窗框、黃銅與遠山。
+- `assets/travel/japanese-inn.png`：自然木構、障子與榻榻米包圍的日式旅館庭園窗景，1586×992；SHA-256 `9921eac609513cc46e84a4a2adc23336e51ebc883e84e4a65e05d1dfa9a0b56a`。
 
 以下保留生成提示以便後續維護。實際影片以完整 16:9 矩形放在窗孔內，窗框不覆蓋播放器或控制項。
 
@@ -14,3 +15,7 @@ Use case: photorealistic-natural. Asset type: original background plate for a Wi
 ## 列車旅行提示
 
 Use case: photorealistic-natural. Asset type: original realistic background plate for a Windows Japan travel screensaver. Create a luxurious Japanese-inspired sleeper train dining carriage interior viewed perfectly straight-on toward ONE large centered landscape picture window, with genuine architectural-photography realism. Wide 16:10 composition. Exquisite warm walnut wood grain wall panels, polished slender brass trim, curved upper ceiling ribs and warm concealed lighting, soft taupe upholstered dining chair corners and a small white linen table corner at the very bottom edges only. A single window with a thick believable dark wood and brass surround. The main window clear opening must be 16:9, centered at x=50%, spanning approximately x=18% to82% and y=18% to76% of the overall picture; all detailed wooden frame, ribs, lamps, chairs and tableware remain outside this large opening. Through it show softly distant green Japanese countryside with misty mountain ridges in early morning, no fast moving train or people. No mullions, curtain, ornament, reflection, furniture or object crossing the rectangular clear opening. Front-on symmetric composition without vanishing-point skew of the main window. Leave bottom 15% quiet shadowed wood for separate UI caption. Real photographic fine texture, tactile materials, natural light, premium understated atmosphere. No brand logos, no readable text, no watermarks, no people, no cartoon, no painted/vector or flat-gradient art. One single image, not collage.
+
+## 日式旅館提示
+
+Use case: photorealistic-natural. Asset type: original realistic background plate for the Japanese inn mode of a Windows Japan travel screensaver. Input image: style and material reference only; do not copy its pixels, furniture arrangement, exact room, or identifiable details. Create a different, fictional traditional Japanese ryokan guest room, photographed perfectly straight-on with architectural-photography realism. Wide 16:10 composition, symmetric and calm. Warm natural cedar beams, pale cream plaster, tatami floor along the lower edge, translucent shoji panels at both sides, subtle tokonoma alcove details and low warm lanterns kept near the far side edges. ONE large centered landscape picture opening framed by dark natural wood, with an unobstructed 16:9 clear aperture spanning approximately x=17% to83% and y=18% to76% of the whole image. All shoji grids, beams, lanterns, furniture, decor and wall details must remain completely outside this aperture; no central mullion, paper screen, chairs, table, reflection, curtain, vase, text, or other object may cross it. Through the opening show a quiet Japanese moss garden with maple trees, stone lantern and light morning mist, softly distant so a live video can replace the entire opening. Leave the bottom 14% visually quiet for a separate caption. Physically realistic wood grain, tatami weave, paper texture and natural ambient lighting; premium understated inn atmosphere. No people, no readable text, no watermark, no logos, no brand or identifiable real inn, no collage, no cartoon/vector/painting style. Generate one original image.

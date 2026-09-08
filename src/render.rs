@@ -12,6 +12,16 @@ use std::ptr;
 use windows_sys::Win32::Foundation::HWND;
 use windows_sys::Win32::Graphics::Gdi::*;
 
+const AUTO_COLOR_INTERVAL_MS: u64 = 120_000;
+const AUTO_COLORS: [ColorPreset; 6] = [
+    ColorPreset::DarkRed,
+    ColorPreset::DarkOrange,
+    ColorPreset::BrightGreen,
+    ColorPreset::OffWhite,
+    ColorPreset::MutedLightBlue,
+    ColorPreset::Amber,
+];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Style {
     pub palette: ColorPreset,
@@ -62,17 +72,36 @@ impl Style {
     }
 
     pub fn color(self) -> u32 {
-        match self.palette {
+        Self::preset_color(match self.palette {
+            ColorPreset::Auto => ColorPreset::BrightGreen,
+            preset => preset,
+        })
+    }
+
+    fn color_at(self, tick: u64) -> u32 {
+        let preset = if self.palette == ColorPreset::Auto {
+            AUTO_COLORS[(tick / AUTO_COLOR_INTERVAL_MS) as usize % AUTO_COLORS.len()]
+        } else {
+            self.palette
+        };
+        Self::preset_color(preset)
+    }
+
+    fn preset_color(preset: ColorPreset) -> u32 {
+        match preset {
             ColorPreset::DarkRed => rgb(139, 0, 0),
             ColorPreset::DarkOrange => rgb(255, 140, 0),
             ColorPreset::OffWhite => rgb(245, 245, 245),
             ColorPreset::BrightGreen => rgb(0, 255, 0),
+            ColorPreset::MutedLightBlue => rgb(101, 151, 178),
+            ColorPreset::Amber => rgb(255, 191, 0),
+            ColorPreset::Auto => unreachable!("auto palette must be resolved"),
         }
     }
     fn outline(self) -> bool {
         matches!(
             self.palette,
-            ColorPreset::BrightGreen | ColorPreset::OffWhite
+            ColorPreset::BrightGreen | ColorPreset::OffWhite | ColorPreset::Auto
         )
     }
 }
@@ -464,6 +493,7 @@ fn japan_travel(
         let scene_name = match style.travel_style {
             TravelStyle::FreeFlight => "自在飛行",
             TravelStyle::TrainJourney => "列車旅行",
+            TravelStyle::JapaneseInn => "日式旅館",
         };
         let title_text = format!("{scene_name}・{}", caption.place);
         let title = Font::fit(
@@ -527,7 +557,7 @@ fn time_date(
     frame: FrameSnapshot,
     style: Style,
 ) -> Result<(), AppError> {
-    let color = style.color();
+    let color = style.color_at(frame.tick);
     let clock = layout.clock;
     let (cx, cy, r) = (clock.cx(), clock.cy(), clock.w * 0.45);
     for tick in 0..60 {
@@ -948,6 +978,20 @@ mod tests {
             .unwrap()
             .sample(LocalTime::FIXTURE, now)
     }
+
+    #[test]
+    fn automatic_clock_palette_changes_every_two_minutes_and_repeats() {
+        let style = Style {
+            palette: ColorPreset::Auto,
+            ..Style::default()
+        };
+        assert_eq!(style.color_at(0), rgb(139, 0, 0));
+        assert_eq!(style.color_at(119_999), rgb(139, 0, 0));
+        assert_eq!(style.color_at(120_000), rgb(255, 140, 0));
+        assert_eq!(style.color_at(240_000), rgb(0, 255, 0));
+        assert_eq!(style.color_at(600_000), rgb(255, 191, 0));
+        assert_eq!(style.color_at(720_000), rgb(139, 0, 0));
+    }
     #[allow(clippy::too_many_arguments)]
     fn draw(
         renderer: &mut Renderer,
@@ -1074,7 +1118,11 @@ mod tests {
                 }
             }
         }
-        for travel_style in [TravelStyle::FreeFlight, TravelStyle::TrainJourney] {
+        for travel_style in [
+            TravelStyle::FreeFlight,
+            TravelStyle::TrainJourney,
+            TravelStyle::JapaneseInn,
+        ] {
             let mut renderer = Renderer::default();
             let buffer = draw(
                 &mut renderer,
@@ -1155,6 +1203,9 @@ mod tests {
                 ColorPreset::DarkOrange,
                 ColorPreset::BrightGreen,
                 ColorPreset::OffWhite,
+                ColorPreset::MutedLightBlue,
+                ColorPreset::Amber,
+                ColorPreset::Auto,
             ] {
                 cases.push((
                     mode,
@@ -1215,6 +1266,18 @@ mod tests {
             },
             300000,
             "train-journey",
+        ));
+        cases.push((
+            DisplayMode::JapanTravel,
+            800,
+            450,
+            96,
+            Style {
+                travel_style: TravelStyle::JapaneseInn,
+                ..Style::default()
+            },
+            300000,
+            "japanese-inn",
         ));
         for label in ["travel-checking", "travel-playing", "travel-unavailable"] {
             cases.push((
