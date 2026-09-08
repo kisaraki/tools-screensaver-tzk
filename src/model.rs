@@ -31,6 +31,8 @@ pub enum TravelStyle {
     FreeFlight,
     TrainJourney,
     JapaneseInn,
+    TrainCab,
+    Walking,
 }
 
 impl TravelStyle {
@@ -39,6 +41,8 @@ impl TravelStyle {
             0 => Some(Self::FreeFlight),
             1 => Some(Self::TrainJourney),
             2 => Some(Self::JapaneseInn),
+            3 => Some(Self::TrainCab),
+            4 => Some(Self::Walking),
             _ => None,
         }
     }
@@ -48,6 +52,8 @@ impl TravelStyle {
             Self::FreeFlight => 0,
             Self::TrainJourney => 1,
             Self::JapaneseInn => 2,
+            Self::TrainCab => 3,
+            Self::Walking => 4,
         }
     }
 }

@@ -82,15 +82,39 @@ pub(crate) struct TravelSource {
     pub camera_id: String,
     pub place: String,
     pub youtube_id: String,
+    pub playlist_id: Option<String>,
 }
 
 impl TravelSource {
     pub fn embed_url(&self) -> String {
-        format!(
-            "https://www.youtube-nocookie.com/embed/{}?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1",
-            self.youtube_id
-        )
+        match self.playlist_id.as_deref() {
+            Some(playlist) => format!(
+                "https://www.youtube-nocookie.com/embed/videoseries?list={playlist}&autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1"
+            ),
+            None => format!(
+                "https://www.youtube-nocookie.com/embed/{}?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1",
+                self.youtube_id
+            ),
+        }
     }
+}
+
+/// Playlist-backed scenes let the official iframe player retrieve the current
+/// playlist at fullscreen startup. This avoids an API key and HTML scraping.
+pub(crate) fn playlist_source(style: TravelStyle) -> Option<TravelSource> {
+    let (playlist_id, place) = match style {
+        TravelStyle::FreeFlight => ("PLdsqwBj2O1Nw", "自在飛行播放清單"),
+        TravelStyle::TrainJourney => ("PLBH60D9AGfu0", "列車旅行播放清單"),
+        TravelStyle::TrainCab => ("PLB-Fmt68BNm4", "列車駕駛前方播放清單"),
+        TravelStyle::Walking => ("PLbYZr39owNGo", "散步播放清單"),
+        TravelStyle::JapaneseInn => return None,
+    };
+    Some(TravelSource {
+        camera_id: playlist_id.into(),
+        place: place.into(),
+        youtube_id: String::new(),
+        playlist_id: Some(playlist_id.into()),
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -421,6 +445,7 @@ pub(crate) fn parse_camera_detail(
         camera_id: camera_id.to_owned(),
         place,
         youtube_id,
+        playlist_id: None,
     })
 }
 
@@ -751,9 +776,22 @@ body{display:grid;place-items:center}
 .free-flight .scene{background-image:url('free-flight.png')}
 .train-journey .scene{background-image:url('train-journey.png')}
 .japanese-inn .scene{background-image:url('japanese-inn.png')}
+.train-cab .scene{background-image:url('train-cab.png')}
+.walking .scene{background-image:url('walking.png')}
 .window{position:absolute;left:11%;top:21%;width:78.5%;height:56%;display:grid;place-items:center;background:#000;border-radius:2%}
 .train-journey .window{left:17.8%;top:20%;width:64.4%;height:54.5%}
 .japanese-inn .window{left:16.5%;top:18.5%;width:68%;height:57%;border-radius:0}
+.train-cab .window{left:12.6%;top:23.5%;width:76%;height:40%;border-radius:0}
+.walking .window{left:20%;top:22%;width:60%;height:54%;border-radius:12%/18%;overflow:hidden}
+.blink{display:none;position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.walking .blink{display:block}
+.blink::before,.blink::after{content:"";position:absolute;left:0;width:100%;height:51%;background:#000}
+.blink::before{top:0;transform:translateY(-100%)}
+.blink::after{bottom:0;transform:translateY(100%)}
+.walking.blinking .blink::before{animation:blinkTop 700ms ease-in-out}
+.walking.blinking .blink::after{animation:blinkBottom 700ms ease-in-out}
+@keyframes blinkTop{0%,100%{transform:translateY(-100%)}42%,58%{transform:translateY(0)}}
+@keyframes blinkBottom{0%,100%{transform:translateY(100%)}42%,58%{transform:translateY(0)}}
 .screen{height:100%;aspect-ratio:16/9;max-width:100%;background:#000}
 #player,#player iframe{display:block;width:100%;height:100%;border:0}
 .caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.35em 1em;align-items:center;padding:clamp(9px,1.2vw,18px) 0;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere}
@@ -761,6 +799,8 @@ body{display:grid;place-items:center}
 #status{font-size:clamp(12px,1.2vw,18px);color:#c8f3ff;text-align:right}
 .train-journey #place{color:#ffe1a6}.train-journey #status{color:#ffd7a1}
 .japanese-inn #place{color:#ffe0a3}.japanese-inn #status{color:#dbe9d1}
+.train-cab #place{color:#d7ecf6}.train-cab #status{color:#b9d9e8}
+.walking #place{color:#e6f5dc}.walking #status{color:#cde4bf}
 </style>
 </head>
 <body>
@@ -769,6 +809,7 @@ body{display:grid;place-items:center}
     <section class="window">
       <div class="screen"><div id="player"></div></div>
     </section>
+    <div class="blink" aria-hidden="true"></div>
   </div>
   <div class="caption"><span id="place">日本旅行模式</span><span id="status">正在檢查來源網路…</span></div>
 </main>
@@ -786,33 +827,116 @@ body{display:grid;place-items:center}
   let lastTime = -1;
   let unchanged = 0;
   let stalled = false;
+  let playlistNeedsShuffle = false;
+  let acceptPlayerEvents = false;
+  let selectedVideoId = '';
+  let playlistProbe = 0;
+  const cabin = document.querySelector('.cabin');
   const place = document.getElementById('place');
   const status = document.getElementById('status');
   const updateStatus = text => { status.textContent = String(text).slice(0, 96); };
-  const apply = source => {
-    if (!source || !/^[A-Za-z0-9_-]{11}$/.test(source.videoId) || !Number.isInteger(source.token) || source.token <= 0) return;
-    currentToken = source.token;
-    place.textContent = String(source.place || '日本').slice(0, 96);
-    updateStatus('正在載入日本即時影像…');
-    lastTime = -1; unchanged = 0; stalled = false;
-    if (!window.YT || !window.YT.Player) { pending = source; return; }
-    if (player && typeof player.loadVideoById === 'function') {
-      player.loadVideoById(source.videoId);
-      if (typeof player.mute === 'function') player.mute();
+  const randomIndex = length => {
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+      const value = new Uint32Array(1); window.crypto.getRandomValues(value); return value[0] % length;
+    }
+    return Math.floor(Math.random() * length);
+  };
+  const shuffleAndSelect = target => {
+    if (!playlistNeedsShuffle || typeof target.getPlaylist !== 'function') return false;
+    const loaded = target.getPlaylist();
+    if (!Array.isArray(loaded) || loaded.length === 0) return false;
+    target.setShuffle(true);
+    const shuffled = target.getPlaylist();
+    const choices = Array.isArray(shuffled) && shuffled.length ? shuffled : loaded;
+    const selected = choices[randomIndex(choices.length)];
+    if (typeof selected !== 'string' || !/^[A-Za-z0-9_-]{11}$/.test(selected)) return false;
+    playlistNeedsShuffle = false;
+    selectedVideoId = selected;
+    target.loadVideoById(selected);
+    return true;
+  };
+  const waitForPlaylist = (target, token, attempt) => {
+    if (currentToken !== token || !playlistNeedsShuffle) return;
+    if (shuffleAndSelect(target)) return;
+    if (attempt >= 20) {
+      playlistNeedsShuffle = false;
+      updateStatus('YouTube 播放清單無法讀取');
+      send('error', token);
       return;
     }
-    player = new YT.Player('player', {
+    clearTimeout(playlistProbe);
+    playlistProbe = setTimeout(() => waitForPlaylist(target, token, attempt + 1), 250);
+  };
+  const apply = source => {
+    if (!source || !Number.isInteger(source.token) || source.token <= 0) return;
+    const hasVideo = typeof source.videoId === 'string' && /^[A-Za-z0-9_-]{11}$/.test(source.videoId);
+    const hasPlaylist = typeof source.playlistId === 'string' && /^[A-Za-z0-9_-]{10,64}$/.test(source.playlistId);
+    if (hasVideo === hasPlaylist) return;
+    const switching = currentToken !== 0;
+    clearTimeout(playlistProbe);
+    currentToken = source.token;
+    acceptPlayerEvents = false;
+    place.textContent = String(source.place || '日本').slice(0, 96);
+    updateStatus(hasPlaylist ? '正在讀取並隨機排列 YouTube 播放清單…' : '正在載入日本即時影像…');
+    lastTime = -1; unchanged = 0; stalled = false;
+    const startLoad = () => {
+      if (currentToken !== source.token) return;
+      playlistNeedsShuffle = hasPlaylist;
+      acceptPlayerEvents = true;
+      selectedVideoId = hasVideo ? source.videoId : '';
+      if (!window.YT || !window.YT.Player) { pending = source; return; }
+      if (player) {
+        if (hasPlaylist && typeof player.loadPlaylist === 'function') {
+          player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:0});
+          waitForPlaylist(player, source.token, 0);
+        } else if (hasVideo && typeof player.loadVideoById === 'function') {
+          player.loadVideoById(source.videoId);
+        }
+        if (typeof player.mute === 'function') player.mute();
+        return;
+      }
+      const options = {
       host:'https://www.youtube-nocookie.com',
-      videoId:source.videoId,
       playerVars:{autoplay:1,mute:1,playsinline:1,rel:0,controls:1,disablekb:1,fs:0,origin:'https://travel.screensaver.local'},
       events:{
-        onReady:event => { event.target.mute(); event.target.playVideo(); updateStatus('影像來源已連線'); send('ready',currentToken); },
-        onStateChange:event => { if (event.data === YT.PlayerState.PLAYING) { updateStatus('日本即時影像播放中'); send('playing',currentToken); } },
-        onError:event => { updateStatus('目前影像來源無法播放'); send('error',currentToken); }
+        onReady:event => {
+          event.target.mute();
+          updateStatus('影像來源已連線');
+          send('ready',currentToken);
+          if (playlistNeedsShuffle) waitForPlaylist(event.target, currentToken, 0);
+          else event.target.playVideo();
+        },
+        onStateChange:event => {
+          if (!acceptPlayerEvents) return;
+          if (playlistNeedsShuffle) return;
+          if (event.data === YT.PlayerState.PLAYING) {
+            updateStatus(hasPlaylist ? '播放清單隨機影片播放中' : '日本即時影像播放中');
+            send('playing',currentToken);
+          } else if (event.data === YT.PlayerState.ENDED && selectedVideoId) {
+            event.target.loadVideoById(selectedVideoId);
+          }
+        },
+        onError:event => { if (acceptPlayerEvents) { updateStatus('目前影像來源無法播放'); send('error',currentToken); } }
       }
-    });
+      };
+      if (hasPlaylist) {
+        options.playerVars.listType='playlist'; options.playerVars.list=source.playlistId;
+      } else {
+        options.videoId=source.videoId;
+      }
+      player = new YT.Player('player', options);
+    };
+    if (switching && cabin.classList.contains('walking')) {
+      cabin.classList.remove('blinking');
+      void cabin.offsetWidth;
+      cabin.classList.add('blinking');
+      setTimeout(startLoad, 300);
+      setTimeout(() => cabin.classList.remove('blinking'), 720);
+    } else {
+      startLoad();
+    }
   };
-  window.onYouTubeIframeAPIReady = () => { if (pending) { const source=pending; pending=null; apply(source); } };
+  window.onYouTubeIframeAPIReady = () => { if (pending) { const source=pending; pending=null; currentToken=0; apply(source); } };
   window.travel = {load: apply, setStatus:updateStatus};
   if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('shell-ready');
   setInterval(() => {
@@ -834,6 +958,8 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
         TravelStyle::FreeFlight => ("free-flight", "自在飛行客艙窗景"),
         TravelStyle::TrainJourney => ("train-journey", "列車旅行車廂窗景"),
         TravelStyle::JapaneseInn => ("japanese-inn", "日式旅館庭園窗景"),
+        TravelStyle::TrainCab => ("train-cab", "列車駕駛前方視角"),
+        TravelStyle::Walking => ("walking", "散步第一人稱人眼視角"),
     };
     TRAVEL_HTML_TEMPLATE
         .replace("__TRAVEL_SCENE_CLASS__", class)
@@ -842,8 +968,12 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
 
 pub(crate) fn load_source_script(source: &TravelSource, token: u32) -> String {
     format!(
-        "window.travel.load({{videoId:{},place:{},token:{token}}});",
+        "window.travel.load({{videoId:{},playlistId:{},place:{},token:{token}}});",
         json_string(&source.youtube_id),
+        source
+            .playlist_id
+            .as_deref()
+            .map_or_else(|| "null".to_owned(), json_string),
         json_string(&source.place)
     )
 }
@@ -1037,6 +1167,8 @@ mod tests {
                 "列車旅行車廂窗景",
             ),
             (TravelStyle::JapaneseInn, "japanese-inn", "日式旅館庭園窗景"),
+            (TravelStyle::TrainCab, "train-cab", "列車駕駛前方視角"),
+            (TravelStyle::Walking, "walking", "散步第一人稱人眼視角"),
         ] {
             let shell = travel_html_shell(style);
             assert_eq!(shell.matches("id=\"player\"").count(), 1);
@@ -1048,6 +1180,8 @@ mod tests {
             assert!(shell.contains("background-image:url('free-flight.png')"));
             assert!(shell.contains("background-image:url('train-journey.png')"));
             assert!(shell.contains("background-image:url('japanese-inn.png')"));
+            assert!(shell.contains("background-image:url('train-cab.png')"));
+            assert!(shell.contains("background-image:url('walking.png')"));
             assert!(shell.contains("aspect-ratio:1586/992"));
             assert!(shell.contains("aspect-ratio:16/9"));
             assert!(!shell.contains("__TRAVEL_SCENE_"));
@@ -1064,10 +1198,12 @@ mod tests {
         let source = TravelSource {
             camera_id: "safe".into(),
             youtube_id: "Ee27soLzJ5c".into(),
+            playlist_id: None,
             place: "東京 </script> & \"測試\"\n下一行".into(),
         };
         let script = load_source_script(&source, 7);
-        assert!(script.starts_with("window.travel.load({videoId:\"Ee27soLzJ5c\",place:"));
+        assert!(script
+            .starts_with("window.travel.load({videoId:\"Ee27soLzJ5c\",playlistId:null,place:"));
         assert!(!script.contains("</script>"));
         assert!(script.contains("\\u003c/script\\u003e"));
         assert!(script.contains("\\u0026"));
@@ -1077,6 +1213,37 @@ mod tests {
             set_status_script("離線 <重試>"),
             "window.travel.setStatus(\"離線 \\u003c重試\\u003e\");"
         );
+    }
+
+    #[test]
+    fn playlist_scenes_use_the_requested_youtube_lists_and_shuffle_in_the_player() {
+        for (style, expected) in [
+            (TravelStyle::FreeFlight, "PLdsqwBj2O1Nw"),
+            (TravelStyle::TrainJourney, "PLBH60D9AGfu0"),
+            (TravelStyle::TrainCab, "PLB-Fmt68BNm4"),
+            (TravelStyle::Walking, "PLbYZr39owNGo"),
+        ] {
+            let source = playlist_source(style).unwrap();
+            assert_eq!(source.playlist_id.as_deref(), Some(expected));
+            assert_eq!(source.camera_id, expected);
+            assert!(source.youtube_id.is_empty());
+            assert!(source.embed_url().contains("/embed/videoseries?list="));
+            let script = load_source_script(&source, 9);
+            assert!(script.contains(&format!("playlistId:\"{expected}\"")));
+            assert!(script.contains("token:9"));
+        }
+        assert!(playlist_source(TravelStyle::JapaneseInn).is_none());
+        let shell = travel_html_shell(TravelStyle::Walking);
+        for behavior in [
+            "loadPlaylist({listType:'playlist'",
+            "setShuffle(true)",
+            "getPlaylist()",
+            "target.loadVideoById(selected)",
+            "@keyframes blinkTop",
+            "setTimeout(startLoad, 300)",
+        ] {
+            assert!(shell.contains(behavior), "missing {behavior}");
+        }
     }
 
     #[test]

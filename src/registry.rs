@@ -207,7 +207,7 @@ pub fn load_registry() -> AppConfig {
 #[cfg(debug_assertions)]
 fn registry_path() -> String {
     const PREFIX: &str = "Software\\tools-screensaver-tzk\\Tests\\";
-    std::env::var("MYDATETIME_SCREENSAVER_TEST_KEY")
+    std::env::var("TOOLS_SCREENSAVER_TZK_TEST_KEY")
         .ok()
         .filter(|path| path.starts_with(PREFIX) && !path.contains(".."))
         .unwrap_or_else(|| KEY_PATH.to_owned())

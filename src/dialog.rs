@@ -253,11 +253,13 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_TRAVEL_FREE_FLIGHT),
-            i32::from(resource_ids::IDC_TRAVEL_JAPANESE_INN),
+            i32::from(resource_ids::IDC_TRAVEL_WALKING),
             i32::from(match draft.travel_style {
                 TravelStyle::FreeFlight => resource_ids::IDC_TRAVEL_FREE_FLIGHT,
                 TravelStyle::TrainJourney => resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
                 TravelStyle::JapaneseInn => resource_ids::IDC_TRAVEL_JAPANESE_INN,
+                TravelStyle::TrainCab => resource_ids::IDC_TRAVEL_TRAIN_CAB,
+                TravelStyle::Walking => resource_ids::IDC_TRAVEL_WALKING,
             }),
         ) == 0
         {
@@ -363,6 +365,8 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
         value if value == resource_ids::IDC_TRAVEL_FREE_FLIGHT => TravelStyle::FreeFlight,
         value if value == resource_ids::IDC_TRAVEL_TRAIN_JOURNEY => TravelStyle::TrainJourney,
         value if value == resource_ids::IDC_TRAVEL_JAPANESE_INN => TravelStyle::JapaneseInn,
+        value if value == resource_ids::IDC_TRAVEL_TRAIN_CAB => TravelStyle::TrainCab,
+        value if value == resource_ids::IDC_TRAVEL_WALKING => TravelStyle::Walking,
         _ => draft.travel_style,
     };
     if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO).contains(&id) {
@@ -386,6 +390,8 @@ fn set_travel_controls_enabled(hwnd: HWND, enabled: bool) {
             resource_ids::IDC_TRAVEL_FREE_FLIGHT,
             resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
             resource_ids::IDC_TRAVEL_JAPANESE_INN,
+            resource_ids::IDC_TRAVEL_TRAIN_CAB,
+            resource_ids::IDC_TRAVEL_WALKING,
             resource_ids::IDC_TRAVEL_SWITCH_MODE,
             resource_ids::IDC_TRAVEL_SWITCH_LABEL,
         ] {
@@ -636,7 +642,7 @@ unsafe extern "system" fn config_proc(
                 && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
                     .contains(&id)
                     || (resource_ids::IDC_TRAVEL_FREE_FLIGHT
-                        ..=resource_ids::IDC_TRAVEL_JAPANESE_INN)
+                        ..=resource_ids::IDC_TRAVEL_WALKING)
                         .contains(&id)
                     || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO)
                         .contains(&id)) =>

@@ -1,0 +1,89 @@
+﻿{
+    "capturedAt":  "2026-09-08T23:41:13.0154525+08:00",
+    "browserVersion":  "152.0.4191.66",
+    "interactive":  false,
+    "livePlayer":  false,
+    "result":  "PASS",
+    "fixtures":  [
+                     {
+                         "style":  "free-flight",
+                         "size":  "1600x1000",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "free-flight",
+                         "size":  "900x1600",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "train-journey",
+                         "size":  "1600x1000",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "train-journey",
+                         "size":  "900x1600",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "japanese-inn",
+                         "size":  "1600x1000",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "japanese-inn",
+                         "size":  "900x1600",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "train-cab",
+                         "size":  "1600x1000",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "train-cab",
+                         "size":  "900x1600",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "walking",
+                         "size":  "1600x1000",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     },
+                     {
+                         "style":  "walking",
+                         "size":  "900x1600",
+                         "geometry":  "PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport",
+                         "validationMarker":  "2px green at top left",
+                         "livePlayer":  false,
+                         "networkHostsBlocked":  true
+                     }
+                 ]
+}

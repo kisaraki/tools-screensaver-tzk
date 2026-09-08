@@ -24,6 +24,13 @@ $cameras = @(
     [ordered]@{ id = 'jpkamikochitaishoilakealps'; place = '長野・上高地大正池' }
 )
 
+$playlists = @(
+    [ordered]@{ style = 'FreeFlight'; label = '自在飛行'; id = 'PLdsqwBj2O1Nw' },
+    [ordered]@{ style = 'TrainJourney'; label = '列車旅行'; id = 'PLBH60D9AGfu0' },
+    [ordered]@{ style = 'TrainCab'; label = '列車駕駛前方'; id = 'PLB-Fmt68BNm4' },
+    [ordered]@{ style = 'Walking'; label = '散步模式'; id = 'PLbYZr39owNGo' }
+)
+
 function Invoke-BoundedGet {
     param([Parameter(Mandatory)][string]$Uri)
 
@@ -113,20 +120,52 @@ $results = foreach ($camera in $cameras) {
     [pscustomobject]$item
 }
 
+$playlistResults = foreach ($playlist in $playlists) {
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    $item = [ordered]@{
+        style = $playlist.style
+        label = $playlist.label
+        playlistId = $playlist.id
+        embedUrl = "https://www.youtube.com/embed/videoseries?list=$($playlist.id)"
+        status = 0
+        reachable = $false
+        elapsedMs = 0
+        error = $null
+    }
+    try {
+        $response = Invoke-BoundedGet -Uri $item.embedUrl
+        $item.status = $response.StatusCode
+        $item.reachable = $response.StatusCode -eq 200 -and
+            $response.FinalUri.StartsWith('https://www.youtube.com/', [StringComparison]::OrdinalIgnoreCase)
+    }
+    catch {
+        $item.error = $_.Exception.Message
+    }
+    finally {
+        $timer.Stop()
+        $item.elapsedMs = $timer.ElapsedMilliseconds
+    }
+    [pscustomobject]$item
+}
+
 $healthyCount = @($results | Where-Object reachable).Count
+$healthyPlaylistCount = @($playlistResults | Where-Object reachable).Count
 $report = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     checkedAt = $checkedAt.ToString('o')
     checkType = 'noninteractive HTTP reachability; does not claim video PLAYING'
     timeoutSecondsPerRequest = $TimeoutSeconds
     catalog = [pscustomobject]$catalog
     summary = [ordered]@{
-        total = $results.Count
-        reachable = $healthyCount
-        unavailable = $results.Count - $healthyCount
-        networkHealthy = $catalog.ok -and $healthyCount -ge 3
+        cameraTotal = $results.Count
+        cameraReachable = $healthyCount
+        playlistTotal = $playlistResults.Count
+        playlistReachable = $healthyPlaylistCount
+        unavailable = ($results.Count - $healthyCount) + ($playlistResults.Count - $healthyPlaylistCount)
+        networkHealthy = $catalog.ok -and $healthyCount -ge 3 -and $healthyPlaylistCount -eq $playlistResults.Count
     }
     cameras = @($results)
+    playlists = @($playlistResults)
 }
 
 $destination = [IO.Path]::GetFullPath($OutputPath)

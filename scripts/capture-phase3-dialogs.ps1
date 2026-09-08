@@ -29,7 +29,7 @@ public static class Phase3CaptureNative
 [void][Phase3CaptureNative]::SetThreadDpiAwarenessContext([IntPtr](-4))
 
 $testKey = 'Software\tools-screensaver-tzk\Tests\phase3-capture'
-$testEnvironment = 'MYDATETIME_SCREENSAVER_TEST_KEY'
+$testEnvironment = 'TOOLS_SCREENSAVER_TZK_TEST_KEY'
 $registry = [Microsoft.Win32.Registry]::CurrentUser
 
 function Remove-TestKey {

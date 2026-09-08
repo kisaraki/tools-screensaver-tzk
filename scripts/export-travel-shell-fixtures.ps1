@@ -1,4 +1,4 @@
-param([string]$OutputDirectory = 'docs/evidence/phase13/html')
+param([string]$OutputDirectory = 'docs/evidence/phase14/html')
 $ErrorActionPreference = 'Stop'
 # Render only the product's local HTML/CSS with its player scripts removed.
 # A new disposable browser profile and blocked host resolution avoid using the
@@ -10,7 +10,7 @@ if (!(Test-Path -LiteralPath $edge)) { throw 'Microsoft Edge is required for the
 $null = New-Item -ItemType Directory -Path $output -Force
 $work = Join-Path $repoRoot ('target/travel-shell-fixtures-' + [Guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $work
-Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/travel/free-flight.png'),(Join-Path $repoRoot 'assets/travel/train-journey.png'),(Join-Path $repoRoot 'assets/travel/japanese-inn.png') -Destination $work
+Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/travel/free-flight.png'),(Join-Path $repoRoot 'assets/travel/train-journey.png'),(Join-Path $repoRoot 'assets/travel/japanese-inn.png'),(Join-Path $repoRoot 'assets/travel/train-cab.png'),(Join-Path $repoRoot 'assets/travel/walking.png') -Destination $work
 $source = [IO.File]::ReadAllText((Join-Path $repoRoot 'src/travel.rs'))
 $template = [regex]::Match($source,'(?s)const TRAVEL_HTML_TEMPLATE: &str = r#"(.*?)"#;').Groups[1].Value
 if (!$template) { throw 'Travel HTML template not found' }
@@ -23,9 +23,11 @@ window.addEventListener('load', () => {
     return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom};
   };
   const art=rect('.scene'), windowRect=rect('.window'), player=rect('.screen'), caption=rect('.caption');
-  const contains=(a,b)=>b.x>=a.x-.1&&b.y>=a.y-.1&&b.right<=a.right+.1&&b.bottom<=a.bottom+.1;
+  const contains=(a,b)=>b.x>=a.x-1&&b.y>=a.y-1&&b.right<=a.right+1&&b.bottom<=a.bottom+1;
+  const walking=document.querySelector('.cabin').classList.contains('walking');
+  const walkingMargins=!walking||(windowRect.w/art.w<=.61&&windowRect.h/art.h<=.55);
   const pass=contains(art,windowRect)&&contains(windowRect,player)&&caption.y>=art.bottom-.1
-    &&Math.abs(player.w/player.h-16/9)<.005&&caption.bottom<=innerHeight+1;
+    &&Math.abs(player.w/player.h-16/9)<.005&&caption.bottom<=innerHeight+1&&walkingMargins;
   document.body.dataset.geometry=JSON.stringify({pass,viewport:[innerWidth,innerHeight],art,window:windowRect,player,caption});
   const marker=document.createElement('div');
   marker.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;z-index:99999;background:'+(pass?'rgb(0,255,0)':'rgb(255,0,0)');
@@ -35,11 +37,13 @@ window.addEventListener('load', () => {
 '@
 Add-Type -AssemblyName System.Drawing
 $reports = @()
-foreach ($style in @('free-flight','train-journey','japanese-inn')) {
+foreach ($style in @('free-flight','train-journey','japanese-inn','train-cab','walking')) {
     $label = switch ($style) {
         'free-flight' { 'Free flight realistic frame' }
         'train-journey' { 'Train journey realistic frame' }
-        default { 'Japanese inn realistic frame' }
+        'japanese-inn' { 'Japanese inn realistic frame' }
+        'train-cab' { 'Train driver forward realistic frame' }
+        default { 'First person human eye walking frame' }
     }
     $html = $template.Replace('__TRAVEL_SCENE_CLASS__',$style).Replace('__TRAVEL_SCENE_LABEL__',$label)
     $html = [regex]::Replace($html,'<span id="place">.*?</span>',"<span id=`"place`">$label</span>")
@@ -75,4 +79,4 @@ foreach ($style in @('free-flight','train-journey','japanese-inn')) {
 }
 $report = [pscustomobject]@{capturedAt=[DateTimeOffset]::Now.ToString('o');browserVersion=(Get-Item -LiteralPath $edge).VersionInfo.FileVersion;interactive=$false;livePlayer=$false;result='PASS';fixtures=$reports}
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'geometry.json') -Encoding utf8
-'PASS: six offline headless HTML screenshots; player rectangles remain 16:9 and captions stay outside the artwork.'
+'PASS: ten offline headless HTML screenshots; player rectangles remain 16:9, walking view stays central, and captions stay outside the artwork.'

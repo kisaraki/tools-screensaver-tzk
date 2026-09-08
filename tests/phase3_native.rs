@@ -17,7 +17,7 @@ use windows_sys::Win32::Graphics::Gdi::MapWindowPoints;
 use windows_sys::Win32::System::Registry::{RegDeleteTreeW, HKEY_CURRENT_USER};
 use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
-const TEST_KEY_ENV: &str = "MYDATETIME_SCREENSAVER_TEST_KEY";
+const TEST_KEY_ENV: &str = "TOOLS_SCREENSAVER_TZK_TEST_KEY";
 const IDC_MODE_TIME_DATE: i32 = 1001;
 const IDC_MODE_COUNTDOWN: i32 = 1002;
 const IDC_MODE_JAPAN_TRAVEL: i32 = 1003;

@@ -6,7 +6,7 @@ use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
 
-pub const SCHEMA_VERSION: u32 = 6;
+pub const SCHEMA_VERSION: u32 = 7;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
 pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
@@ -213,7 +213,10 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .and_then(TravelStyle::from_registry)
         .filter(|style| {
             schema.is_some_and(|version| {
-                version >= 4 && (*style != TravelStyle::JapaneseInn || version >= 6)
+                version >= 4
+                    && (*style != TravelStyle::JapaneseInn || version >= 6)
+                    && (!matches!(style, TravelStyle::TrainCab | TravelStyle::Walking)
+                        || version >= 7)
             })
         })
         .unwrap_or(TravelStyle::FreeFlight);
@@ -480,11 +483,13 @@ mod tests {
             (0, TravelStyle::FreeFlight),
             (1, TravelStyle::TrainJourney),
             (2, TravelStyle::JapaneseInn),
+            (3, TravelStyle::TrainCab),
+            (4, TravelStyle::Walking),
         ] {
             assert_eq!(TravelStyle::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(TravelStyle::from_registry(3), None);
+        assert_eq!(TravelStyle::from_registry(5), None);
 
         for (raw, expected) in [
             (0, ColorPreset::DarkRed),
@@ -554,7 +559,16 @@ mod tests {
 
     #[test]
     fn schema_states_and_future_write_protection() {
-        for schema in [None, Some(1), Some(2), Some(3), Some(4), Some(5), Some(6)] {
+        for schema in [
+            None,
+            Some(1),
+            Some(2),
+            Some(3),
+            Some(4),
+            Some(5),
+            Some(6),
+            Some(7),
+        ] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
                 store.values.insert(SCHEMA.into(), RawValue::dword(schema));
@@ -587,8 +601,14 @@ mod tests {
         legacy.values.insert(SCHEMA.into(), RawValue::dword(6));
         assert_eq!(load(&legacy).travel_style, TravelStyle::JapaneseInn);
         assert_eq!(load(&legacy).color_preset, ColorPreset::Auto);
+        legacy
+            .values
+            .insert(TRAVEL_STYLE.into(), RawValue::dword(4));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::FreeFlight);
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(7));
+        assert_eq!(load(&legacy).travel_style, TravelStyle::Walking);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(7));
+        future.values.insert(SCHEMA.into(), RawValue::dword(8));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -596,9 +616,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(7))
+            Err(SaveError::FutureSchema(8))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(7));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(8));
 
         for broken_schema in [
             RawValue::dword(0),

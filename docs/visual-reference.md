@@ -1,8 +1,26 @@
 # 視覺參考與實作證據
 
-產品版本：0.9.0<br>
-規格文件：v2.0<br>
+產品版本：0.10.0<br>
+規格文件：v2.1<br>
 更新日期：2026-09-08
+
+## v0.10.0 列車駕駛前方與第一人稱散步
+
+兩張新增素材都是依附件的視角概念重新生成的原創擬真 PNG，不包含附件像素、人物、文字、商標或特定營運者識別。
+
+![列車駕駛前方原創擬真場景](../assets/travel/train-cab.png)
+
+![散步模式第一人稱人眼場景](../assets/travel/walking.png)
+
+- [列車駕駛前方 GDI fallback](evidence/phase14/fixtures/47-JapanTravel-800x450-dpi96-p2-SevenSegment-train-cab.png)
+- [散步模式 GDI fallback](evidence/phase14/fixtures/48-JapanTravel-800x450-dpi96-p2-SevenSegment-walking.png)
+- [列車駕駛前方 HTML 橫向畫面](evidence/phase14/html/train-cab-1600x1000.png)
+- [散步模式 HTML 橫向中央人眼視野](evidence/phase14/html/walking-1600x1000.png)
+- [五場景 HTML 幾何結果](evidence/phase14/html/geometry.json)
+
+散步 player 收在中央 60%×54%，周圍保留較多黑色區域；HTML shell 具 700 ms 上下眼瞼 keyframes，來源於 300 ms 閉合點切換。靜態 fixture 驗證區域與層次，動畫時間由 Rust 測試驗證；實際 WebView2 動畫仍是 `NOT TESTED`。
+
+Phase 14 共匯出 52 張 GDI fixture 與 10 張封鎖網路的 headless HTML fixture。[Phase 14 報告](phase14-report.md)記錄命令、結果與未測項。
 
 ## v0.9.0 日式旅館與桌曆時鐘色彩
 

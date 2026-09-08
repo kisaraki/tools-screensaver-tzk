@@ -235,6 +235,10 @@ impl TravelHost {
         if coordinator.is_null() || self.stopping() {
             return;
         }
+        let playlist_source = self
+            .owner
+            .upgrade()
+            .and_then(|owner| travel::playlist_source(owner.config.get().travel_style));
         let (generation, purpose, candidates, sender, check_catalog) = {
             let mut travel_slot = self.travel.borrow_mut();
             let Some(travel) = travel_slot.as_mut() else {
@@ -253,19 +257,24 @@ impl TravelHost {
             if purpose == FetchPurpose::Current {
                 travel.state = travel.state.transition(NetworkEvent::FetchStarted);
             }
-            let current = travel
-                .source
-                .as_ref()
-                .map(|source| source.camera_id.as_str());
-            let mut candidates = travel.rotation.candidates();
-            candidates.retain(|candidate| Some(candidate.camera_id) != current);
-            candidates.truncate(MAX_CANDIDATES_PER_ATTEMPT);
+            let candidates = if playlist_source.is_some() {
+                Vec::new()
+            } else {
+                let current = travel
+                    .source
+                    .as_ref()
+                    .map(|source| source.camera_id.as_str());
+                let mut candidates = travel.rotation.candidates();
+                candidates.retain(|candidate| Some(candidate.camera_id) != current);
+                candidates.truncate(MAX_CANDIDATES_PER_ATTEMPT);
+                candidates
+            };
             (
                 travel.generation,
                 purpose,
                 candidates,
                 travel.sender.clone(),
-                !travel.catalog_healthy,
+                playlist_source.is_none() && !travel.catalog_healthy,
             )
         };
         if purpose == FetchPurpose::Current {
@@ -277,35 +286,44 @@ impl TravelHost {
         let spawn = thread::Builder::new()
             .name("japan-travel-source-check".into())
             .spawn(move || {
-                let catalog = if check_catalog {
-                    travel::check_catalog().map(|()| true)
-                } else {
-                    Ok(true)
-                };
-                let completion = match catalog {
-                    Err(error) => TravelFetchCompletion {
+                let completion = if let Some(source) = playlist_source {
+                    TravelFetchCompletion {
                         generation,
                         purpose,
-                        catalog_healthy: false,
-                        source: Err(error.to_string()),
-                    },
-                    Ok(catalog_healthy) => {
-                        let mut last_error = "沒有可用的日本即時影像候選".to_owned();
-                        let mut source = None;
-                        for candidate in candidates {
-                            match travel::fetch_source(candidate) {
-                                Ok(resolved) => {
-                                    source = Some(resolved);
-                                    break;
-                                }
-                                Err(error) => last_error = error.to_string(),
-                            }
-                        }
-                        TravelFetchCompletion {
+                        catalog_healthy: true,
+                        source: Ok(source),
+                    }
+                } else {
+                    let catalog = if check_catalog {
+                        travel::check_catalog().map(|()| true)
+                    } else {
+                        Ok(true)
+                    };
+                    match catalog {
+                        Err(error) => TravelFetchCompletion {
                             generation,
                             purpose,
-                            catalog_healthy,
-                            source: source.ok_or(last_error),
+                            catalog_healthy: false,
+                            source: Err(error.to_string()),
+                        },
+                        Ok(catalog_healthy) => {
+                            let mut last_error = "沒有可用的日本即時影像候選".to_owned();
+                            let mut source = None;
+                            for candidate in candidates {
+                                match travel::fetch_source(candidate) {
+                                    Ok(resolved) => {
+                                        source = Some(resolved);
+                                        break;
+                                    }
+                                    Err(error) => last_error = error.to_string(),
+                                }
+                            }
+                            TravelFetchCompletion {
+                                generation,
+                                purpose,
+                                catalog_healthy,
+                                source: source.ok_or(last_error),
+                            }
                         }
                     }
                 };
@@ -1120,6 +1138,8 @@ fn prepare_travel_storage(shell_html: &str) -> Result<(PathBuf, PathBuf), String
         crate::model::TravelStyle::FreeFlight,
         crate::model::TravelStyle::TrainJourney,
         crate::model::TravelStyle::JapaneseInn,
+        crate::model::TravelStyle::TrainCab,
+        crate::model::TravelStyle::Walking,
     ] {
         let path = content.join(crate::travel_art::file_name(style));
         let bytes = crate::travel_art::png(style);
@@ -1861,6 +1881,7 @@ mod tests {
                     camera_id: camera.into(),
                     place: place.into(),
                     youtube_id: "Ee27soLzJ5c".into(),
+                    playlist_id: None,
                 },
                 100,
             );
@@ -1928,6 +1949,7 @@ mod tests {
             camera_id: camera.into(),
             place: "日本".into(),
             youtube_id: "Ee27soLzJ5c".into(),
+            playlist_id: None,
         };
         travel.activate_source(source("first"), 100);
         assert_eq!(travel.playback_token, 1);

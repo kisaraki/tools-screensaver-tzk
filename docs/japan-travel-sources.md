@@ -1,81 +1,48 @@
 # 日本旅行模式來源、網路與授權紀錄
 
-產品版本：0.8.0<br>
-規格文件：v1.9<br>
-最後非互動 HTTP 檢查：2026-09-07T20:17:11.3035837+08:00<br>
-主要目錄：[tw.live 日本旅行即時影像](https://tw.live/japan/)
+產品版本：0.10.0<br>
+規格文件：v2.1<br>
+最後非互動 HTTP 檢查：2026-09-08<br>
+證據：[Phase 14 source-health.json](evidence/phase14/source-health.json)
 
-## 文件用途
+## 來源配置
 
-本文件的播放配置更新至 v0.8.0，新增可設定的來源切換時間與內附擬真旅行場景；HTTP 證據沿用 v0.4.0 的 Phase 8 探測，這次沒有重新檢查來源。文件記錄目前來源契約與尚未完成的播放、權利驗證。第三方 camera ID、video ID、頁面結構、嵌入權限及可用性都可能改變；這份紀錄不是永久可用或重新散布的保證。
-
-tw.live 是民間公開資料整合平台。其日本頁目前整理日本各地即時影像並標示資料來源為 YouTube；本程式使用 tw.live camera detail 解析出的 YouTube video ID，交由 YouTube 官方嵌入播放器播放。程式不嵌入 tw.live 整頁，也不執行其 script、廣告或追蹤碼。
-
-## 健康狀態定義
-
-| 層級 | 判定 | 不能代表 |
+| 場景 | 執行期來源 | 啟動與切換行為 |
 | --- | --- | --- |
-| `CatalogReachable` | `https://tw.live/japan/` 經 HTTPS 回傳可接受的 2xx HTML，且包含預期的日本目錄與 YouTube 標記 | 任一候選存在或影片可播放 |
-| `CandidateResolved` | 指定 camera detail 經 HTTPS 回傳 2xx，且可解析出允許 host 的 11 字元 YouTube video ID | player 已載入、直播在線或可在目標地區播放 |
-| `PlaybackHealthy` | 產品內 WebView2 navigation 成功，YouTube player 明確回報 `PLAYING` | 未來持續可用或已取得第三方內容授權 |
+| 自在飛行 | [YouTube playlist `PLdsqwBj2O1Nw`](https://www.youtube.com/playlist?list=PLdsqwBj2O1Nw) | 每次全螢幕啟動及設定時間到期時重新讀取清單，隨機選片 |
+| 列車旅行 | [YouTube playlist `PLBH60D9AGfu0`](https://www.youtube.com/playlist?list=PLBH60D9AGfu0) | 同上 |
+| 日式旅館 | [tw.live 日本旅行即時影像](https://tw.live/japan/) | 每次解析目前 camera detail，從八個候選隨機選取 |
+| 列車駕駛前方 | [YouTube playlist `PLB-Fmt68BNm4`](https://www.youtube.com/playlist?list=PLB-Fmt68BNm4) | 每次啟動及到期重新讀取清單，隨機選片 |
+| 散步模式 | [YouTube playlist `PLbYZr39owNGo`](https://www.youtube.com/playlist?list=PLbYZr39owNGo) | 每次啟動及到期重新讀取清單，隨機選片；換片時顯示 700 ms 上下眼瞼眨眼 |
 
-只有第三層能在產品畫面標成播放中。catalog、detail、YouTube oEmbed 或縮圖回傳 HTTP 200 都不能冒充 `PlaybackHealthy`。
+四種播放清單模式使用 YouTube 官方 IFrame Player API 的 `loadPlaylist` 讀取當下清單，再呼叫 `setShuffle(true)` 與 `getPlaylist()`，從回傳的影片 ID 中隨機選取並以 `loadVideoById` 播放。這個做法不需要 API key，也不抓取或解析 YouTube 網頁 HTML。清單讀取最多等待 5 秒；player error、清單空白或 20 秒內未開始播放時會回報失敗，原生控制器於 30 秒後有界重試。
 
-## 2026-09-07 非互動探測
+來源切換時間預設一分鐘，可設 1～1440 分鐘或「不切換」。計時從 player 回報 `PLAYING` 才開始，且每個螢幕獨立計時。「不切換」時目前隨機影片播放完會重播同一支；來源失效仍會執行復原。正式多螢幕模式會為每個螢幕建立獨立 WebView2 player，可能隨機選到相同影片。
 
-`scripts/check-japan-sources.ps1` 以有界 HTTPS GET 檢查日本目錄與全部 8 個內建 camera seed；每個 request timeout 為 10 秒。每個候選都依序檢查 tw.live detail、解析出的 YouTube oEmbed 及縮圖。腳本沒有開啟 `/s`、`/c`、WebView2、安裝程式或 UAC。
+日式旅館保留八個 tw.live camera seed。程式的 WinHTTP worker 只接受 `https://tw.live`、停用 redirect、限制 HTML 為 512 KiB，並只解析有界地點文字和 11 字元 YouTube ID。每輪最多嘗試三個候選。遠端內容一律視為不可信資料，插入本機 player shell 前會作 JSON escaping。
 
-日本目錄回傳 HTTP 200，8／8 候選在 2026-09-07T20:17:11.3035837+08:00 的檢查當下可解析且三個 HTTP 檢查均成功；`networkHealthy=true`。完整機器可讀證據位於 [source-health.json](evidence/phase8/source-health.json)。
+## 健康狀態與 2026-09-08 結果
 
-| 內建地點提示 | camera detail | 當次 video ID | detail／oEmbed／縮圖 |
-| --- | --- | --- | --- |
-| 北海道・札幌 | [sapporostationhbc](https://tw.live/cam/?id=sapporostationhbc) | `Ee27soLzJ5c` | 200／200／200 |
-| 東京・奧多摩 | [okutamastationview](https://tw.live/cam/?id=okutamastationview) | `PXpYve3XhE8` | 200／200／200 |
-| 京都・中京區 | [jpkyotokarasumadorinakagyo](https://tw.live/cam/?id=jpkyotokarasumadorinakagyo) | `rjMsbLzg5p0` | 200／200／200 |
-| 大阪・JR 放出車站 | [osakahanatencam](https://tw.live/cam/?id=osakahanatencam) | `A1EYCaxAhMY` | 200／200／200 |
-| 廣島・嚴島宮島 | [miyajimacamera](https://tw.live/cam/?id=miyajimacamera) | `s2CxZ7N25i0` | 200／200／200 |
-| 沖繩・名護嘉利吉海灘 | [kariyushibeachnago](https://tw.live/cam/?id=kariyushibeachnago) | `THryehCFhUU` | 200／200／200 |
-| 鹿兒島・垂水櫻島 | [sakurajimatarumizu](https://tw.live/cam/?id=sakurajimatarumizu) | `NfR1Y-mYEtg` | 200／200／200 |
-| 長野・上高地大正池 | [jpkamikochitaishoilakealps](https://tw.live/cam/?id=jpkamikochitaishoilakealps) | `jdUIL3sodzU` | 200／200／200 |
+| 層級 | 定義 | 本次結果 |
+| --- | --- | --- |
+| `CatalogReachable` | tw.live 日本目錄回傳預期 HTTPS HTML | PASS |
+| `CandidateResolved` | camera detail 可解析允許的 YouTube ID，oEmbed 與縮圖可達 | PASS，8／8 |
+| `PlaylistEmbedReachable` | 指定 `youtube.com/embed/videoseries` endpoint 回傳 HTTP 200 | PASS，4／4 |
+| `PlaybackHealthy` | 產品內 WebView2 player 明確回報 `PLAYING` | NOT TESTED |
 
-`CatalogReachable`：**PASS**。<br>
-8 個內建候選的 `CandidateResolved` 探測：**PASS（8／8）**。<br>
-`PlaybackHealthy`：**NOT TESTED**。遠端驗證沒有建立 WebView2 或實際播放影片，因此沒有驗證動態影格、player state、地區限制、廣告、60 秒輪換或 player cleanup。
+`scripts/check-japan-sources.ps1` 以每個 request 10 秒 timeout 非互動檢查上述 HTTP 層級，不開啟 `/s`、WebView2、設定畫面、安裝程式或 UAC。HTTP 200 不能證明影片可在使用者地區嵌入、可長時間播放或永遠可用。
 
-## 執行期來源契約
+## Player、隱私與授權邊界
 
-- 程式內建上表 8 個 tw.live camera ID 作為 seed。啟動時先檢查日本目錄，再把候選隨機排序；後續輪換排除上一個成功播放的 camera，同一輪最多嘗試 3 個 detail。video ID 每次都從 detail 重新解析，不能把本表當永久 video ID 清單。
-- 只在使用者已選定日本旅行模式且 `/s` 正式啟動時建立來源 worker 與 WebView2。`/p`、`/c`、標準桌曆暨時鐘模式及離機作業番茄鐘模式不連公開網站。
-- 執行期 WinHTTP 只連 `https://tw.live`，停用 redirect；每個連線階段 timeout 為 4 秒，單次讀取總時間上限 15 秒，HTML 上限 512 KiB。非 2xx、內容型別不符、非法 UTF-8、錯誤 host／path／video ID 或解析失敗都拒絕。
-- 遠端 HTML 一律視為不可信資料。程式只取有界的地點文字與 YouTube video ID，對插入本機 shell 的字串作 JSON escaping，並自行載入固定的 `youtube-nocookie.com` player host。
-- 來源解析與健康檢查在背景 worker 執行，不阻塞 Win32 視窗訊息。關閉時停止接受結果；已開始的 WinHTTP request 依有界 timeout 結束後，其晚到資料由關閉的 channel 回收。
-- 來源切換時間取自本次啟動的個人設定：預設每 1 分鐘，可選 1～1440 整數分鐘或「不切換」（保存為 0）。啟用切換時，player 第一次進入 `PLAYING` 才開始 `分鐘 × 60,000 ms` monotonic 計時；每個螢幕獨立起算。
-- 距離切換剩餘最後 1 分鐘時，才於背景預抓不同 camera。預設 1 分鐘間隔在 `PLAYING` 後即可預抓，較長間隔延後，避免保存數小時前解析的直播 ID。到期時載入已準備的來源；若預抓尚未完成，保留目前畫面並在第一個成功結果到達時切換。睡眠或訊息延遲跨過多個區間只切換一次，不補跑漏掉的區間。
-- 「不切換」不建立排程輪換，也不預抓下一來源；目前健康來源持續播放。初次尋找來源、網路檢查與失效復原仍啟用，因此來源失效時仍可能切至其他鏡頭。
-- player error／stall 會立即換候選；HTTP／解析失敗每 30 秒重試。換來源時重用同一個 WebView2 controller，不因切換建立新的 player 視窗。
-- 正式多螢幕 `/s` 在每個螢幕各自建立一個 autoplay player。每個 host 獨立選擇來源、計時、重試並接收事件；每輪最多 3 個候選的預算也各自計算。不同螢幕可能隨機選到相同地點，沒有跨螢幕去重保證。網路、記憶體與 GPU 用量隨播放螢幕數增加。
-- Runtime、網路或全部候選不可用時保留可退出的 GDI fallback。程式不下載 Runtime、不顯示安裝 UI，也不觸發 UAC。
-- WebView2 profile 與本機 player shell 儲存在 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`；不保存縮圖、影格、音訊或影片。
+正式影片固定靜音，控制項保持可用。程式不下載、錄製、轉碼、代理、保存或重新託管影片。場景框、地點與狀態位於 player 外；散步模式只在切換來源時以本機眨眼動畫短暫覆蓋 player。系統 preview、設定 preview、日期時鐘與番茄鐘不建立 WebView2，也不連公開網站。
 
-## Player、框架與第三方規則
+啟動日本旅行模式會向 tw.live（只限日式旅館）、YouTube／Google 與影片來源 CDN 傳送正常連線需要的 IP 位址、User-Agent、時間與播放器資料。WebView2 profile 與本機 shell 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，程式不自行保存影片、音訊或影格。
 
-正式全螢幕可選「自在飛行」或「列車旅行」本機 HTML／CSS shell，兩者使用專案原創的 AI 擬真場景 PNG。它們描繪虛構機艙與木質列車，不是真實 A380 或特定列車照片，不使用 Airbus、列車營運者商標、航空公司塗裝、使用者私有附件或第三方照片。原始素材為 [free-flight.png](../assets/travel/free-flight.png) 與 [train-journey.png](../assets/travel/train-journey.png)，直接內附於程式，執行期不從圖片網站下載。
+MIT License 只涵蓋 repository 的程式碼與自製圖形，不涵蓋播放清單、tw.live、YouTube 或影片內容。公開可瀏覽不等於獲得重新散布或商業使用授權。來源可能改址、下線、限制地區或撤回嵌入；發布前應重新執行健康檢查並抽查來源政策。
 
-完整 16:9 YouTube player 位於圖片窗景中，地名與狀態列在 player 矩形外。兩種場景共用相同來源、健康檢查及切換時間設定。`/p`、`/c`、播放器等待與錯誤 fallback 以 WIC 在本機解碼內附圖片，再由 GDI 繪製；預覽保持離線，不能當作實際影片播放證據。
+## 尚待可互動 Win10 驗收
 
-影片固定靜音，播放器控制項保持顯示。程式不遮蔽或裁切 player、YouTube 品牌、廣告或 controls，也不下載、錄製、轉碼、代理或重新託管影片。[YouTube Required Minimum Functionality](https://developers.google.com/youtube/terms/required-minimum-functionality) 說明播放器可見性、最小尺寸、Referer 與 overlay 邊界；[YouTube Developer Policies](https://developers.google.com/youtube/terms/developer-policies-guide) 說明 autoplay、播放完整性及資料處理規則。每次發布都必須重新檢查目前政策。
-
-## 授權與隱私邊界
-
-[tw.live 常見問題](https://tw.live/faq/) 說明平台是內容整合入口，攝影機與串流由不同來源提供。公開可瀏覽不能推定為可重新散布或商業使用；8 個候選的原始提供者與個別授權條款尚未逐一完成驗證，因此權利抽查狀態為 **NOT TESTED**。若來源撤回嵌入、標示不完整或權利狀態不適用，正式來源清單必須移除該候選。
-
-MIT License 只涵蓋本 repository 的程式碼與自製圖形（含原創 AI 擬真旅行場景），不涵蓋 tw.live、YouTube、攝影機提供者或影片內容。第三方影片沒有封入 `.scr`、Setup、Git repository 或 GitHub Pages。
-
-啟動旅行模式會把 IP 位址、User-Agent、連線時間與播放器正常運作所需資料傳給 tw.live、YouTube／Google 及來源 CDN。[tw.live 隱私權政策](https://tw.live/privacy/) 表示一般瀏覽可能記錄 IP、使用時間、瀏覽器及瀏覽／點選資料；`youtube-nocookie.com` 不能描述成完全不傳資料。
-
-## 後續人工驗收
-
-1. 在可互動 Windows 10 桌面以產品本身完成至少五次 `PLAYING` 與預設 1 分鐘輪換；另驗證自訂分鐘、「不切換」及下次啟動套用。核對地區／鏡頭文字、靜音及擬真窗景中的 player 顯示完整性。
-2. 驗證斷網、所有候選失效與 WebView2 Runtime 缺失 fallback；不能以解除安裝 Runtime 作遠端測試，也不能觸發 UAC。
-3. 在實際多螢幕環境驗證每個螢幕各有一個 player、各自地點／狀態／設定分鐘輪換與失敗隔離，不切換時來源失效仍能復原，以及退出後所有 controller 與 WebView2 子程序清理。
-4. 抽查 8 個候選的原始提供者、官方嵌入是否仍允許及相關使用條款；未完成時在 Release、README、Pages 與 acceptance report 維持 `NOT TESTED`。
+1. 每個場景確認實際 `PLAYING`、靜音與至少五次來源切換。
+2. 驗證自訂分鐘、不切換、斷網、空清單、影片禁止嵌入及 Runtime 缺失 fallback。
+3. 驗證多螢幕各自選片、失敗隔離、混合 DPI、退出後 controller 與 WebView2 子程序清理。
+4. 核對每個播放清單與 tw.live 原始提供者的最新嵌入及使用條款。

@@ -1,10 +1,12 @@
 # 旅行擬真圖像來源
 
-製作日期：2026-09-08。使用內建 imagegen 工具（imagegen 技能）生成；三張圖皆為原創 AI 擬真圖像，並非實際 A380、特定列車或旅館的攝影照片。使用者提供的旅館附件只作空間語彙參考，沒有複製其像素、家具配置或可識別細節。沒有使用第三方照片或商標。PNG 原檔隨專案封裝，離線預覽亦使用相同圖像；第三方即時影片不包含在圖檔中。
+製作日期：2026-09-08。使用內建 imagegen 工具（imagegen 技能）生成；五張圖皆為原創 AI 擬真圖像，並非實際 A380、特定列車或旅館的攝影照片。使用者附件只作空間語彙與視角參考，沒有複製其像素、人物、家具配置或可識別細節。沒有使用第三方照片或商標。PNG 原檔隨專案封裝，離線預覽亦使用相同圖像；第三方影片不包含在圖檔中。
 
 - `assets/travel/free-flight.png`：暖白客機艙壁、銀灰多層窗框與天空。
 - `assets/travel/train-journey.png`：暖木質豪華列車窗框、黃銅與遠山。
 - `assets/travel/japanese-inn.png`：自然木構、障子與榻榻米包圍的日式旅館庭園窗景，1586×992；SHA-256 `9921eac609513cc46e84a4a2adc23336e51ebc883e84e4a65e05d1dfa9a0b56a`。
+- `assets/travel/train-cab.png`：無人物、無商標的現代日本風格列車駕駛室，中央前窗，1586×992；SHA-256 `7759806876781b323cc169d3db0973a87cbbe1a7ece69a66ad90174af17c6de9`。
+- `assets/travel/walking.png`：接近人眼的柔和上下眼瞼與黑色周邊，中央保留縮小的第一人稱視野，1586×992；SHA-256 `79f6e337f79dfb3eda5a700edfbdf0e495b982201a6750cb80328729f6084731`。
 
 以下保留生成提示以便後續維護。實際影片以完整 16:9 矩形放在窗孔內，窗框不覆蓋播放器或控制項。
 
@@ -19,3 +21,11 @@ Use case: photorealistic-natural. Asset type: original realistic background plat
 ## 日式旅館提示
 
 Use case: photorealistic-natural. Asset type: original realistic background plate for the Japanese inn mode of a Windows Japan travel screensaver. Input image: style and material reference only; do not copy its pixels, furniture arrangement, exact room, or identifiable details. Create a different, fictional traditional Japanese ryokan guest room, photographed perfectly straight-on with architectural-photography realism. Wide 16:10 composition, symmetric and calm. Warm natural cedar beams, pale cream plaster, tatami floor along the lower edge, translucent shoji panels at both sides, subtle tokonoma alcove details and low warm lanterns kept near the far side edges. ONE large centered landscape picture opening framed by dark natural wood, with an unobstructed 16:9 clear aperture spanning approximately x=17% to83% and y=18% to76% of the whole image. All shoji grids, beams, lanterns, furniture, decor and wall details must remain completely outside this aperture; no central mullion, paper screen, chairs, table, reflection, curtain, vase, text, or other object may cross it. Through the opening show a quiet Japanese moss garden with maple trees, stone lantern and light morning mist, softly distant so a live video can replace the entire opening. Leave the bottom 14% visually quiet for a separate caption. Physically realistic wood grain, tatami weave, paper texture and natural ambient lighting; premium understated inn atmosphere. No people, no readable text, no watermark, no logos, no brand or identifiable real inn, no collage, no cartoon/vector/painting style. Generate one original image.
+
+## 列車駕駛前方提示
+
+Create an original photorealistic front-facing interior of a modern Japanese-inspired train driver's cab as a 1586×992 screensaver frame. Use the supplied image only as a viewpoint reference; do not reproduce its people, text, station, rolling stock or pixels. The cab must be empty, with realistic instrument panels, restrained gray materials and a large unobstructed central forward windshield suitable for a 16:9 video. No operator, readable labels, logos, brands or watermark.
+
+## 散步第一人稱人眼提示
+
+Create an original photorealistic first-person human-eye peripheral frame for a 1586×992 screensaver. The central eye-shaped viewing area should be intentionally compact, centered and unobstructed, while the surrounding area is predominantly deep black. Add soft realistic upper and lower eyelid contours and subtle peripheral blur, without glasses, a visible face, eyelashes crossing the aperture, text, logos or watermark. The player supplies the moving view; eyelid movement is implemented separately in CSS.

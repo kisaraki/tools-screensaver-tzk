@@ -494,6 +494,8 @@ fn japan_travel(
             TravelStyle::FreeFlight => "自在飛行",
             TravelStyle::TrainJourney => "列車旅行",
             TravelStyle::JapaneseInn => "日式旅館",
+            TravelStyle::TrainCab => "列車駕駛前方",
+            TravelStyle::Walking => "散步模式",
         };
         let title_text = format!("{scene_name}・{}", caption.place);
         let title = Font::fit(
@@ -1122,6 +1124,8 @@ mod tests {
             TravelStyle::FreeFlight,
             TravelStyle::TrainJourney,
             TravelStyle::JapaneseInn,
+            TravelStyle::TrainCab,
+            TravelStyle::Walking,
         ] {
             let mut renderer = Renderer::default();
             let buffer = draw(
@@ -1278,6 +1282,30 @@ mod tests {
             },
             300000,
             "japanese-inn",
+        ));
+        cases.push((
+            DisplayMode::JapanTravel,
+            800,
+            450,
+            96,
+            Style {
+                travel_style: TravelStyle::TrainCab,
+                ..Style::default()
+            },
+            300000,
+            "train-cab",
+        ));
+        cases.push((
+            DisplayMode::JapanTravel,
+            800,
+            450,
+            96,
+            Style {
+                travel_style: TravelStyle::Walking,
+                ..Style::default()
+            },
+            300000,
+            "walking",
         ));
         for label in ["travel-checking", "travel-playing", "travel-unavailable"] {
             cases.push((

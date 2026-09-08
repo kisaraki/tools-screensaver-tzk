@@ -28,6 +28,8 @@ use windows_sys::Win32::Graphics::Gdi::{
 const FREE_FLIGHT: &[u8] = include_bytes!("../assets/travel/free-flight.png");
 const TRAIN_JOURNEY: &[u8] = include_bytes!("../assets/travel/train-journey.png");
 const JAPANESE_INN: &[u8] = include_bytes!("../assets/travel/japanese-inn.png");
+const TRAIN_CAB: &[u8] = include_bytes!("../assets/travel/train-cab.png");
+const WALKING: &[u8] = include_bytes!("../assets/travel/walking.png");
 const PNG_SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
 const MAX_ENCODED_BYTES: usize = 16 * 1024 * 1024;
 const MAX_DIMENSION: u32 = 4096;
@@ -38,6 +40,8 @@ pub fn png(style: TravelStyle) -> &'static [u8] {
         TravelStyle::FreeFlight => FREE_FLIGHT,
         TravelStyle::TrainJourney => TRAIN_JOURNEY,
         TravelStyle::JapaneseInn => JAPANESE_INN,
+        TravelStyle::TrainCab => TRAIN_CAB,
+        TravelStyle::Walking => WALKING,
     }
 }
 
@@ -46,6 +50,8 @@ pub fn file_name(style: TravelStyle) -> &'static str {
         TravelStyle::FreeFlight => "free-flight.png",
         TravelStyle::TrainJourney => "train-journey.png",
         TravelStyle::JapaneseInn => "japanese-inn.png",
+        TravelStyle::TrainCab => "train-cab.png",
+        TravelStyle::Walking => "walking.png",
     }
 }
 
@@ -89,12 +95,16 @@ struct Pixels {
 static FLIGHT_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
 static TRAIN_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
 static INN_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
+static CAB_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
+static WALKING_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
 
 fn cached_pixels(style: TravelStyle) -> Result<&'static Pixels, AppError> {
     let cache = match style {
         TravelStyle::FreeFlight => &FLIGHT_PIXELS,
         TravelStyle::TrainJourney => &TRAIN_PIXELS,
         TravelStyle::JapaneseInn => &INN_PIXELS,
+        TravelStyle::TrainCab => &CAB_PIXELS,
+        TravelStyle::Walking => &WALKING_PIXELS,
     };
     cache
         .get_or_init(|| decode(png(style)))
@@ -263,6 +273,8 @@ mod tests {
             TravelStyle::FreeFlight,
             TravelStyle::TrainJourney,
             TravelStyle::JapaneseInn,
+            TravelStyle::TrainCab,
+            TravelStyle::Walking,
         ] {
             let pixels = cached_pixels(style).unwrap();
             assert_eq!((pixels.width, pixels.height), (1586, 992));
@@ -285,6 +297,8 @@ mod tests {
                 TravelStyle::FreeFlight,
                 TravelStyle::TrainJourney,
                 TravelStyle::JapaneseInn,
+                TravelStyle::TrainCab,
+                TravelStyle::Walking,
             ] {
                 assert_eq!(decode(png(style)).unwrap().bytes.len(), 1586 * 992 * 4);
             }

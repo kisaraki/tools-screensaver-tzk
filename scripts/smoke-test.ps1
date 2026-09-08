@@ -248,13 +248,15 @@ try {
         '自在飛行(&A)',
         '列車旅行(&N)',
         '日式旅館(&Y)',
+        '列車駕駛前方(&D)',
+        '散步模式(&K)',
         '暗淺藍(&B)',
         '琥珀色(&M)',
         '自動切換（2 分鐘）(&U)',
         '日本旅行場景與來源',
         '來源切換(&I)：',
         '分鐘（1～1440）',
-        '需要網路；全螢幕時連線至 tw.live 與 YouTube，影片靜音。',
+        '需要網路；全螢幕連線至 YouTube，日式旅館另使用 tw.live；影片靜音。',
         'KOMSMOS TOOLKIT',
         '探真拓知酷'
     )
@@ -374,6 +376,18 @@ try {
         throw "Refusing to clean unexpected temporary path: $resolvedTemp"
     }
     if (Test-Path -LiteralPath $resolvedTemp) {
-        Remove-Item -LiteralPath $resolvedTemp -Recurse -Force
+        for ($attempt = 1; $attempt -le 10; $attempt++) {
+            try {
+                Remove-Item -LiteralPath $resolvedTemp -Recurse -Force -ErrorAction Stop
+                break
+            }
+            catch {
+                if ($attempt -eq 10) {
+                    Write-Warning "Smoke checks passed, but the temporary copy is still locked and was retained: $resolvedTemp"
+                    break
+                }
+                Start-Sleep -Milliseconds 100
+            }
+        }
     }
 }
