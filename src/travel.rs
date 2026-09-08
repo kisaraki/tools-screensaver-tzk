@@ -33,8 +33,6 @@ const MAX_RESPONSE_BYTES: usize = 512 * 1024;
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(15);
 const IO_TIMEOUT_MS: i32 = 4_000;
 
-pub(crate) const ROTATION_INTERVAL_MS: u64 = 60_000;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct CameraSeed {
     pub camera_id: &'static str,
@@ -608,13 +606,20 @@ fn normalize_place(value: &str) -> String {
 pub(crate) struct TravelRotation {
     random: Xorshift32,
     last_camera_id: Option<&'static str>,
+    interval_ms: Option<u64>,
 }
 
 impl TravelRotation {
-    pub fn new(seed: u32) -> Self {
+    pub fn new(seed: u32, interval_minutes: u32) -> Self {
+        let minutes = if interval_minutes <= crate::config::MAX_TRAVEL_SWITCH_MINUTES {
+            interval_minutes
+        } else {
+            crate::config::DEFAULT_TRAVEL_SWITCH_MINUTES
+        };
         Self {
             random: Xorshift32::new(seed),
             last_camera_id: None,
+            interval_ms: (minutes != 0).then_some(u64::from(minutes) * 60_000),
         }
     }
 
@@ -639,8 +644,17 @@ impl TravelRotation {
             .map(|seed| seed.camera_id);
     }
 
-    pub fn due(last_switch_ms: u64, now_ms: u64) -> bool {
-        now_ms.saturating_sub(last_switch_ms) >= ROTATION_INTERVAL_MS
+    pub fn due(&self, last_switch_ms: u64, now_ms: u64) -> bool {
+        self.interval_ms
+            .is_some_and(|interval| now_ms.saturating_sub(last_switch_ms) >= interval)
+    }
+
+    /// Resolve the next live URL within the final minute of the current source.
+    /// Long configured intervals must not keep an hours-old prefetched live ID.
+    pub fn should_prefetch(&self, last_switch_ms: u64, now_ms: u64) -> bool {
+        self.interval_ms.is_some_and(|interval| {
+            now_ms.saturating_sub(last_switch_ms) >= interval.saturating_sub(60_000)
+        })
     }
 }
 
@@ -720,7 +734,7 @@ impl NetworkState {
     }
 }
 
-/// One visible 16:9 player is surrounded by a user-selected, project-drawn
+/// One visible 16:9 player is surrounded by an embedded photorealistic
 /// travel frame. Location and health text occupy their own row below the player;
 /// no element is layered over or clipped into the YouTube player rectangle.
 const TRAVEL_HTML_TEMPLATE: &str = r#"<!doctype html>
@@ -732,15 +746,15 @@ const TRAVEL_HTML_TEMPLATE: &str = r#"<!doctype html>
 <style>
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071019;color:#f4f7fa;font-family:"Microsoft JhengHei UI",sans-serif}
 body{display:grid;place-items:center}
-.cabin{box-sizing:border-box;width:min(94vw,135vh);padding:clamp(12px,2.6vw,40px);box-shadow:0 20px 60px #000}
-.free-flight{border:clamp(8px,1.4vw,24px) solid #ccd5dc;border-radius:clamp(42px,8vw,128px);background:linear-gradient(145deg,#f3f6f8,#8696a3 46%,#d9e0e5 65%,#6d7b86);box-shadow:inset 0 0 0 clamp(5px,.7vw,12px) #3f4c56,0 20px 60px #000}
-.train-journey{border:clamp(9px,1.5vw,25px) solid #5d2f19;border-radius:clamp(24px,3vw,52px) clamp(24px,3vw,52px) clamp(10px,1.3vw,24px) clamp(10px,1.3vw,24px);background:repeating-linear-gradient(90deg,#3d1d10 0,#3d1d10 5%,#a45b2c 5.6%,#5e2e17 7.2%,#32170d 12%);box-shadow:inset 0 0 0 clamp(5px,.7vw,12px) #d28743,inset 0 clamp(18px,3vw,46px) 0 #492414,0 20px 60px #000}
-.window{box-sizing:border-box;padding:clamp(8px,1vw,16px);border:clamp(5px,.7vw,11px) solid #283640;border-radius:clamp(24px,4vw,60px);background:#101b24}
-.train-journey .window{border-color:#d79b5d;border-radius:clamp(10px,1.6vw,25px);background:linear-gradient(90deg,#3a1d11,#8c4a27 9%,#35190e 16%,#35190e 84%,#8c4a27 91%,#3a1d11);box-shadow:inset 0 0 0 clamp(3px,.45vw,8px) #2b140b}
-.screen{width:100%;aspect-ratio:16/9;background:#000}
+.cabin{box-sizing:border-box;width:min(94vw,135vh)}
+.scene{position:relative;width:100%;aspect-ratio:1586/992;background-size:100% 100%;background-repeat:no-repeat;box-shadow:0 12px 40px #000}
+.free-flight .scene{background-image:url('free-flight.png')}
+.train-journey .scene{background-image:url('train-journey.png')}
+.window{position:absolute;left:11%;top:21%;width:78.5%;height:56%;display:grid;place-items:center;background:#000;border-radius:2%}
+.train-journey .window{left:17.8%;top:20%;width:64.4%;height:54.5%}
+.screen{height:100%;aspect-ratio:16/9;max-width:100%;background:#000}
 #player,#player iframe{display:block;width:100%;height:100%;border:0}
-.caption{display:flex;justify-content:space-between;gap:1em;align-items:center;padding:clamp(9px,1.2vw,18px) clamp(4px,.8vw,12px) 0;font-weight:700;letter-spacing:.04em}
-.train-journey .caption{margin-top:clamp(5px,.7vw,11px);padding:clamp(8px,1vw,15px);border-radius:clamp(4px,.6vw,10px);background:linear-gradient(90deg,#2d160d,#75401f,#2d160d);box-shadow:inset 0 0 0 1px #ca8242}
+.caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.35em 1em;align-items:center;padding:clamp(9px,1.2vw,18px) 0;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere}
 #place{font-size:clamp(16px,2.2vw,34px);color:#fff}
 #status{font-size:clamp(12px,1.2vw,18px);color:#c8f3ff;text-align:right}
 .train-journey #place{color:#ffe1a6}.train-journey #status{color:#ffd7a1}
@@ -748,10 +762,12 @@ body{display:grid;place-items:center}
 </head>
 <body>
 <main class="cabin __TRAVEL_SCENE_CLASS__" aria-label="__TRAVEL_SCENE_LABEL__">
-  <section class="window">
-    <div class="screen"><div id="player"></div></div>
-    <div class="caption"><span id="place">日本旅行模式</span><span id="status">正在檢查來源網路…</span></div>
-  </section>
+  <div class="scene">
+    <section class="window">
+      <div class="screen"><div id="player"></div></div>
+    </section>
+  </div>
+  <div class="caption"><span id="place">日本旅行模式</span><span id="status">正在檢查來源網路…</span></div>
 </main>
 <script>
 (() => {
@@ -941,7 +957,7 @@ mod tests {
 
     #[test]
     fn candidate_shuffle_is_unique_and_excludes_last_success() {
-        let mut rotation = TravelRotation::new(7);
+        let mut rotation = TravelRotation::new(7, 1);
         let first = rotation.candidates();
         assert_eq!(first.len(), CAMERA_SEEDS.len());
         for seed in CAMERA_SEEDS {
@@ -953,9 +969,32 @@ mod tests {
         assert!(second
             .iter()
             .all(|item| item.camera_id != first[0].camera_id));
-        assert!(!TravelRotation::due(10, 60_009));
-        assert!(TravelRotation::due(10, 60_010));
-        assert!(!TravelRotation::due(u64::MAX - 10, 5));
+        assert!(!rotation.due(10, 60_009));
+        assert!(rotation.due(10, 60_010));
+        assert!(!rotation.due(u64::MAX - 10, 5));
+    }
+
+    #[test]
+    fn rotation_intervals_and_prefetch_respect_disabled_and_minute_boundaries() {
+        let disabled = TravelRotation::new(1, 0);
+        for now in [0, 60_000, 86_400_000, u64::MAX] {
+            assert!(!disabled.due(0, now));
+            assert!(!disabled.should_prefetch(0, now));
+        }
+        for minutes in [1, 2, 30, 1440] {
+            let rotation = TravelRotation::new(1, minutes);
+            let interval = u64::from(minutes) * 60_000;
+            assert!(!rotation.due(25, 25 + interval - 1));
+            assert!(rotation.due(25, 25 + interval));
+            assert!(rotation.should_prefetch(25, 25 + interval - 60_000));
+            if minutes > 1 {
+                assert!(!rotation.should_prefetch(25, 25 + interval - 60_001));
+            }
+            assert!(!rotation.due(100, 99));
+        }
+        let invalid = TravelRotation::new(1, u32::MAX);
+        assert!(!invalid.due(0, 59_999));
+        assert!(invalid.due(0, 60_000));
     }
 
     #[test]
@@ -1001,6 +1040,10 @@ mod tests {
             assert!(caption > screen_end);
             assert!(shell.contains(&format!("class=\"cabin {class}\"")));
             assert!(shell.contains(label));
+            assert!(shell.contains("background-image:url('free-flight.png')"));
+            assert!(shell.contains("background-image:url('train-journey.png')"));
+            assert!(shell.contains("aspect-ratio:1586/992"));
+            assert!(shell.contains("aspect-ratio:16/9"));
             assert!(!shell.contains("__TRAVEL_SCENE_"));
             for event in ["'ready'", "'playing'", "'error'", "'stalled'"] {
                 assert!(shell.contains(event));

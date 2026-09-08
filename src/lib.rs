@@ -19,6 +19,7 @@ mod native;
 pub mod registry;
 mod render;
 pub mod travel;
+pub(crate) mod travel_art;
 mod travel_webview;
 pub mod utf16;
 mod window;

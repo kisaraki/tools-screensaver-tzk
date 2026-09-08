@@ -106,10 +106,10 @@ struct TravelSession {
 }
 
 impl TravelSession {
-    fn new(seed: u32) -> Self {
+    fn new(seed: u32, switch_minutes: u32) -> Self {
         let (sender, receiver) = mpsc::channel();
         Self {
-            rotation: TravelRotation::new(seed),
+            rotation: TravelRotation::new(seed, switch_minutes),
             sender,
             receiver,
             generation: 0,
@@ -138,6 +138,14 @@ impl TravelSession {
         self.load_started = now;
         self.state = self.state.transition(NetworkEvent::SourceResolved);
     }
+
+    fn retry_source_due(&self, now: u64) -> bool {
+        matches!(
+            self.state,
+            NetworkState::Offline | NetworkState::SourceFailed | NetworkState::Stalled
+        ) && now >= self.retry_at
+            && !self.fetching
+    }
 }
 
 // Each monitor owns a player, source rotation and event channel. Only the
@@ -152,7 +160,10 @@ struct TravelHost {
 impl TravelHost {
     fn new(owner: &Rc<Session>, host: HWND, seed: u32) -> Self {
         Self {
-            travel: RefCell::new(Some(TravelSession::new(seed))),
+            travel: RefCell::new(Some(TravelSession::new(
+                seed,
+                owner.config.get().travel_switch_minutes,
+            ))),
             travel_host: Cell::new(host),
             coordinator: Cell::new(owner.coordinator.get()),
             owner: Rc::downgrade(owner),
@@ -230,6 +241,11 @@ impl TravelHost {
                 return;
             };
             if travel.fetching || travel.browser_error.is_some() && travel.source.is_some() {
+                return;
+            }
+            if purpose == FetchPurpose::Prefetch
+                && !travel.rotation.should_prefetch(travel.last_playing, now)
+            {
                 return;
             }
             travel.generation = travel.generation.wrapping_add(1);
@@ -346,7 +362,7 @@ impl TravelHost {
                             .starts_with("https://www.youtube-nocookie.com/"));
                         let keep_prefetched = completion.purpose == FetchPurpose::Prefetch
                             && travel.state == NetworkState::Playing
-                            && !TravelRotation::due(travel.last_playing, now);
+                            && !travel.rotation.due(travel.last_playing, now);
                         if keep_prefetched {
                             travel.prefetched_source = Some(source);
                         } else {
@@ -461,7 +477,7 @@ impl TravelHost {
                         travel.rotation.mark_playing(&source.camera_id);
                     }
                     travel.prefetch_retry_at = now;
-                    start_prefetch = true;
+                    start_prefetch = travel.rotation.should_prefetch(travel.last_playing, now);
                 }
                 NetworkEvent::PlayerError | NetworkEvent::PlayerStalled
                     if travel.awaiting_playback || travel.state == NetworkState::Playing =>
@@ -511,7 +527,7 @@ impl TravelHost {
                 travel.retry_at = now;
                 Some(FetchPurpose::Current)
             } else if travel.state == NetworkState::Playing {
-                if TravelRotation::due(travel.last_playing, now) {
+                if travel.rotation.due(travel.last_playing, now) {
                     if let Some(source) = travel.prefetched_source.take() {
                         travel.activate_source(source, now);
                         should_load = travel.shell_ready && travel.browser.is_some();
@@ -524,17 +540,15 @@ impl TravelHost {
                 } else if travel.prefetched_source.is_none()
                     && !travel.fetching
                     && now >= travel.prefetch_retry_at
+                    && travel.rotation.should_prefetch(travel.last_playing, now)
                 {
                     Some(FetchPurpose::Prefetch)
                 } else {
                     None
                 }
             } else {
-                (matches!(
-                    travel.state,
-                    NetworkState::Offline | NetworkState::SourceFailed | NetworkState::Stalled
-                ) && now >= travel.retry_at
-                    && !travel.fetching)
+                travel
+                    .retry_source_due(now)
                     .then_some(FetchPurpose::Current)
             }
         };
@@ -1102,6 +1116,17 @@ fn prepare_travel_storage(shell_html: &str) -> Result<(PathBuf, PathBuf), String
         .map_err(|error| format!("cannot create WebView2 user data directory: {error}"))?;
     fs::create_dir_all(&content)
         .map_err(|error| format!("cannot create travel content directory: {error}"))?;
+    for style in [
+        crate::model::TravelStyle::FreeFlight,
+        crate::model::TravelStyle::TrainJourney,
+    ] {
+        let path = content.join(crate::travel_art::file_name(style));
+        let bytes = crate::travel_art::png(style);
+        if fs::read(&path).map_or(true, |existing| existing != bytes) {
+            fs::write(path, bytes)
+                .map_err(|error| format!("cannot write local travel artwork: {error}"))?;
+        }
+    }
     let shell = content.join("index.html");
     let needs_write = fs::read(&shell)
         .map(|bytes| bytes != shell_html.as_bytes())
@@ -1897,7 +1922,7 @@ mod tests {
 
     #[test]
     fn activating_a_source_advances_a_nonzero_playback_token() {
-        let mut travel = TravelSession::new(1);
+        let mut travel = TravelSession::new(1, 1);
         let source = |camera: &str| TravelSource {
             camera_id: camera.into(),
             place: "日本".into(),
@@ -1912,6 +1937,28 @@ mod tests {
         travel.playback_token = u32::MAX;
         travel.activate_source(source("wrapped"), 300);
         assert_eq!(travel.playback_token, 1);
+    }
+
+    #[test]
+    fn disabling_scheduled_switching_keeps_failure_recovery_enabled() {
+        for minutes in [0, 1, 1440] {
+            let mut travel = TravelSession::new(1, minutes);
+            travel.retry_at = 30_000;
+            for state in [
+                NetworkState::Offline,
+                NetworkState::SourceFailed,
+                NetworkState::Stalled,
+            ] {
+                travel.state = state;
+                assert!(!travel.retry_source_due(29_999));
+                assert!(travel.retry_source_due(30_000));
+                travel.fetching = true;
+                assert!(!travel.retry_source_due(30_000));
+                travel.fetching = false;
+            }
+            travel.state = NetworkState::Playing;
+            assert!(!travel.retry_source_due(u64::MAX));
+        }
     }
 
     #[test]

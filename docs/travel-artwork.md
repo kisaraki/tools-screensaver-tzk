@@ -1,0 +1,16 @@
+# 旅行擬真圖像來源
+
+製作日期：2026-09-08。使用內建 image_gen（imagegen 技能）生成；兩張圖皆為原創 AI 擬真圖像，並非實際 A380 或特定列車的攝影照片。沒有使用第三方照片、商標或附件像素。PNG 原檔隨專案封裝，離線預覽亦使用相同圖像；第三方即時影片不包含在圖檔中。
+
+- `assets/travel/free-flight.png`：暖白客機艙壁、銀灰多層窗框與天空。
+- `assets/travel/train-journey.png`：暖木質豪華列車窗框、黃銅與遠山。
+
+以下保留生成提示以便後續維護。實際影片以完整 16:9 矩形放在窗孔內，窗框不覆蓋播放器或控制項。
+
+## 自在飛行提示
+
+Use case: photorealistic-natural. Asset type: original background plate for a Windows travel screensaver. Create a highly photorealistic premium passenger aircraft observation cabin interior, viewed straight-on from a seated passenger, with ONE large landscape panoramic window centered in the composition. Wide 16:10 composition. Warm ivory softly textured molded aircraft wall, convincing substantial layered silver-gray window surround, subtle seams and wear, restrained soft warm cabin lighting, edge of a blue-gray upholstered seat at bottom corners only. The central clear aperture should be an unobstructed simple wide rectangle in 16:9 aspect, occupying roughly x=15% to85% and y=13% to76% of canvas, with softly rounded decorative surround entirely OUTSIDE this aperture. Show a peaceful realistic pale-blue sky and very subtle distant clouds through this window. No bars, center mullions, seats, reflections, curtains, controls, text or other objects crossing the central clear aperture. Window fully framed and centered, photographed frontally without perspective skew. Leave bottom15% as quiet cabin wall/seat detail for separate UI caption. This is a plausible fictional panoramic aircraft lounge, do not include Airbus/airline logos, people, text, watermarks or illustrations. Architectural photography, physically realistic materials and lighting, sharp fine grain and real texture, no cartoon/vector/flat gradient style. Generate one single image, not a collage.
+
+## 列車旅行提示
+
+Use case: photorealistic-natural. Asset type: original realistic background plate for a Windows Japan travel screensaver. Create a luxurious Japanese-inspired sleeper train dining carriage interior viewed perfectly straight-on toward ONE large centered landscape picture window, with genuine architectural-photography realism. Wide 16:10 composition. Exquisite warm walnut wood grain wall panels, polished slender brass trim, curved upper ceiling ribs and warm concealed lighting, soft taupe upholstered dining chair corners and a small white linen table corner at the very bottom edges only. A single window with a thick believable dark wood and brass surround. The main window clear opening must be 16:9, centered at x=50%, spanning approximately x=18% to82% and y=18% to76% of the overall picture; all detailed wooden frame, ribs, lamps, chairs and tableware remain outside this large opening. Through it show softly distant green Japanese countryside with misty mountain ridges in early morning, no fast moving train or people. No mullions, curtain, ornament, reflection, furniture or object crossing the rectangular clear opening. Front-on symmetric composition without vanishing-point skew of the main window. Leave bottom 15% quiet shadowed wood for separate UI caption. Real photographic fine texture, tactile materials, natural light, premium understated atmosphere. No brand logos, no readable text, no watermarks, no people, no cartoon, no painted/vector or flat-gradient art. One single image, not collage.

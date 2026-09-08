@@ -90,14 +90,15 @@ impl Fonts {
         let cal = layout.calendar;
         let cell = (cal.w / 7.0).min(cal.h * 0.75 / 6.0);
         let point_scale = f64::from(style.point_size_tenth) / f64::from(DEFAULT_POINT_SIZE_TENTH);
+        let number_box = clock_number_rect(layout.clock, 0.0);
         let clock = Font::fit(
             dc,
             style.font,
             style.custom,
             "12",
-            layout.clock.w * 0.28,
-            layout.clock.h * 0.18,
-            layout.clock.h * 0.16 * point_scale,
+            number_box.w,
+            number_box.h,
+            number_box.h * 0.90 * point_scale,
             false,
         )?;
         let month = Font::fit(
@@ -445,173 +446,7 @@ fn japan_travel(
     caption: &TravelCaption,
 ) -> Result<(), AppError> {
     let accent = style.color();
-    let outer = layout.panel;
-    let player = layout.inner;
-    match style.travel_style {
-        TravelStyle::FreeFlight => {
-            let radius = (outer.w * 0.075).min(outer.h * 0.16).max(2.0);
-            canvas.rounded(
-                outer,
-                Some(rgb(28, 34, 38)),
-                dim(accent, 0.55),
-                (outer.w * 0.008).max(1.0),
-                radius,
-            )?;
-            let middle = outer.inset(outer.w * 0.018, outer.h * 0.028);
-            canvas.rounded(
-                middle,
-                Some(rgb(168, 177, 180)),
-                rgb(72, 82, 87),
-                (outer.w * 0.006).max(1.0),
-                radius * 0.82,
-            )?;
-        }
-        TravelStyle::TrainJourney => {
-            let radius = (outer.w * 0.025).min(outer.h * 0.07).max(2.0);
-            canvas.rounded(
-                outer,
-                Some(rgb(47, 24, 14)),
-                rgb(201, 125, 55),
-                (outer.w * 0.009).max(1.0),
-                radius,
-            )?;
-            let middle = outer.inset(outer.w * 0.016, outer.h * 0.024);
-            canvas.rounded(
-                middle,
-                Some(rgb(118, 63, 31)),
-                rgb(238, 174, 92),
-                (outer.w * 0.006).max(1.0),
-                radius * 0.72,
-            )?;
-            if layout.detail != Detail::Tiny {
-                for ratio in [0.08, 0.18, 0.82, 0.92] {
-                    let x = outer.x + outer.w * ratio;
-                    canvas.line(
-                        &[
-                            (x, outer.y + outer.h * 0.04),
-                            (x, player.y - outer.h * 0.015),
-                        ],
-                        (outer.w * 0.006).max(1.0),
-                        rgb(226, 142, 65),
-                    )?;
-                }
-                for ratio in [0.16, 0.5, 0.84] {
-                    let x = outer.x + outer.w * ratio;
-                    canvas.ellipse(
-                        Rect {
-                            x: x - outer.w * 0.012,
-                            y: outer.y + outer.h * 0.04,
-                            w: outer.w * 0.024,
-                            h: outer.w * 0.024,
-                        },
-                        rgb(255, 220, 139),
-                    )?;
-                }
-            }
-        }
-    }
-
-    // A calm built-in scene is shown while checking the live source, in previews,
-    // and when WebView2 or the network is unavailable. The real player replaces
-    // the entire surface and remains a complete, unobscured 16:9 rectangle.
-    match style.travel_style {
-        TravelStyle::FreeFlight => {
-            canvas.fill(player, rgb(21, 54, 76))?;
-            canvas.fill(
-                Rect {
-                    x: player.x,
-                    y: player.y + player.h * 0.58,
-                    w: player.w,
-                    h: player.h * 0.42,
-                },
-                rgb(9, 23, 34),
-            )?;
-            if layout.detail != Detail::Tiny {
-                for (x, y, w, h) in [
-                    (0.15, 0.31, 0.20, 0.075),
-                    (0.48, 0.22, 0.26, 0.085),
-                    (0.72, 0.41, 0.18, 0.065),
-                ] {
-                    canvas.ellipse(
-                        Rect {
-                            x: player.x + player.w * x,
-                            y: player.y + player.h * y,
-                            w: player.w * w,
-                            h: player.h * h,
-                        },
-                        rgb(196, 210, 217),
-                    )?;
-                }
-            }
-        }
-        TravelStyle::TrainJourney => {
-            canvas.fill(player, rgb(234, 174, 101))?;
-            let horizon_y = player.y + player.h * 0.48;
-            canvas.fill(
-                Rect {
-                    x: player.x,
-                    y: horizon_y,
-                    w: player.w,
-                    h: player.h * 0.52,
-                },
-                rgb(64, 85, 46),
-            )?;
-            if layout.detail != Detail::Tiny {
-                let vanishing = (player.cx(), player.y + player.h * 0.55);
-                canvas.polygon(
-                    &[
-                        (player.x + player.w * 0.34, player.bottom()),
-                        (vanishing.0 - player.w * 0.035, vanishing.1),
-                        (vanishing.0 + player.w * 0.035, vanishing.1),
-                        (player.x + player.w * 0.66, player.bottom()),
-                    ],
-                    rgb(69, 38, 25),
-                    Some((rgb(177, 111, 54), player.w * 0.005)),
-                )?;
-                for ratio in [0.64, 0.74, 0.84, 0.94] {
-                    let half = player.w * (ratio - 0.55) * 0.33;
-                    let y = player.y + player.h * ratio;
-                    canvas.line(
-                        &[(player.cx() - half, y), (player.cx() + half, y)],
-                        (player.h * 0.012).max(1.0),
-                        rgb(193, 137, 79),
-                    )?;
-                }
-                for side in [0.0, 1.0] {
-                    let left = side == 0.0;
-                    let x0 = if left {
-                        player.x + player.w * 0.03
-                    } else {
-                        player.x + player.w * 0.73
-                    };
-                    canvas.polygon(
-                        &[
-                            (x0, player.y + player.h * 0.69),
-                            (x0 + player.w * 0.24, player.y + player.h * 0.69),
-                            (x0 + player.w * 0.20, player.y + player.h * 0.84),
-                            (x0 + player.w * 0.01, player.y + player.h * 0.84),
-                        ],
-                        rgb(232, 221, 197),
-                        Some((rgb(126, 72, 38), player.w * 0.004)),
-                    )?;
-                    let chair_x = if left {
-                        player.x + player.w * 0.22
-                    } else {
-                        player.x + player.w * 0.68
-                    };
-                    canvas.ellipse(
-                        Rect {
-                            x: chair_x,
-                            y: player.y + player.h * 0.79,
-                            w: player.w * 0.10,
-                            h: player.h * 0.18,
-                        },
-                        rgb(85, 47, 35),
-                    )?;
-                }
-            }
-        }
-    }
+    crate::travel_art::draw(canvas.dc, layout.panel, style.travel_style)?;
     if layout.detail != Detail::Tiny {
         let plaque = layout.calendar;
         let title_rect = Rect {
@@ -672,6 +507,19 @@ fn centered(cx: f64, cy: f64, width: f64, height: f64) -> Rect {
     }
 }
 
+fn clock_number_rect(clock: Rect, degrees: f64) -> Rect {
+    let r = clock.w * 0.45;
+    let angle = degrees.to_radians();
+    // Keep the entire text box inside the major ticks' inner radius (0.82r),
+    // including the widest "12" label and a gap for rasterized stroke edges.
+    centered(
+        clock.cx() + 0.58 * r * angle.sin(),
+        clock.cy() - 0.58 * r * angle.cos(),
+        r * 0.38,
+        r * 0.30,
+    )
+}
+
 fn time_date(
     canvas: &mut Canvas<'_>,
     layout: Layout,
@@ -702,13 +550,7 @@ fn time_date(
     }
     if let Some(fonts) = fonts {
         for (value, degrees) in [("12", 0.0_f64), ("3", 90.0), ("6", 180.0), ("9", 270.0)] {
-            let a = degrees.to_radians();
-            let rect = centered(
-                cx + 0.62 * r * a.sin(),
-                cy - 0.62 * r * a.cos(),
-                r * 0.60,
-                r * 0.40,
-            );
+            let rect = clock_number_rect(clock, degrees);
             if style.font == FontMode::SevenSegment {
                 digits(canvas, value, rect, color, false)?;
             } else {
@@ -1139,6 +981,59 @@ mod tests {
         bytes.extend_from_slice(pixels);
         fs::write(path, bytes).unwrap();
     }
+
+    fn assert_clock_numerals_clear_ticks(screen: HDC) {
+        let mut custom = FontSpec::default_choice().logfont(1);
+        custom.lfFaceName.fill(0);
+        for (target, unit) in custom
+            .lfFaceName
+            .iter_mut()
+            .zip("Arial Black".encode_utf16())
+        {
+            *target = unit;
+        }
+        custom.lfWeight = 900;
+        custom.lfItalic = 1;
+        let custom = FontSpec::from_logfont(custom, 2400).unwrap();
+        let styles = [
+            Style::default(),
+            Style {
+                font: FontMode::MingLiu,
+                ..Style::default()
+            },
+            Style {
+                font: FontMode::Custom,
+                custom: Some(custom),
+                point_size_tenth: custom.point_size_tenth(),
+                ..Style::default()
+            },
+        ];
+        for (w, h) in [(320, 180), (1920, 1080), (1080, 1920), (3840, 2160)] {
+            let layout = Layout::new(w, h, DisplayMode::TimeDate).unwrap();
+            let r = layout.clock.w * 0.45;
+            for style in styles {
+                let fonts = Fonts::new(screen, layout, style).unwrap();
+                let _font = Selection::new(screen, fonts.clock.handle()).unwrap();
+                for (label, degrees) in [("12", 0.0), ("3", 90.0), ("6", 180.0), ("9", 270.0)] {
+                    let rect = clock_number_rect(layout.clock, degrees);
+                    if style.font != FontMode::SevenSegment {
+                        let measured = gdi::measure(screen, label).unwrap();
+                        assert!(f64::from(measured.cx) <= rect.w);
+                        assert!(f64::from(measured.cy) <= rect.h);
+                    }
+                    // Even the text-box corners must clear the innermost tick,
+                    // its half-width and pixel rounding, at preview through 4K.
+                    for x in [rect.x, rect.right()] {
+                        for y in [rect.y, rect.bottom()] {
+                            let distance = (x - layout.clock.cx()).hypot(y - layout.clock.cy());
+                            assert!(distance + r * 0.006 + 1.5 < r * 0.82);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects() {
         let screen = Screen::new();
@@ -1197,6 +1092,7 @@ mod tests {
             assert_eq!(buffer.pixels(screen.0).unwrap().len(), 800 * 450 * 4);
             assert!(renderer.pens.len() <= 32);
         }
+        assert_clock_numerals_clear_ticks(screen.0);
         // Warmed GDI baseline; no live renderer/cache remains above.
         // SAFETY: Read counters for this test process only.
         let before = unsafe { GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS) };

@@ -165,28 +165,23 @@ impl Layout {
                 result.inner = result.panel.inset(pw * 0.04, ph * 0.12);
             }
             DisplayMode::JapanTravel => {
-                // Reserve a complete, unobscured 16:9 player rectangle. The
-                // surrounding panel and the lower plaque form the aircraft-window
-                // suggestion without clipping third-party video or its controls.
+                // Preserve the embedded artwork's aspect ratio. Captions have
+                // a separate row; the inner reference fits both window openings.
                 let plaque = group.h * 0.14;
                 let available_h = (group.h - plaque).max(f64::EPSILON);
-                let player_w = (group.w / 1.12).min((available_h / 1.16) * 16.0 / 9.0);
-                let player_h = player_w * 9.0 / 16.0;
-                let frame = (player_w * 0.055)
-                    .min((available_h - player_h) / 2.0)
-                    .min((group.w - player_w) / 2.0)
-                    .max(0.0);
-                result.inner = Rect {
-                    x: group.cx() - player_w / 2.0,
-                    y: group.y + (available_h - player_h) / 2.0,
-                    w: player_w,
-                    h: player_h,
-                };
+                let art_w = group.w.min(available_h * 1586.0 / 992.0);
+                let art_h = art_w * 992.0 / 1586.0;
                 result.panel = Rect {
-                    x: result.inner.x - frame,
-                    y: result.inner.y - frame,
-                    w: result.inner.w + frame * 2.0,
-                    h: result.inner.h + frame * 2.0,
+                    x: group.cx() - art_w / 2.0,
+                    y: group.y + (available_h - art_h) / 2.0,
+                    w: art_w,
+                    h: art_h,
+                };
+                result.inner = Rect {
+                    x: result.panel.x + art_w * 0.20,
+                    y: result.panel.y + art_h * 0.215,
+                    w: art_w * 0.60,
+                    h: art_w * 0.60 * 9.0 / 16.0,
                 };
                 result.calendar = Rect {
                     x: group.x,

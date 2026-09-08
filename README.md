@@ -7,33 +7,39 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.7.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.7.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.8.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.8.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
-![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase9/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
+![標準桌曆暨時鐘模式：縮小鐘面數字、置中的指針鐘與六列月曆](docs/evidence/phase12/fixtures/04-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.7.0 是未簽章的開發候選版。** 修正日本旅行模式第二螢幕只顯示連線狀態的問題，改為每個螢幕各自建立播放器、輪換來源並顯示實際狀態。Windows 10 x64 的非互動建置、49 個預設測試、19 個安裝判斷測試、smoke 與封裝已通過，40 張 GDI fixture 已重新匯出；旅行來源紀錄沿用 v0.4.0，Runtime 僅重做唯讀偵測；實際影片播放、連續輪換、多螢幕旅行畫面與長時間資源觀察仍為 `NOT TESTED`。安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
+> **v0.8.0 是未簽章的開發候選版。** 縮小時鐘數字、以原創擬真圖片呈現飛行與列車場景，並新增旅行來源切換時間設定。Windows 10 x64 的非互動建置、56 個預設測試、19 個安裝判斷測試、smoke 與封裝已通過，40 張 GDI fixture 已重新匯出；旅行來源紀錄沿用 v0.4.0，Runtime 僅重做唯讀偵測；實際影片播放、連續輪換、多螢幕旅行畫面與長時間資源觀察仍為 `NOT TESTED`。安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.7.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.7.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.7.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.8.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
-目前 v0.7.0 成品：
+目前 v0.8.0 成品：
 
 | 成品 | SHA-256 |
 | --- | --- |
-| `tools-screensaver-tzk.scr` | `e9aa5d8be9de35480fa8db26951540affe0f5fab83d79e07b3543171e40d7a43` |
-| `tools-screensaver-tzk-Setup.exe` | `eafdf0deaf9cbbf60db66a595a01780e01f4dc4c520b599e0cc6cd3341ba851d` |
+| `tools-screensaver-tzk.scr` | `827e0c9b45e4820cb00dc337cac7321bdcb0a3e06ff06f1c2e35c3028f45b281` |
+| `tools-screensaver-tzk-Setup.exe` | `f92160cb1334db2a707014181916d82810cd876ee45b5d6ee505b334741a3e95` |
 
 ## 安裝與使用
 
 1. 下載 Setup 與 `SHA256SUMS.txt`，先以 `Get-FileHash -Algorithm SHA256` 比對檔案。
 2. 執行 Setup。安裝程式需要系統管理員權限，會將唯一的 `.scr` 安裝到 64 位元 Windows 的 System32。
 3. 「將它設為目前的螢幕保護程式」預設不勾；需要時可在安裝時勾選，或稍後從 Windows 的螢幕保護程式設定選取。
-4. 以 `/c` 開啟設定，選擇畫面、主色與字型；日本旅行模式另可選「自在飛行」或「列車旅行」。按「確定」才會保存個人設定，設定畫面不會立即連網。
+4. 以 `/c` 開啟設定，選擇畫面、主色與字型；日本旅行模式另可選「自在飛行」或「列車旅行」，並設定來源切換時間。按「確定」才會保存個人設定，設定畫面不會立即連網。
+
+### 日本旅行模式的來源切換時間
+
+在設定畫面選取日本旅行模式後，可選「不切換」或按分鐘切換，預設 **每 1 分鐘**，可輸入 **1～1440 的整數分鐘**。每個螢幕在影片實際開始播放後獨立計時；設定於下一次啟動螢幕保護程式時套用。
+
+「不切換」會持續顯示目前可用來源，並停止排程輪換與下一來源預抓。若來源離線或播放失敗，程式仍會尋找其他可用來源。取消設定不會保存變更；舊版本設定升級後預設仍為每 1 分鐘。
 
 ### Setup 的 WebView2 Runtime 階段
 
@@ -79,11 +85,12 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 ## 功能
 
 - **置中留白**：桌曆時鐘與番茄鐘在寬至少 640 px 且高至少 360 px 的畫面，收進中央 64% 寬、60% 高的內容區；左右各留 18%、上下各留 20% 初始空間。內容區面積比先前縮小約 47%，小型預覽保持可讀性。
-- **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。
+- **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。鐘面的 12／3／6／9 比前版縮小 25%，位置略向內收，與外側刻度保持間距。
 - **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
-- **日本旅行模式**：可選原客艙窗框更名後的「自在飛行」，或以暖色木質、拱形頂棚、窗列和餐桌座位為設計語彙的「列車旅行」。兩者都顯示目前城市／地區與 tw.live 所整理的 YouTube 即時影像；player 回報 `PLAYING` 後預抓不同候選，滿 60 秒時切換。
+- **日本旅行模式**：可選「自在飛行」機艙或「列車旅行」木質車廂，兩者改用本專案原創的 AI 擬真圖片，呈現窗框材質、光線與室內景深。這些是虛構場景，並非真實 A380 或特定列車照片；完整 16:9 影片位於窗景中，顯示目前城市／地區與 tw.live 所整理的 YouTube 即時影像。
+- **旅行切換時間**：預設每 1 分鐘；可選 1～1440 整數分鐘或「不切換」。啟用輪換時，player 回報 `PLAYING` 後才開始計時，於剩餘最後 1 分鐘預抓下一個候選；不切換時仍保留來源失效復原。
 - **來源復原**：內建 8 個 tw.live camera ID 候選，每輪最多檢查 3 個；目錄、來源解析或 player 失敗時有界重試，沒有可用來源時顯示靜態 fallback。
-- **多螢幕旅行畫面**：每個螢幕各自建立一個 player，獨立選擇來源、在播放滿 60 秒後輪換並顯示自己的城市與狀態。單一螢幕的來源失敗不會覆蓋其他螢幕的狀態；網路、記憶體與 GPU 用量會隨播放螢幕數增加。
+- **多螢幕旅行畫面**：每個螢幕各自建立一個 player，獨立選擇來源、依設定時間輪換並顯示自己的城市與狀態。單一螢幕的來源失敗不會覆蓋其他螢幕的狀態；網路、記憶體與 GPU 用量會隨播放螢幕數增加。
 - **個人化**：深紅、深橘、亮綠、灰白四色；電子錶、Consolas、新細明體及自訂系統字型。
 - **設定識別**：原生設定畫面以程式圖示搭配「KOMSMOS TOOLKIT 探真拓知酷」小型標示。
 - **Windows 整合**：支援 `/s` 全螢幕、`/p HWND` 系統預覽與 `/c` 原生設定對話框。
@@ -95,6 +102,12 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 ## 日本旅行模式的網路與隱私
 
 主要目錄是 [tw.live 日本旅行即時影像](https://tw.live/japan/)，影片以 YouTube 官方嵌入播放器呈現。程式不嵌入 tw.live 整頁，不下載、錄製、轉碼、代理、保存或重新託管影片。「自在飛行」與「列車旅行」框、地名和狀態都位於完整 player 矩形外，不遮蔽影片、品牌、廣告或控制項。
+
+![自在飛行：原創 AI 擬真機艙場景](assets/travel/free-flight.png)
+
+![列車旅行：原創 AI 擬真木質車廂場景](assets/travel/train-journey.png)
+
+以上為程式內附的靜態場景素材，沒有載入第三方影片。系統與設定預覽也使用內附圖片，保持離線；正式全螢幕啟動後才在窗景內載入播放器。
 
 啟動此模式會向 tw.live、YouTube／Google 與影片來源使用的 CDN 傳送正常連線所需的 IP 位址、User-Agent、時間與播放器資料。tw.live、YouTube、攝影機提供者及影片內容不受本專案 MIT License 授權；來源可能改址、下線、限制地區或撤回嵌入。最新候選、探測結果與權利邊界見 [日本旅行模式來源、網路與授權紀錄](docs/japan-travel-sources.md)。
 
@@ -151,7 +164,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.7.0 的 49 個預設測試通過（包含兩螢幕事件路由、失敗隔離與清理），另有 9 個互動、長時間或環境測試預設 ignored；19 個 installer policy checks 在不建立精靈、不提權的 harness 通過；40 張 GDI fixture 已重新匯出，涵蓋置中桌曆時鐘、番茄鐘、大小畫面、旅行場景，以及檢查來源、播放狀態與播放器失敗文字；它們是離屏繪圖，不是實際影片播放證據。smoke 已通過 PE、resources、manifest、版本、imports、靜態 CRT 與無 UI 錯誤路徑檢查；安裝 helper 在非 System32 路徑拒絕時沒有改動系統設定。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.8.0 的 56 個預設測試通過，涵蓋旅行切換時間、設定相容性，以及兩螢幕事件路由、失敗隔離與清理；互動、長時間或環境測試預設 ignored。19 個 installer policy checks 在不建立精靈、不提權的 harness 通過；40 張 GDI fixture 已重新匯出，涵蓋縮小鐘面數字、置中版面、大小畫面、擬真旅行場景與狀態文字；它們是離屏繪圖，不是實際影片播放證據。smoke 已通過 PE、resources、manifest、版本、imports、靜態 CRT 與無 UI 錯誤路徑檢查；安裝 helper 在非 System32 路徑拒絕時沒有改動系統設定。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -167,13 +180,14 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - ignored native UI tests
 - `observe-phase4.ps1`
 - `test-installation.ps1`（會安裝到 System32 並顯示 UAC）
-- 日本旅行模式實際播放、至少 5 次 60 秒輪換、多螢幕／DPI、斷網與 30 分鐘資源觀察
+- 日本旅行模式實際播放、至少 5 次預設 1 分鐘輪換、自訂分鐘與不切換、多螢幕／DPI、斷網與 30 分鐘資源觀察
 
 缺少可互動環境時，相關驗收維持 `NOT TESTED`。Windows 10 驗證邊界與逐項狀態見 [驗收報告](docs/acceptance-report.md)。
 
 ## 專案文件
 
-- [Codex 開發規格 v1.8](tools-screensaver-tzk_Codex_Spec.md)
+- [Codex 開發規格 v1.9](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 12 鐘面、擬真旅行場景與切換設定報告](docs/phase12-report.md)
 - [Phase 11 多螢幕旅行修正與驗證報告](docs/phase11-report.md)
 - [Phase 10 WebView2 安裝階段與驗證報告](docs/phase10-report.md)
 - [Phase 9 置中版面與驗證報告](docs/phase9-report.md)
@@ -186,8 +200,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～11 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.7.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～12 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.8.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 
-原始碼及本專案自製圖形以 [MIT License](LICENSE) 發布，Copyright (c) 2026 kisaraki。MIT License 不涵蓋 tw.live、YouTube、攝影機提供者或第三方影片。程式圖示由本專案自行繪製；使用者提供的私有視覺參考沒有納入公開 repository 或成品。
+原始碼及本專案自製圖形（含原創 AI 擬真旅行場景）以 [MIT License](LICENSE) 發布，Copyright (c) 2026 kisaraki。MIT License 不涵蓋 tw.live、YouTube、攝影機提供者或第三方影片。程式圖示由本專案自行繪製；使用者提供的私有視覺參考沒有納入公開 repository 或成品。

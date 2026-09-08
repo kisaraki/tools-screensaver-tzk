@@ -1,0 +1,157 @@
+{
+    "capturedAt":  "2026-09-08T18:01:18.1985012+08:00",
+    "artifact":  "<REPOSITORY>\\dist\\tools-screensaver-tzk.scr",
+    "temporaryScr":  "%TEMP%\\tools-screensaver-tzk-smoke-27bc497949c8495888a17a8c9c2044fa\\tools-screensaver-tzk.scr",
+    "sha256":  "827e0c9b45e4820cb00dc337cac7321bdcb0a3e06ff06f1c2e35c3028f45b281",
+    "bytes":  4484096,
+    "machine":  "0x8664 (x64)",
+    "optionalHeader":  "PE32+",
+    "subsystem":  "Windows GUI",
+    "version":  "0.8.0",
+    "fileDescription":  "tools-screensaver-tzk 螢幕保護程式",
+    "resources":  [
+                      {
+                          "type":  14,
+                          "id":  101,
+                          "name":  "group icon",
+                          "bytes":  62
+                      },
+                      {
+                          "type":  5,
+                          "id":  2003,
+                          "name":  "configuration dialog",
+                          "bytes":  1504
+                      },
+                      {
+                          "type":  5,
+                          "id":  2004,
+                          "name":  "countdown dialog",
+                          "bytes":  480
+                      },
+                      {
+                          "type":  6,
+                          "id":  1,
+                          "name":  "string table block",
+                          "bytes":  74
+                      },
+                      {
+                          "type":  16,
+                          "id":  1,
+                          "name":  "version",
+                          "bytes":  800
+                      },
+                      {
+                          "type":  24,
+                          "id":  1,
+                          "name":  "manifest",
+                          "bytes":  1308
+                      }
+                  ],
+    "configurationLabels":  [
+                                "tools-screensaver-tzk",
+                                "標準桌曆暨時鐘模式(\u0026T)",
+                                "離機作業番茄鐘模式(\u0026C)",
+                                "日本旅行模式(\u0026J)",
+                                "自在飛行(\u0026A)",
+                                "列車旅行(\u0026N)",
+                                "日本旅行場景與來源",
+                                "來源切換(\u0026I)：",
+                                "分鐘（1～1440）",
+                                "需要網路；全螢幕時連線至 tw.live 與 YouTube，影片靜音。",
+                                "KOMSMOS TOOLKIT",
+                                "探真拓知酷"
+                            ],
+    "manifestChecks":  "PASS",
+    "imports":  [
+                    "advapi32.dll",
+                    "api-ms-win-core-synch-l1-2-0.dll",
+                    "combase.dll",
+                    "comdlg32.dll",
+                    "gdi32.dll",
+                    "kernel32.dll",
+                    "ntdll.dll",
+                    "ole32.dll",
+                    "oleaut32.dll",
+                    "shell32.dll",
+                    "user32.dll",
+                    "winhttp.dll"
+                ],
+    "staticCrtCheck":  "PASS (no dynamic VC/UCRT import)",
+    "signatureStatus":  "NotSigned",
+    "invalidArgumentCases":  [
+                                 {
+                                     "arguments":  "/p",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/p:0",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/s /c",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "--dev-render=time-date",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 }
+                             ],
+    "installHelperRefusal":  {
+                                 "arguments":  "--install-set-current",
+                                 "exitCode":  4,
+                                 "uiExpected":  false
+                             },
+    "protectedRegistryBefore":  {
+                                    "SCRNSAVE.EXE":  {
+                                                         "exists":  true,
+                                                         "kind":  "String",
+                                                         "value":  "C:\\WINDOWS\\system32\\tools-screensaver-tzk.scr"
+                                                     },
+                                    "ScreenSaveTimeOut":  {
+                                                              "exists":  true,
+                                                              "kind":  "String",
+                                                              "value":  "60"
+                                                          },
+                                    "ScreenSaverIsSecure":  {
+                                                                "exists":  true,
+                                                                "kind":  "String",
+                                                                "value":  "0"
+                                                            },
+                                    "ScreenSaveActive":  {
+                                                             "exists":  true,
+                                                             "kind":  "String",
+                                                             "value":  "1"
+                                                         }
+                                },
+    "protectedRegistryAfter":  {
+                                   "SCRNSAVE.EXE":  {
+                                                        "exists":  true,
+                                                        "kind":  "String",
+                                                        "value":  "C:\\WINDOWS\\system32\\tools-screensaver-tzk.scr"
+                                                    },
+                                   "ScreenSaveTimeOut":  {
+                                                             "exists":  true,
+                                                             "kind":  "String",
+                                                             "value":  "60"
+                                                         },
+                                   "ScreenSaverIsSecure":  {
+                                                               "exists":  true,
+                                                               "kind":  "String",
+                                                               "value":  "0"
+                                                           },
+                                   "ScreenSaveActive":  {
+                                                            "exists":  true,
+                                                            "kind":  "String",
+                                                            "value":  "1"
+                                                        }
+                               },
+    "interactive":  false,
+    "interactiveCases":  [
+
+                         ],
+    "result":  "PASS"
+}

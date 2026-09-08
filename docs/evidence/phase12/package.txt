@@ -1,0 +1,165 @@
+[1/4] cargo fmt --check
+[2/4] cargo clippy --locked --all-targets -- -D warnings
+    Checking tools-screensaver-tzk v0.8.0 (<REPOSITORY>)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.25s
+[3/4] cargo test --locked
+   Compiling tools-screensaver-tzk v0.8.0 (<REPOSITORY>)
+   Compiling windows v0.62.2
+   Compiling webview2-com-sys v0.39.1
+   Compiling webview2-com v0.39.1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 37.96s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-70256254fe6efcd6.exe)
+
+running 39 tests
+test config::tests::custom_font_binary_and_fields_are_validated_and_normalized ... ok
+test config::tests::every_enum_registry_value_round_trips_and_rejects_out_of_range ... ok
+test config::tests::rollback_failure_is_distinct_and_countdown_preserves_unrelated_fields ... ok
+test config::tests::schema_states_and_future_write_protection ... ok
+test config::tests::invalid_or_cancelled_drafts_do_not_write ... ok
+test config::tests::malformed_values_fall_back_per_field ... ok
+test config::tests::transactions_preserve_unknown_values_and_restore_on_failure ... ok
+test config::tests::actual_registry_adapter_uses_only_a_dedicated_test_subkey ... ok
+test config::tests::travel_switch_migration_and_malformed_values_keep_the_one_minute_default ... ok
+test config::tests::travel_switch_text_accepts_only_bounded_whole_minutes ... ok
+test render::tests::export_visual_fixtures ... ignored, writes real GDI fixture BMP files to PHASE2_FIXTURES
+test config::tests::travel_switch_boundaries_round_trip_and_invalid_drafts_do_not_write ... ok
+test lifecycle::tests::shutdown_is_idempotent_and_quits_after_last_window ... ok
+test travel::tests::attribute_parser_handles_boolean_missing_and_malformed_attributes ... ok
+test monitor::tests::bounds_preserve_negative_coordinates_and_reject_overflow ... ok
+test travel::tests::camera_detail_extracts_normalized_place_and_strict_youtube_id ... ok
+test lifecycle::tests::mouse_grace_and_strict_threshold_use_original_baseline ... ok
+test travel::tests::candidate_shuffle_is_unique_and_excludes_last_success ... ok
+test travel::tests::live_catalog_and_candidate_parser_have_usable_sources ... ignored, live bounded HTTPS probe; run explicitly without opening UI
+test travel::tests::captions_distinguish_preview_playback_and_browser_failure ... ok
+test travel::tests::load_script_escapes_untrusted_place_text_as_data ... ok
+test travel::tests::network_state_distinguishes_fetch_player_error_and_stall ... ok
+test travel::tests::html_shell_has_one_player_and_keeps_caption_outside_it ... ok
+test travel_webview::tests::installed_webview2_runtime_is_detectable_without_ui ... ignored, host prerequisite probe; does not create a window or install software
+test travel::tests::rotation_intervals_and_prefetch_respect_disabled_and_minute_boundaries ... ok
+test travel::tests::parser_uses_hint_but_rejects_untrusted_hosts_ids_and_camera_paths ... ok
+test dialog::travel_control_tests::hidden_travel_controls_validate_minutes_and_follow_mode_enablement ... ok
+test travel_webview::tests::player_notifications_require_known_events_and_nonzero_tokens ... ok
+test travel_webview::tests::shell_identity_is_https_and_paths_are_terminated ... ok
+test utf16::tests::empty_string_is_a_valid_terminated_buffer ... ok
+test window::tests::activating_a_source_advances_a_nonzero_playback_token ... ok
+test window::tests::disabling_scheduled_switching_keeps_failure_recovery_enabled ... ok
+test utf16::tests::preserves_chinese_and_surrogate_pairs ... ok
+test utf16::tests::rejects_nul_including_a_caller_supplied_terminator ... ok
+test window::tests::offline_modes_do_not_create_travel_hosts ... ok
+test window::tests::travel_events_and_cleanup_are_isolated_per_monitor ... ok
+test window::tests::real_creation_failures_and_partial_group_cleanup_drop_each_state_once ... ok
+test travel_art::tests::embedded_artwork_decodes_and_preserves_existing_com_apartments ... ok
+test render::tests::gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects ... ok
+
+test result: ok. 36 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 7.70s
+
+     Running tests\cli_tests.rs (target\x86_64-pc-windows-msvc\debug\deps\cli_tests-c79f62f4cb396c0f.exe)
+
+running 8 tests
+test accepts_case_prefix_and_both_handle_separators ... ok
+test developer_modes_are_compiled_only_into_debug ... ok
+test install_helper_accepts_only_its_exact_single_flag ... ok
+test keeps_all_64_handle_bits_and_rejects_overflow ... ok
+test rejects_missing_unknown_duplicate_and_debug_arguments ... ok
+test zero_owner_is_allowed_but_zero_preview_is_not ... ok
+test no_arguments_opens_configuration ... ok
+test rejects_malformed_handles_for_both_modes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\native_modes.rs (target\x86_64-pc-windows-msvc\debug\deps\native_modes-73d1c186eff46223.exe)
+
+running 6 tests
+test configure_default_invalid_and_real_owners ... ignored, shows the Phase 3 configuration dialog; run explicitly and serially
+test fullscreen_covers_monitors_and_handles_exit_messages ... ignored, briefly covers all displays in black; run explicitly and serially
+test fullscreen_foreground_transitions_when_windows_allows_activation ... ignored, temporarily switches foreground between owned test windows
+test preview_embeds_resizes_and_exits_in_three_dpi_contexts ... ignored, shows a small native host; run explicitly and serially
+test install_helper_refuses_a_non_system32_copy ... ok
+test invalid_real_command_lines_exit_two_without_windows ... ok
+
+test result: ok. 2 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 2.32s
+
+     Running tests\phase3_native.rs (target\x86_64-pc-windows-msvc\debug\deps\phase3_native-0430a26531c8de9c.exe)
+
+running 1 test
+test phase3_configuration_preview_and_countdown_flow ... ignored, opens native config/font/countdown UI and fullscreen surfaces; run serially
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\resource_observation.rs (target\x86_64-pc-windows-msvc\debug\deps\resource_observation-660cc975a179edfa.exe)
+
+running 1 test
+test observe_two_debug_modes_for_ten_minutes ... ignored, two visible Debug windows, real 600-second observation; set PHASE2_OBSERVATION
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\time_layout.rs (target\x86_64-pc-windows-msvc\debug\deps\time_layout-4e8d200ba7d2179e.exe)
+
+running 10 tests
+test countdown_ceil_ratio_and_deadline_overflow ... ok
+test drift_stays_inside_safety_bounds_and_skips_missed_intervals ... ok
+test last_ten_seconds_and_exactly_four_dim_half_cycles ... ok
+test clock_and_countdown_use_a_centered_friendly_desktop_stage ... ok
+test clock_angles_are_continuous_in_minutes_and_seconds ... ok
+test layouts_fit_all_aspects_and_small_previews_without_double_dpi_scaling ... ok
+test gregorian_centuries_and_monday_first_cells ... ok
+test segment_mapping_and_seeded_random_sequence ... ok
+test duration_fields_reject_bad_input_and_round_trip_extremes ... ok
+test shared_generation_clock_adjustment_and_resume_do_not_change_deadline ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests tools_screensaver_tzk
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[4/4] cargo build --release --locked
+   Compiling tools-screensaver-tzk v0.8.0 (<REPOSITORY>)
+   Compiling windows v0.62.2
+   Compiling webview2-com-sys v0.39.1
+   Compiling webview2-com v0.39.1
+    Finished `release` profile [optimized] target(s) in 56.04s
+
+[PASS] Phase 5 build completed.
+Artifact: <REPOSITORY>\dist\tools-screensaver-tzk.scr
+Version: 0.8.0
+Bytes: 4484096
+SHA-256: 827e0c9b45e4820cb00dc337cac7321bdcb0a3e06ff06f1c2e35c3028f45b281
+Rust:
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+RC: C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\rc.exe
+Linker: C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\link.exe
+Source revision: 4c3a7d6daf9378d72915bcb7626d60a3c74f916d
+{
+    "version":  "1.3.265.7",
+    "bytes":  1783000,
+    "sha256":  "17debf797a6c737959bc588236e897936ffac1af5f7e515e674ab32f9edfe719",
+    "signature":  "Valid",
+    "publisher":  "Microsoft Corporation",
+    "executed":  false
+}
+
+
+PreprocessingPASS: 19 policy checks
+machineRuntimePresent=1
+machineRuntimeVersion=152.0.4191.66
+interactive=false; runtimeExecuted=false; registryWrites=false
+
+[package] Inno Setup 6.7.3
+
+
+PreprocessingArtifact: <REPOSITORY>\dist\tools-screensaver-tzk.scr
+Version: 0.8.0
+Bytes: 4484096
+SHA-256: 827e0c9b45e4820cb00dc337cac7321bdcb0a3e06ff06f1c2e35c3028f45b281
+Signature: NotSigned
+Artifact: <REPOSITORY>\dist\tools-screensaver-tzk-Setup.exe
+Version: 0.8.0.0
+Bytes: 7619663
+SHA-256: f92160cb1334db2a707014181916d82810cd876ee45b5d6ee505b334741a3e95
+Signature: NotSigned
+SHA-256 list: <REPOSITORY>\dist\SHA256SUMS.txt
+[PASS] Phase 5 package completed with Inno Setup 6.7.3.

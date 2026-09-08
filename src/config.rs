@@ -6,8 +6,10 @@ use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
 
-pub const SCHEMA_VERSION: u32 = 4;
+pub const SCHEMA_VERSION: u32 = 5;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
+pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
+pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
 pub const REG_BINARY_KIND: u32 = REG_BINARY;
 pub const REG_DWORD_KIND: u32 = REG_DWORD;
 
@@ -43,6 +45,7 @@ impl ColorPreset {
 const SCHEMA: &str = "SchemaVersion";
 const DISPLAY_MODE: &str = "DisplayMode";
 const TRAVEL_STYLE: &str = "TravelStyle";
+const TRAVEL_SWITCH_MINUTES: &str = "TravelSwitchMinutes";
 const COLOR_PRESET: &str = "ColorPreset";
 const FONT_MODE: &str = "FontMode";
 const CUSTOM_LOGFONT: &str = "CustomLogFont";
@@ -89,6 +92,8 @@ pub trait SettingsStore {
 pub struct AppConfig {
     pub display_mode: DisplayMode,
     pub travel_style: TravelStyle,
+    /// Zero disables scheduled source changes; errors still trigger recovery.
+    pub travel_switch_minutes: u32,
     pub color_preset: ColorPreset,
     pub font_mode: FontMode,
     pub custom_font: Option<FontSpec>,
@@ -102,6 +107,7 @@ impl Default for AppConfig {
         Self {
             display_mode: DisplayMode::TimeDate,
             travel_style: TravelStyle::FreeFlight,
+            travel_switch_minutes: DEFAULT_TRAVEL_SWITCH_MINUTES,
             color_preset: ColorPreset::BrightGreen,
             font_mode: FontMode::SevenSegment,
             custom_font: None,
@@ -126,6 +132,7 @@ impl AppConfig {
 pub struct ConfigDraft {
     pub display_mode: DisplayMode,
     pub travel_style: TravelStyle,
+    pub travel_switch_minutes: u32,
     pub color_preset: ColorPreset,
     pub font_mode: FontMode,
     pub custom_font: Option<FontSpec>,
@@ -136,6 +143,7 @@ impl From<AppConfig> for ConfigDraft {
         Self {
             display_mode: value.display_mode,
             travel_style: value.travel_style,
+            travel_switch_minutes: value.travel_switch_minutes,
             color_preset: value.color_preset,
             font_mode: value.font_mode,
             custom_font: value.custom_font,
@@ -145,12 +153,25 @@ impl From<AppConfig> for ConfigDraft {
 
 impl ConfigDraft {
     pub fn validate(self) -> Result<Self, SaveError> {
-        if self.font_mode == FontMode::Custom && self.custom_font.is_none() {
+        if self.travel_switch_minutes > MAX_TRAVEL_SWITCH_MINUTES {
+            Err(SaveError::InvalidTravelSwitchMinutes)
+        } else if self.font_mode == FontMode::Custom && self.custom_font.is_none() {
             Err(SaveError::InvalidDraft)
         } else {
             Ok(self)
         }
     }
+}
+
+/// Parse the enabled minutes field without accepting signs, whitespace, fractions,
+/// localized digits, or zero. The dialog's separate option represents no switching.
+pub(crate) fn parse_travel_switch_minutes(text: &str) -> Option<u32> {
+    if text.is_empty() || text.len() > 4 || !text.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    text.parse::<u32>()
+        .ok()
+        .filter(|value| (1..=MAX_TRAVEL_SWITCH_MINUTES).contains(value))
 }
 
 fn dword(value: Option<RawValue>) -> Option<u32> {
@@ -183,6 +204,10 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .and_then(TravelStyle::from_registry)
         .filter(|_| schema.is_some_and(|version| version >= 4))
         .unwrap_or(TravelStyle::FreeFlight);
+    let travel_switch_minutes = dword(get(store, TRAVEL_SWITCH_MINUTES))
+        .filter(|_| schema.is_some_and(|version| version >= 5))
+        .filter(|value| *value <= MAX_TRAVEL_SWITCH_MINUTES)
+        .unwrap_or(DEFAULT_TRAVEL_SWITCH_MINUTES);
     let color_preset = dword(get(store, COLOR_PRESET))
         .and_then(ColorPreset::from_registry)
         .unwrap_or(ColorPreset::BrightGreen);
@@ -204,6 +229,7 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
     AppConfig {
         display_mode,
         travel_style,
+        travel_switch_minutes,
         color_preset,
         font_mode,
         custom_font,
@@ -217,6 +243,7 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
 pub enum SaveError {
     FutureSchema(u32),
     InvalidDraft,
+    InvalidTravelSwitchMinutes,
     Store(StoreError),
     Rollback {
         write: StoreError,
@@ -229,6 +256,9 @@ impl fmt::Display for SaveError {
         match self {
             Self::FutureSchema(version) => write!(f, "設定版本 {version} 較新，本版不能覆寫。"),
             Self::InvalidDraft => f.write_str("請先選擇有效的自訂系統字型。"),
+            Self::InvalidTravelSwitchMinutes => {
+                f.write_str("來源切換時間請選擇不切換，或輸入 1～1440 的整數分鐘。")
+            }
             Self::Store(error) => write!(f, "無法保存設定：{error}"),
             Self::Rollback { write, rollback } => write!(
                 f,
@@ -293,6 +323,10 @@ pub fn save_draft(store: &mut impl SettingsStore, draft: ConfigDraft) -> Result<
             Some(RawValue::dword(draft.travel_style.registry_value())),
         ),
         (
+            TRAVEL_SWITCH_MINUTES,
+            Some(RawValue::dword(draft.travel_switch_minutes)),
+        ),
+        (
             COLOR_PRESET,
             Some(RawValue::dword(draft.color_preset.registry_value())),
         ),
@@ -322,13 +356,17 @@ pub fn save_countdown(store: &mut impl SettingsStore, seconds: u32) -> Result<()
     if !(1..=359999).contains(&seconds) {
         return Err(SaveError::InvalidDraft);
     }
-    transaction(
-        store,
-        vec![
-            (LAST_COUNTDOWN, Some(RawValue::dword(seconds))),
-            (SCHEMA, Some(RawValue::dword(SCHEMA_VERSION))),
-        ],
-    )
+    let mut updates = vec![(LAST_COUNTDOWN, Some(RawValue::dword(seconds)))];
+    if current_schema(store)?.is_none_or(|version| version < 5) {
+        // A countdown-only save also advances the schema. Preserve the legacy
+        // one-minute behavior instead of activating an old unrecognized value.
+        updates.push((
+            TRAVEL_SWITCH_MINUTES,
+            Some(RawValue::dword(DEFAULT_TRAVEL_SWITCH_MINUTES)),
+        ));
+    }
+    updates.push((SCHEMA, Some(RawValue::dword(SCHEMA_VERSION))));
+    transaction(store, updates)
 }
 
 #[cfg(test)]
@@ -490,7 +528,7 @@ mod tests {
 
     #[test]
     fn schema_states_and_future_write_protection() {
-        for schema in [None, Some(1), Some(2), Some(3), Some(4)] {
+        for schema in [None, Some(1), Some(2), Some(3), Some(4), Some(5)] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
                 store.values.insert(SCHEMA.into(), RawValue::dword(schema));
@@ -513,7 +551,7 @@ mod tests {
         legacy.values.insert(SCHEMA.into(), RawValue::dword(4));
         assert_eq!(load(&legacy).travel_style, TravelStyle::TrainJourney);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(5));
+        future.values.insert(SCHEMA.into(), RawValue::dword(6));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -521,9 +559,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(5))
+            Err(SaveError::FutureSchema(6))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(5));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(6));
 
         for broken_schema in [
             RawValue::dword(0),
@@ -610,6 +648,85 @@ mod tests {
     }
 
     #[test]
+    fn travel_switch_migration_and_malformed_values_keep_the_one_minute_default() {
+        for schema in [None, Some(1), Some(2), Some(3), Some(4)] {
+            let mut store = MemoryStore::default();
+            if let Some(version) = schema {
+                store.values.insert(SCHEMA.into(), RawValue::dword(version));
+            }
+            // A value under a legacy schema must not change that schema's behavior.
+            store
+                .values
+                .insert(TRAVEL_SWITCH_MINUTES.into(), RawValue::dword(0));
+            let before = store.values.clone();
+            assert_eq!(load(&store).travel_switch_minutes, 1);
+            assert_eq!(store.values, before);
+            save_countdown(&mut store, 90).unwrap();
+            assert_eq!(load(&store).travel_switch_minutes, 1);
+            assert_eq!(load(&store).schema_version, SCHEMA_VERSION);
+        }
+        for value in [
+            None,
+            Some(RawValue::dword(1441)),
+            Some(RawValue::dword(u32::MAX)),
+            Some(RawValue {
+                kind: REG_BINARY_KIND,
+                bytes: vec![0, 0, 0, 0],
+            }),
+            Some(RawValue {
+                kind: REG_DWORD_KIND,
+                bytes: vec![0, 0, 0],
+            }),
+        ] {
+            let mut store = MemoryStore::default();
+            store
+                .values
+                .insert(SCHEMA.into(), RawValue::dword(SCHEMA_VERSION));
+            if let Some(value) = value {
+                store.values.insert(TRAVEL_SWITCH_MINUTES.into(), value);
+            }
+            assert_eq!(load(&store).travel_switch_minutes, 1);
+        }
+    }
+
+    #[test]
+    fn travel_switch_boundaries_round_trip_and_invalid_drafts_do_not_write() {
+        for minutes in [0, 1, 15, 1440] {
+            let mut store = MemoryStore::default();
+            let mut draft = ConfigDraft::from(AppConfig::default());
+            draft.travel_switch_minutes = minutes;
+            save_draft(&mut store, draft).unwrap();
+            assert_eq!(load(&store).travel_switch_minutes, minutes);
+            assert_eq!(dword(store.values.get(SCHEMA).cloned()), Some(5));
+            save_countdown(&mut store, 90).unwrap();
+            assert_eq!(load(&store).travel_switch_minutes, minutes);
+        }
+        for minutes in [1441, u32::MAX] {
+            let mut store = MemoryStore::default();
+            let mut draft = ConfigDraft::from(AppConfig::default());
+            draft.travel_switch_minutes = minutes;
+            assert_eq!(
+                save_draft(&mut store, draft),
+                Err(SaveError::InvalidTravelSwitchMinutes)
+            );
+            assert_eq!(store.calls, 0);
+            assert!(store.values.is_empty());
+        }
+    }
+
+    #[test]
+    fn travel_switch_text_accepts_only_bounded_whole_minutes() {
+        for (text, minutes) in [("1", 1), ("01", 1), ("30", 30), ("1440", 1440)] {
+            assert_eq!(parse_travel_switch_minutes(text), Some(minutes));
+        }
+        for text in [
+            "", "0", "0000", "1441", "9999", "12345", "1.5", "-1", "+1", " 1", "1 ", "１", "1\n",
+        ] {
+            assert_eq!(parse_travel_switch_minutes(text), None, "{text:?}");
+        }
+    }
+
+    #[test]
     fn transactions_preserve_unknown_values_and_restore_on_failure() {
         let mut store = MemoryStore::default();
         store.values.insert("Unknown".into(), RawValue::dword(77));
@@ -619,6 +736,7 @@ mod tests {
         let draft = ConfigDraft {
             display_mode: DisplayMode::Countdown,
             travel_style: TravelStyle::TrainJourney,
+            travel_switch_minutes: 15,
             color_preset: ColorPreset::OffWhite,
             font_mode: FontMode::Consolas,
             custom_font: Some(valid_font()),
@@ -632,7 +750,7 @@ mod tests {
     }
 
     #[test]
-    fn rollback_failure_is_distinct_and_countdown_touches_only_its_fields() {
+    fn rollback_failure_is_distinct_and_countdown_preserves_unrelated_fields() {
         let mut store = MemoryStore::default();
         store.values.insert(DISPLAY_MODE.into(), RawValue::dword(1));
         store.values.insert(COLOR_PRESET.into(), RawValue::dword(3));
@@ -652,6 +770,7 @@ mod tests {
             ConfigDraft {
                 display_mode: DisplayMode::Countdown,
                 travel_style: TravelStyle::FreeFlight,
+                travel_switch_minutes: 1,
                 color_preset: ColorPreset::DarkOrange,
                 font_mode: FontMode::MingLiu,
                 custom_font: None,
@@ -667,6 +786,7 @@ mod tests {
         let invalid = ConfigDraft {
             display_mode: DisplayMode::TimeDate,
             travel_style: TravelStyle::FreeFlight,
+            travel_switch_minutes: 1,
             color_preset: ColorPreset::BrightGreen,
             font_mode: FontMode::Custom,
             custom_font: None,
@@ -695,6 +815,7 @@ mod tests {
             let draft = ConfigDraft {
                 display_mode: DisplayMode::Countdown,
                 travel_style: TravelStyle::TrainJourney,
+                travel_switch_minutes: 30,
                 color_preset: ColorPreset::DarkRed,
                 font_mode: FontMode::Consolas,
                 custom_font: Some(valid_font()),
@@ -704,6 +825,7 @@ mod tests {
             let loaded = load(&store);
             assert_eq!(loaded.display_mode, DisplayMode::Countdown);
             assert_eq!(loaded.travel_style, TravelStyle::TrainJourney);
+            assert_eq!(loaded.travel_switch_minutes, 30);
             assert_eq!(loaded.color_preset, ColorPreset::DarkRed);
             assert_eq!(loaded.font_mode, FontMode::Consolas);
             assert_eq!(loaded.last_countdown_seconds, 359999);

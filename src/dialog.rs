@@ -262,7 +262,43 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         {
             return Err(last_error("CheckRadioButton(travel style)"));
         }
-        set_travel_style_enabled(hwnd, draft.display_mode == DisplayMode::JapanTravel);
+        for item in ["不切換", "每隔"] {
+            let item = wide(item);
+            if SendDlgItemMessageW(
+                hwnd,
+                i32::from(resource_ids::IDC_TRAVEL_SWITCH_MODE),
+                CB_ADDSTRING,
+                0,
+                item.as_ptr() as isize,
+            ) < 0
+            {
+                return Err(AppError::OperationFailed("CB_ADDSTRING(travel interval)"));
+            }
+        }
+        SendDlgItemMessageW(
+            hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_SWITCH_MODE),
+            CB_SETCURSEL,
+            usize::from(draft.travel_switch_minutes != 0),
+            0,
+        );
+        let minutes = wide(&draft.travel_switch_minutes.max(1).to_string());
+        if SetDlgItemTextW(
+            hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+            minutes.as_ptr(),
+        ) == 0
+        {
+            return Err(last_error("SetDlgItemTextW(travel interval)"));
+        }
+        SendDlgItemMessageW(
+            hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+            EM_SETLIMITTEXT,
+            4,
+            0,
+        );
+        set_travel_controls_enabled(hwnd, draft.display_mode == DisplayMode::JapanTravel);
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_COLOR_DARK_RED),
@@ -335,16 +371,34 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
     state.draft.set(draft);
 }
 
-fn set_travel_style_enabled(hwnd: HWND, enabled: bool) {
-    // SAFETY: Both IDs are fixed child controls of the live configuration dialog.
+fn set_travel_controls_enabled(hwnd: HWND, enabled: bool) {
+    // SAFETY: IDs are fixed child controls of the live configuration dialog.
     unsafe {
         for id in [
             resource_ids::IDC_TRAVEL_FREE_FLIGHT,
             resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+            resource_ids::IDC_TRAVEL_SWITCH_MODE,
+            resource_ids::IDC_TRAVEL_SWITCH_LABEL,
         ] {
             let control = GetDlgItem(hwnd, i32::from(id));
             if !control.is_null() {
                 EnableWindow(control, i32::from(enabled));
+            }
+        }
+        let scheduled = SendDlgItemMessageW(
+            hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_SWITCH_MODE),
+            CB_GETCURSEL,
+            0,
+            0,
+        ) == 1;
+        for id in [
+            resource_ids::IDC_TRAVEL_SWITCH_MINUTES,
+            resource_ids::IDC_TRAVEL_SWITCH_UNIT,
+        ] {
+            let control = GetDlgItem(hwnd, i32::from(id));
+            if !control.is_null() {
+                EnableWindow(control, i32::from(enabled && scheduled));
             }
         }
     }
@@ -425,12 +479,72 @@ fn choose_font(hwnd: HWND, state: &ConfigDialogState) {
 
 fn save_config(hwnd: HWND, state: &ConfigDialogState) -> bool {
     update_font_combo(hwnd, state);
+    let mut draft = state.draft.get();
+    match read_travel_switch_minutes(hwnd) {
+        Some(minutes) => draft.travel_switch_minutes = minutes,
+        None if draft.display_mode == DisplayMode::JapanTravel => {
+            show_error(
+                hwnd,
+                &config::SaveError::InvalidTravelSwitchMinutes.to_string(),
+            );
+            // SAFETY: The edit belongs to the still-open configuration dialog.
+            unsafe {
+                SetFocus(GetDlgItem(
+                    hwnd,
+                    i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+                ));
+                SendDlgItemMessageW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+                    EM_SETSEL,
+                    0,
+                    -1,
+                );
+            }
+            return false;
+        }
+        None => {} // A disabled invalid field keeps its last accepted setting.
+    }
+    state.draft.set(draft);
     let mut store = RegistryStore::new();
-    match config::save_draft(&mut store, state.draft.get()) {
+    match config::save_draft(&mut store, draft) {
         Ok(()) => true,
         Err(error) => {
             persistence_error(hwnd, error);
             false
+        }
+    }
+}
+
+fn read_travel_switch_minutes(hwnd: HWND) -> Option<u32> {
+    // SAFETY: Query fixed controls in a live dialog. The buffer is larger than the
+    // four-character edit limit so overlong programmatic input is also rejected.
+    unsafe {
+        match SendDlgItemMessageW(
+            hwnd,
+            i32::from(resource_ids::IDC_TRAVEL_SWITCH_MODE),
+            CB_GETCURSEL,
+            0,
+            0,
+        ) {
+            0 => Some(0),
+            1 => {
+                let edit = GetDlgItem(hwnd, i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES));
+                if GetWindowTextLengthW(edit) > 4 {
+                    return None;
+                }
+                let mut text = [0u16; 6];
+                let count = GetDlgItemTextW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                );
+                config::parse_travel_switch_minutes(&String::from_utf16_lossy(
+                    &text[..count as usize],
+                ))
+            }
+            _ => None,
         }
     }
 }
@@ -519,11 +633,21 @@ unsafe extern "system" fn config_proc(
                         .contains(&id)) =>
         {
             update_draft_from_command(state, id);
-            set_travel_style_enabled(
+            set_travel_controls_enabled(
                 hwnd,
                 state.draft.get().display_mode == DisplayMode::JapanTravel,
             );
             invalidate_preview(hwnd);
+            1
+        }
+        WM_COMMAND
+            if id == resource_ids::IDC_TRAVEL_SWITCH_MODE
+                && notification == CBN_SELCHANGE as u16 =>
+        {
+            set_travel_controls_enabled(
+                hwnd,
+                state.draft.get().display_mode == DisplayMode::JapanTravel,
+            );
             1
         }
         WM_COMMAND
@@ -800,5 +924,128 @@ unsafe extern "system" fn countdown_proc(
             0
         }
         _ => 0,
+    }
+}
+
+#[cfg(test)]
+mod travel_control_tests {
+    use super::*;
+    use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::IsWindowEnabled;
+
+    #[test]
+    fn hidden_travel_controls_validate_minutes_and_follow_mode_enablement() {
+        struct HiddenControls(HWND);
+        impl Drop for HiddenControls {
+            fn drop(&mut self) {
+                // Destroying this message-only parent also destroys its children.
+                unsafe { DestroyWindow(self.0) };
+            }
+        }
+        // SAFETY: These controls have no WS_VISIBLE and a message-only parent;
+        // they cannot appear or steal focus. No product dialog or registry is used.
+        unsafe {
+            let instance = GetModuleHandleW(ptr::null());
+            let controls = HiddenControls(CreateWindowExW(
+                0,
+                windows_sys::w!("STATIC"),
+                windows_sys::w!(""),
+                0,
+                0,
+                0,
+                0,
+                0,
+                HWND_MESSAGE,
+                ptr::null_mut(),
+                instance,
+                ptr::null(),
+            ));
+            assert!(!controls.0.is_null());
+            for (id, class, style) in [
+                (
+                    resource_ids::IDC_TRAVEL_SWITCH_MODE,
+                    windows_sys::w!("COMBOBOX"),
+                    CBS_DROPDOWNLIST as u32,
+                ),
+                (
+                    resource_ids::IDC_TRAVEL_SWITCH_MINUTES,
+                    windows_sys::w!("EDIT"),
+                    0,
+                ),
+                (
+                    resource_ids::IDC_TRAVEL_SWITCH_UNIT,
+                    windows_sys::w!("STATIC"),
+                    0,
+                ),
+                (
+                    resource_ids::IDC_TRAVEL_SWITCH_LABEL,
+                    windows_sys::w!("STATIC"),
+                    0,
+                ),
+                (
+                    resource_ids::IDC_TRAVEL_FREE_FLIGHT,
+                    windows_sys::w!("BUTTON"),
+                    BS_RADIOBUTTON as u32,
+                ),
+                (
+                    resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
+                    windows_sys::w!("BUTTON"),
+                    BS_RADIOBUTTON as u32,
+                ),
+            ] {
+                let child = CreateWindowExW(
+                    0,
+                    class,
+                    windows_sys::w!(""),
+                    WS_CHILD | style,
+                    0,
+                    0,
+                    60,
+                    20,
+                    controls.0,
+                    id as usize as HMENU,
+                    instance,
+                    ptr::null(),
+                );
+                assert!(!child.is_null());
+                assert_eq!(IsWindowVisible(child), 0);
+            }
+            let combo = GetDlgItem(controls.0, i32::from(resource_ids::IDC_TRAVEL_SWITCH_MODE));
+            let edit = GetDlgItem(
+                controls.0,
+                i32::from(resource_ids::IDC_TRAVEL_SWITCH_MINUTES),
+            );
+            for item in ["不切換", "每隔"] {
+                assert!(SendMessageW(combo, CB_ADDSTRING, 0, wide(item).as_ptr() as isize) >= 0);
+            }
+            SendMessageW(combo, CB_SETCURSEL, 1, 0);
+            set_travel_controls_enabled(controls.0, true);
+            assert_ne!(IsWindowEnabled(combo), 0);
+            assert_ne!(IsWindowEnabled(edit), 0);
+            for (text, expected) in [
+                ("1", Some(1)),
+                ("1440", Some(1440)),
+                ("1441", None),
+                ("12345", None),
+                ("", None),
+            ] {
+                assert_ne!(SetWindowTextW(edit, wide(text).as_ptr()), 0);
+                assert_eq!(read_travel_switch_minutes(controls.0), expected);
+            }
+            SendMessageW(combo, CB_SETCURSEL, 0, 0);
+            set_travel_controls_enabled(controls.0, true);
+            assert_eq!(read_travel_switch_minutes(controls.0), Some(0));
+            assert_eq!(IsWindowEnabled(edit), 0);
+            assert_ne!(IsWindowEnabled(combo), 0);
+            set_travel_controls_enabled(controls.0, false);
+            assert_eq!(IsWindowEnabled(combo), 0);
+            assert_eq!(
+                IsWindowEnabled(GetDlgItem(
+                    controls.0,
+                    i32::from(resource_ids::IDC_TRAVEL_FREE_FLIGHT)
+                )),
+                0
+            );
+        }
     }
 }

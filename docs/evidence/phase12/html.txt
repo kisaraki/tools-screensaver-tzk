@@ -1,0 +1,1 @@
+PASS: four offline headless HTML screenshots; player rectangles remain 16:9 and captions stay outside the artwork.
