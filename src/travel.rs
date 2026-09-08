@@ -781,8 +781,11 @@ body{display:grid;place-items:center}
 .window{position:absolute;left:11%;top:21%;width:78.5%;height:56%;display:grid;place-items:center;background:#000;border-radius:2%}
 .train-journey .window{left:17.8%;top:20%;width:64.4%;height:54.5%}
 .japanese-inn .window{left:16.5%;top:18.5%;width:68%;height:57%;border-radius:0}
-.train-cab .window{left:12.6%;top:23.5%;width:76%;height:40%;border-radius:0}
-.walking .window{left:20%;top:22%;width:60%;height:54%;border-radius:12%/18%;overflow:hidden}
+.train-cab .window{left:29%;top:23.5%;width:42%;height:37.75%;border-radius:0}
+.walking .scene{aspect-ratio:16/9}
+.walking .window{inset:0;width:100%;height:100%;border-radius:0;overflow:hidden}
+.walking .screen{width:100%;height:100%;max-width:none;aspect-ratio:16/9}
+.walking .window::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 0 32%,rgba(0,0,0,.08) 43%,rgba(0,0,0,.48) 61%,rgba(0,0,0,.88) 76%,#000 94%)}
 .blink{display:none;position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
 .walking .blink{display:block}
 .blink::before,.blink::after{content:"";position:absolute;left:0;width:100%;height:51%;background:#000}
@@ -959,7 +962,7 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
         TravelStyle::TrainJourney => ("train-journey", "列車旅行車廂窗景"),
         TravelStyle::JapaneseInn => ("japanese-inn", "日式旅館庭園窗景"),
         TravelStyle::TrainCab => ("train-cab", "列車駕駛前方視角"),
-        TravelStyle::Walking => ("walking", "散步第一人稱人眼視角"),
+        TravelStyle::Walking => ("walking", "散步強烈攝影暗角視角"),
     };
     TRAVEL_HTML_TEMPLATE
         .replace("__TRAVEL_SCENE_CLASS__", class)
@@ -1168,7 +1171,7 @@ mod tests {
             ),
             (TravelStyle::JapaneseInn, "japanese-inn", "日式旅館庭園窗景"),
             (TravelStyle::TrainCab, "train-cab", "列車駕駛前方視角"),
-            (TravelStyle::Walking, "walking", "散步第一人稱人眼視角"),
+            (TravelStyle::Walking, "walking", "散步強烈攝影暗角視角"),
         ] {
             let shell = travel_html_shell(style);
             assert_eq!(shell.matches("id=\"player\"").count(), 1);
@@ -1241,6 +1244,9 @@ mod tests {
             "target.loadVideoById(selected)",
             "@keyframes blinkTop",
             "setTimeout(startLoad, 300)",
+            "radial-gradient(ellipse at center",
+            ".walking .window{inset:0;width:100%;height:100%",
+            ".train-cab .window{left:29%;top:23.5%;width:42%;height:37.75%",
         ] {
             assert!(shell.contains(behavior), "missing {behavior}");
         }

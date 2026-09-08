@@ -7,26 +7,24 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.10.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.10.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.10.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.10.1) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase13/fixtures/07-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.10.0 是未簽章的開發候選版。** 日本旅行擴充為五種場景；四種移動模式在每次啟動時讀取指定 YouTube 播放清單並隨機選片，日式旅館保留 tw.live 即時來源。散步模式使用中央第一人稱人眼視野，換片時模擬上下眼瞼眨眼。Windows 10 x64 的 58 個程式測試、19 個安裝判斷測試、smoke 與封裝已通過，並匯出 52 張 GDI 與 10 張封鎖網路的 HTML fixture。實際影片播放、多螢幕旅行畫面、安裝／升級／解除安裝矩陣及 Windows 11 尚未驗證。
+> **v0.10.1 是未簽章的開發候選版。** 列車駕駛前方的影片孔改為正確 16:9，兩側加入擬真駕駛室設備與材質；散步模式移除眼球、皮膚及血管外觀，改用全畫面強烈攝影暗角，中央約 65% 為主要視域。換片眨眼、播放清單與來源復原機制維持不變。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
-
-目前 v0.10.0 成品：
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.1/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.1/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.10.1/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 9,368,064 | `b9ccd78fa5ee03df41fe652294be626d5b45910ad32efd938fde65a476a93de7` |
-| `tools-screensaver-tzk-Setup.exe` | 12,431,415 | `51e62b34f345dd74b7ff9e4375dc217a64e6131a75e0c8df59cbfdef4080ddcf` |
+| `tools-screensaver-tzk.scr` | 9,542,656 | `dedbededfb2bf064d2b1bf31a00df2e4dd62bee59aac872e3ade7c7624f5be3e` |
+| `tools-screensaver-tzk-Setup.exe` | 12,603,059 | `633967a0f7138f4ce233b999c729fdbd39293e45d1be5ebc895481d87b2c0ad0` |
 
 ## 安裝與使用
 
@@ -87,7 +85,7 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 - **置中留白**：桌曆時鐘與番茄鐘在寬至少 640 px 且高至少 360 px 的畫面，收進中央 64% 寬、60% 高的內容區；左右各留 18%、上下各留 20% 初始空間。內容區面積比先前縮小約 47%，小型預覽保持可讀性。
 - **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。主色新增暗淺藍與琥珀色；選擇「自動切換」時每 2 分鐘循環六種固定色，多螢幕共用同一時基。
 - **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍。
-- **日本旅行模式**：五種內附原創擬真場景，包括「自在飛行」、「列車旅行」、「日式旅館」、「列車駕駛前方」及「散步模式」。列車駕駛前方呈現無人物的駕駛室視野；散步畫面收在中央 60% × 54% 的第一人稱人眼區域，保留寬黑色周邊，換片時以 700 ms 上下眼瞼動畫眨眼。
+- **日本旅行模式**：五種內附原創擬真場景，包括「自在飛行」、「列車旅行」、「日式旅館」、「列車駕駛前方」及「散步模式」。列車駕駛前方以設備櫃、螢幕、通風板和控制台包圍中央 16:9 影片；散步影片鋪滿 16:9 畫面，再以強烈攝影暗角把主要視域集中在中央約 65%，不使用眼球、皮膚或血管效果，換片仍有 700 ms 眨眼動畫。
 - **旅行切換時間**：預設每 1 分鐘；可選 1～1440 整數分鐘或「不切換」。啟用輪換時，player 回報 `PLAYING` 後才開始計時，於剩餘最後 1 分鐘預抓下一個候選；不切換時仍保留來源失效復原。
 - **來源與復原**：自在飛行、列車旅行、列車駕駛前方及散步模式分別使用文件列出的 YouTube 播放清單；每次全螢幕啟動或設定時間到期都由官方 IFrame Player API 重新讀取清單、隨機排列並選片。日式旅館保留 8 個 tw.live camera ID 候選。清單、來源解析或 player 失敗時有界重試，沒有可用來源時顯示靜態 fallback。
 - **多螢幕旅行畫面**：每個螢幕各自建立一個 player，獨立選擇來源、依設定時間輪換並顯示自己的城市與狀態。單一螢幕的來源失敗不會覆蓋其他螢幕的狀態；網路、記憶體與 GPU 用量會隨播放螢幕數增加。
@@ -111,7 +109,7 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 
 ![列車駕駛前方：原創 AI 擬真駕駛室](assets/travel/train-cab.png)
 
-![散步模式：原創 AI 第一人稱人眼周邊](assets/travel/walking.png)
+![散步模式：原創 AI 強烈攝影暗角](assets/travel/walking.png)
 
 以上為程式內附的靜態場景素材，沒有載入第三方影片。系統與設定預覽也使用內附圖片，保持離線；正式全螢幕啟動後才在窗景內載入播放器。
 
@@ -170,7 +168,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.10.0 的 58 個預設測試通過，涵蓋五場景解碼、schema 7、四份指定播放清單、隨機選片與散步眨眼結構；互動、長時間或環境測試預設 ignored。19 個 installer policy checks 在不建立精靈、不提權的 harness 通過；52 張 GDI fixture 與 10 張封鎖網路的 headless HTML fixture 已匯出。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.10.1 的 58 個預設測試通過，涵蓋五場景解碼、schema 7、四份指定播放清單、隨機選片、列車駕駛室版面及散步暗角／眨眼結構；互動、長時間或環境測試預設 ignored。19 個 installer policy checks 在不建立精靈、不提權的 harness 通過；本版 52 張 GDI fixture 與 10 張封鎖網路的 headless HTML fixture 已匯出。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -192,7 +190,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [Codex 開發規格 v2.1](tools-screensaver-tzk_Codex_Spec.md)
+- [Codex 開發規格 v2.2](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 15 列車駕駛室與散步暗角報告](docs/phase15-report.md)
 - [Phase 14 播放清單、新旅行場景與散步眨眼報告](docs/phase14-report.md)
 - [Phase 13 日式旅館與桌曆時鐘色彩報告](docs/phase13-report.md)
 - [Phase 12 鐘面、擬真旅行場景與切換設定報告](docs/phase12-report.md)
@@ -208,7 +207,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～14 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.10.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～15 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.10.1 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 

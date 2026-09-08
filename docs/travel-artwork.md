@@ -5,8 +5,8 @@
 - `assets/travel/free-flight.png`：暖白客機艙壁、銀灰多層窗框與天空。
 - `assets/travel/train-journey.png`：暖木質豪華列車窗框、黃銅與遠山。
 - `assets/travel/japanese-inn.png`：自然木構、障子與榻榻米包圍的日式旅館庭園窗景，1586×992；SHA-256 `9921eac609513cc46e84a4a2adc23336e51ebc883e84e4a65e05d1dfa9a0b56a`。
-- `assets/travel/train-cab.png`：無人物、無商標的現代日本風格列車駕駛室，中央前窗，1586×992；SHA-256 `7759806876781b323cc169d3db0973a87cbbe1a7ece69a66ad90174af17c6de9`。
-- `assets/travel/walking.png`：接近人眼的柔和上下眼瞼與黑色周邊，中央保留縮小的第一人稱視野，1586×992；SHA-256 `79f6e337f79dfb3eda5a700edfbdf0e495b982201a6750cb80328729f6084731`。
+- `assets/travel/train-cab.png`：無人物、無商標的現代日本風格列車駕駛室；中央 16:9 前窗兩側加入金屬設備櫃、螢幕、通風板及控制面板，1586×992；SHA-256 `b9bd41f72374d8f450caaa0c6ce7c6d6ac798ff8f088973c9c65de3f3b1464b`。
+- `assets/travel/walking.png`：不含眼球、皮膚或血管的中性黑灰攝影暗角，中央保留約 65% 清晰視域，1586×992；SHA-256 `f969f28f6c8b2cecac79aa41992fe08a1343b08391f4e7eb6e8e42d13e8f2f7c`。
 
 以下保留生成提示以便後續維護。實際影片以完整 16:9 矩形放在窗孔內，窗框不覆蓋播放器或控制項。
 
@@ -24,8 +24,8 @@ Use case: photorealistic-natural. Asset type: original realistic background plat
 
 ## 列車駕駛前方提示
 
-Create an original photorealistic front-facing interior of a modern Japanese-inspired train driver's cab as a 1586×992 screensaver frame. Use the supplied image only as a viewpoint reference; do not reproduce its people, text, station, rolling stock or pixels. The cab must be empty, with realistic instrument panels, restrained gray materials and a large unobstructed central forward windshield suitable for a 16:9 video. No operator, readable labels, logos, brands or watermark.
+Edit this original train-cab background plate for a Windows screensaver. Keep the same photorealistic cab, but form a narrower central 16:9 video aperture and fill both sides with illuminated metal equipment cabinets, small blank monitors, ventilation panels, seams and controls. Keep all equipment outside the aperture. No people, readable text, logos, brands or watermark.
 
-## 散步第一人稱人眼提示
+## 散步攝影暗角提示
 
-Create an original photorealistic first-person human-eye peripheral frame for a 1586×992 screensaver. The central eye-shaped viewing area should be intentionally compact, centered and unobstructed, while the surrounding area is predominantly deep black. Add soft realistic upper and lower eyelid contours and subtle peripheral blur, without glasses, a visible face, eyelashes crossing the aperture, text, logos or watermark. The player supplies the moving view; eyelid movement is implemented separately in CSS.
+Replace the asset with a non-anatomical photographic vignette. Remove every eye, eyelid, skin, sclera, iris, blood vessel, vein, glasses and facial feature. Use a full-frame smooth optical lens vignette with near-black corners and a centered clear region occupying about 65% of the width. No eye-shaped boundary, scenery, people, text, logo or watermark. The player supplies the moving view; the source-change blink remains a separate CSS transition.

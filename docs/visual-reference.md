@@ -1,26 +1,26 @@
 # 視覺參考與實作證據
 
-產品版本：0.10.0<br>
-規格文件：v2.1<br>
-更新日期：2026-09-08
+產品版本：0.10.1<br>
+規格文件：v2.2<br>
+更新日期：2026-09-09
 
-## v0.10.0 列車駕駛前方與第一人稱散步
+## v0.10.1 列車駕駛室與散步暗角修正
 
 兩張新增素材都是依附件的視角概念重新生成的原創擬真 PNG，不包含附件像素、人物、文字、商標或特定營運者識別。
 
 ![列車駕駛前方原創擬真場景](../assets/travel/train-cab.png)
 
-![散步模式第一人稱人眼場景](../assets/travel/walking.png)
+![散步模式強烈攝影暗角](../assets/travel/walking.png)
 
 - [列車駕駛前方 GDI fallback](evidence/phase14/fixtures/47-JapanTravel-800x450-dpi96-p2-SevenSegment-train-cab.png)
 - [散步模式 GDI fallback](evidence/phase14/fixtures/48-JapanTravel-800x450-dpi96-p2-SevenSegment-walking.png)
 - [列車駕駛前方 HTML 橫向畫面](evidence/phase14/html/train-cab-1600x1000.png)
-- [散步模式 HTML 橫向中央人眼視野](evidence/phase14/html/walking-1600x1000.png)
+- [散步模式 HTML 全畫面攝影暗角](evidence/phase14/html/walking-1600x1000.png)
 - [五場景 HTML 幾何結果](evidence/phase14/html/geometry.json)
 
-散步 player 收在中央 60%×54%，周圍保留較多黑色區域；HTML shell 具 700 ms 上下眼瞼 keyframes，來源於 300 ms 閉合點切換。靜態 fixture 驗證區域與層次，動畫時間由 Rust 測試驗證；實際 WebView2 動畫仍是 `NOT TESTED`。
+列車駕駛 player 改為中央 42%×37.75% 的 16:9 區域，左右顯示擬真設備櫃、螢幕、通風板與金屬材質。散步 player 鋪滿 16:9 場景，徑向暗角從中央透明區逐步加深至全黑邊緣，主要視域約為中央 65%；素材不含眼球、皮膚或血管。700 ms 換片眨眼與 300 ms 載入點維持不變。
 
-Phase 14 共匯出 52 張 GDI fixture 與 10 張封鎖網路的 headless HTML fixture。[Phase 14 報告](phase14-report.md)記錄命令、結果與未測項。
+Phase 15 共匯出 52 張 GDI fixture 與 10 張封鎖網路的 headless HTML fixture。[Phase 15 報告](phase15-report.md)記錄命令、結果與未測項。
 
 ## v0.9.0 日式旅館與桌曆時鐘色彩
 

@@ -1,4 +1,4 @@
-param([string]$OutputDirectory = 'docs/evidence/phase14/html')
+param([string]$OutputDirectory = 'docs/evidence/phase15/html')
 $ErrorActionPreference = 'Stop'
 # Render only the product's local HTML/CSS with its player scripts removed.
 # A new disposable browser profile and blocked host resolution avoid using the
@@ -24,10 +24,12 @@ window.addEventListener('load', () => {
   };
   const art=rect('.scene'), windowRect=rect('.window'), player=rect('.screen'), caption=rect('.caption');
   const contains=(a,b)=>b.x>=a.x-1&&b.y>=a.y-1&&b.right<=a.right+1&&b.bottom<=a.bottom+1;
-  const walking=document.querySelector('.cabin').classList.contains('walking');
-  const walkingMargins=!walking||(windowRect.w/art.w<=.61&&windowRect.h/art.h<=.55);
+  const cabin=document.querySelector('.cabin');
+  const walking=cabin.classList.contains('walking'),trainCab=cabin.classList.contains('train-cab');
+  const walkingFullFrame=!walking||(windowRect.w/art.w>=.99&&windowRect.h/art.h>=.99);
+  const trainCabDecor=!trainCab||(windowRect.w/art.w<=.43&&windowRect.h/art.h<=.39);
   const pass=contains(art,windowRect)&&contains(windowRect,player)&&caption.y>=art.bottom-.1
-    &&Math.abs(player.w/player.h-16/9)<.005&&caption.bottom<=innerHeight+1&&walkingMargins;
+    &&Math.abs(player.w/player.h-16/9)<.005&&caption.bottom<=innerHeight+1&&walkingFullFrame&&trainCabDecor;
   document.body.dataset.geometry=JSON.stringify({pass,viewport:[innerWidth,innerHeight],art,window:windowRect,player,caption});
   const marker=document.createElement('div');
   marker.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;z-index:99999;background:'+(pass?'rgb(0,255,0)':'rgb(255,0,0)');
@@ -43,7 +45,7 @@ foreach ($style in @('free-flight','train-journey','japanese-inn','train-cab','w
         'train-journey' { 'Train journey realistic frame' }
         'japanese-inn' { 'Japanese inn realistic frame' }
         'train-cab' { 'Train driver forward realistic frame' }
-        default { 'First person human eye walking frame' }
+        default { 'Strong photographic vignette walking frame' }
     }
     $html = $template.Replace('__TRAVEL_SCENE_CLASS__',$style).Replace('__TRAVEL_SCENE_LABEL__',$label)
     $html = [regex]::Replace($html,'<span id="place">.*?</span>',"<span id=`"place`">$label</span>")
@@ -79,4 +81,4 @@ foreach ($style in @('free-flight','train-journey','japanese-inn','train-cab','w
 }
 $report = [pscustomobject]@{capturedAt=[DateTimeOffset]::Now.ToString('o');browserVersion=(Get-Item -LiteralPath $edge).VersionInfo.FileVersion;interactive=$false;livePlayer=$false;result='PASS';fixtures=$reports}
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'geometry.json') -Encoding utf8
-'PASS: ten offline headless HTML screenshots; player rectangles remain 16:9, walking view stays central, and captions stay outside the artwork.'
+'PASS: ten offline headless HTML screenshots; player rectangles remain 16:9, train cab decor surrounds its player, full-frame walking vignette is present, and captions stay outside the artwork.'
