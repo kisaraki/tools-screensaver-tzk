@@ -4,9 +4,9 @@
 
 - `assets/travel/free-flight.png`：暖白客機艙壁、銀灰多層窗框與天空。
 - `assets/travel/train-journey.png`：暖木質豪華列車窗框、黃銅與遠山。
-- `assets/travel/japanese-inn.png`：自然木構、障子與榻榻米包圍的日式旅館庭園窗景，1586×992；SHA-256 `9921eac609513cc46e84a4a2adc23336e51ebc883e84e4a65e05d1dfa9a0b56a`。
-- `assets/travel/train-cab.png`：無人物、無商標的現代日本風格列車駕駛室；中央 16:9 前窗兩側加入金屬設備櫃、螢幕、通風板及控制面板，1586×992；SHA-256 `b9bd41f72374d8f450caaa0c6ce7c6d6ac798ff8f088973c9c65de3f3b1464b`。
-- `assets/travel/walking.png`：不含眼球、皮膚或血管的中性黑灰攝影暗角，中央保留約 65% 清晰視域，1586×992；SHA-256 `f969f28f6c8b2cecac79aa41992fe08a1343b08391f4e7eb6e8e42d13e8f2f7c`。
+- `assets/travel/japanese-inn.png`：和風庭園模式的自然木構、障子、榻榻米與庭園窗景，1586×992；SHA-256 `9921eac609513cc46e84a4a2adc23336e51ebc883e84e4a65e05d1dfa9a0b56a`。
+- `assets/travel/train-cab.png`：御運轉士模式的無人物、無商標現代日本風格列車駕駛室；中央 16:9 前窗兩側加入金屬設備櫃、螢幕、通風板及控制面板，1586×992；SHA-256 `b9bd41f72374d8f450caaa0c6ce7c6d6ac798ff8f088973c9c65de3f3b1464b`。
+- `assets/travel/walking.png`：地方散策模式不含眼球、皮膚或血管的中性黑灰攝影暗角，中央保留約 65% 清晰視域，1586×992；SHA-256 `f969f28f6c8b2cecac79aa41992fe08a1343b08391f4e7eb6e8e42d13e8f2f7c`。
 
 以下保留生成提示以便後續維護。實際影片以完整 16:9 矩形放在窗孔內，窗框不覆蓋播放器或控制項。
 
@@ -18,14 +18,14 @@ Use case: photorealistic-natural. Asset type: original background plate for a Wi
 
 Use case: photorealistic-natural. Asset type: original realistic background plate for a Windows Japan travel screensaver. Create a luxurious Japanese-inspired sleeper train dining carriage interior viewed perfectly straight-on toward ONE large centered landscape picture window, with genuine architectural-photography realism. Wide 16:10 composition. Exquisite warm walnut wood grain wall panels, polished slender brass trim, curved upper ceiling ribs and warm concealed lighting, soft taupe upholstered dining chair corners and a small white linen table corner at the very bottom edges only. A single window with a thick believable dark wood and brass surround. The main window clear opening must be 16:9, centered at x=50%, spanning approximately x=18% to82% and y=18% to76% of the overall picture; all detailed wooden frame, ribs, lamps, chairs and tableware remain outside this large opening. Through it show softly distant green Japanese countryside with misty mountain ridges in early morning, no fast moving train or people. No mullions, curtain, ornament, reflection, furniture or object crossing the rectangular clear opening. Front-on symmetric composition without vanishing-point skew of the main window. Leave bottom 15% quiet shadowed wood for separate UI caption. Real photographic fine texture, tactile materials, natural light, premium understated atmosphere. No brand logos, no readable text, no watermarks, no people, no cartoon, no painted/vector or flat-gradient art. One single image, not collage.
 
-## 日式旅館提示
+## 和風庭園提示
 
 Use case: photorealistic-natural. Asset type: original realistic background plate for the Japanese inn mode of a Windows Japan travel screensaver. Input image: style and material reference only; do not copy its pixels, furniture arrangement, exact room, or identifiable details. Create a different, fictional traditional Japanese ryokan guest room, photographed perfectly straight-on with architectural-photography realism. Wide 16:10 composition, symmetric and calm. Warm natural cedar beams, pale cream plaster, tatami floor along the lower edge, translucent shoji panels at both sides, subtle tokonoma alcove details and low warm lanterns kept near the far side edges. ONE large centered landscape picture opening framed by dark natural wood, with an unobstructed 16:9 clear aperture spanning approximately x=17% to83% and y=18% to76% of the whole image. All shoji grids, beams, lanterns, furniture, decor and wall details must remain completely outside this aperture; no central mullion, paper screen, chairs, table, reflection, curtain, vase, text, or other object may cross it. Through the opening show a quiet Japanese moss garden with maple trees, stone lantern and light morning mist, softly distant so a live video can replace the entire opening. Leave the bottom 14% visually quiet for a separate caption. Physically realistic wood grain, tatami weave, paper texture and natural ambient lighting; premium understated inn atmosphere. No people, no readable text, no watermark, no logos, no brand or identifiable real inn, no collage, no cartoon/vector/painting style. Generate one original image.
 
-## 列車駕駛前方提示
+## 御運轉士提示
 
 Edit this original train-cab background plate for a Windows screensaver. Keep the same photorealistic cab, but form a narrower central 16:9 video aperture and fill both sides with illuminated metal equipment cabinets, small blank monitors, ventilation panels, seams and controls. Keep all equipment outside the aperture. No people, readable text, logos, brands or watermark.
 
-## 散步攝影暗角提示
+## 地方散策攝影暗角提示
 
 Replace the asset with a non-anatomical photographic vignette. Remove every eye, eyelid, skin, sclera, iris, blood vessel, vein, glasses and facial feature. Use a full-frame smooth optical lens vignette with near-black corners and a centered clear region occupying about 65% of the width. No eye-shaped boundary, scenery, people, text, logo or watermark. The player supplies the moving view; the source-change blink remains a separate CSS transition.

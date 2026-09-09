@@ -89,10 +89,10 @@ impl TravelSource {
     pub fn embed_url(&self) -> String {
         match self.playlist_id.as_deref() {
             Some(playlist) => format!(
-                "https://www.youtube-nocookie.com/embed/videoseries?list={playlist}&autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1"
+                "https://www.youtube-nocookie.com/embed/videoseries?list={playlist}&autoplay=1&mute=1&playsinline=1&rel=0&controls=0&cc_load_policy=0&disablekb=1&fs=0&iv_load_policy=3&start=180&enablejsapi=1"
             ),
             None => format!(
-                "https://www.youtube-nocookie.com/embed/{}?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1",
+                "https://www.youtube-nocookie.com/embed/{}?autoplay=1&mute=1&playsinline=1&rel=0&controls=0&cc_load_policy=0&disablekb=1&fs=0&iv_load_policy=3&start=180&enablejsapi=1",
                 self.youtube_id
             ),
         }
@@ -105,8 +105,8 @@ pub(crate) fn playlist_source(style: TravelStyle) -> Option<TravelSource> {
     let (playlist_id, place) = match style {
         TravelStyle::FreeFlight => ("PLdsqwBj2O1Nw", "自在飛行播放清單"),
         TravelStyle::TrainJourney => ("PLBH60D9AGfu0", "列車旅行播放清單"),
-        TravelStyle::TrainCab => ("PLB-Fmt68BNm4", "列車駕駛前方播放清單"),
-        TravelStyle::Walking => ("PLbYZr39owNGo", "散步播放清單"),
+        TravelStyle::TrainCab => ("PLB-Fmt68BNm4", "御運轉士播放清單"),
+        TravelStyle::Walking => ("PLbYZr39owNGo", "地方散策播放清單"),
         TravelStyle::JapaneseInn => return None,
     };
     Some(TravelSource {
@@ -767,7 +767,7 @@ const TRAVEL_HTML_TEMPLATE: &str = r#"<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; script-src 'unsafe-inline' https://www.youtube.com https://www.youtube-nocookie.com; style-src 'unsafe-inline'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; connect-src https://www.youtube.com https://www.youtube-nocookie.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; script-src 'unsafe-inline' https://www.youtube.com https://www.youtube-nocookie.com; style-src 'unsafe-inline'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' https://i.ytimg.com data:; connect-src https://www.youtube.com https://www.youtube-nocookie.com;">
 <style>
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071019;color:#f4f7fa;font-family:"Microsoft JhengHei UI",sans-serif}
 body{display:grid;place-items:center}
@@ -791,12 +791,21 @@ body{display:grid;place-items:center}
 .blink::before,.blink::after{content:"";position:absolute;left:0;width:100%;height:51%;background:#000}
 .blink::before{top:0;transform:translateY(-100%)}
 .blink::after{bottom:0;transform:translateY(100%)}
-.walking.blinking .blink::before{animation:blinkTop 700ms ease-in-out}
-.walking.blinking .blink::after{animation:blinkBottom 700ms ease-in-out}
-@keyframes blinkTop{0%,100%{transform:translateY(-100%)}42%,58%{transform:translateY(0)}}
-@keyframes blinkBottom{0%,100%{transform:translateY(100%)}42%,58%{transform:translateY(0)}}
+.walking.source-blinking .blink::before{animation:sourceBlinkTop 760ms ease-in-out}
+.walking.source-blinking .blink::after{animation:sourceBlinkBottom 760ms ease-in-out}
+.walking.gentle-blinking .blink::before{animation:gentleBlinkTop 360ms ease-in-out}
+.walking.gentle-blinking .blink::after{animation:gentleBlinkBottom 360ms ease-in-out}
+.walking.network-blinking .blink::before{animation:networkBlinkTop 540ms ease-in-out}
+.walking.network-blinking .blink::after{animation:networkBlinkBottom 540ms ease-in-out}
+@keyframes sourceBlinkTop{0%,100%{transform:translateY(-100%)}42%,58%{transform:translateY(0)}}
+@keyframes sourceBlinkBottom{0%,100%{transform:translateY(100%)}42%,58%{transform:translateY(0)}}
+@keyframes gentleBlinkTop{0%,100%{transform:translateY(-100%)}50%{transform:translateY(-78%)}}
+@keyframes gentleBlinkBottom{0%,100%{transform:translateY(100%)}50%{transform:translateY(78%)}}
+@keyframes networkBlinkTop{0%,100%{transform:translateY(-100%)}50%{transform:translateY(-70%)}}
+@keyframes networkBlinkBottom{0%,100%{transform:translateY(100%)}50%{transform:translateY(70%)}}
 .screen{height:100%;aspect-ratio:16/9;max-width:100%;background:#000}
 #player,#player iframe{display:block;width:100%;height:100%;border:0}
+#player iframe{pointer-events:none}
 .caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.35em 1em;align-items:center;padding:clamp(9px,1.2vw,18px) 0;font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere}
 #place{font-size:clamp(16px,2.2vw,34px);color:#fff}
 #status{font-size:clamp(12px,1.2vw,18px);color:#c8f3ff;text-align:right}
@@ -834,6 +843,16 @@ body{display:grid;place-items:center}
   let acceptPlayerEvents = false;
   let selectedVideoId = '';
   let playlistProbe = 0;
+  let currentHasPlaylist = false;
+  let activePlaylistId = '';
+  let playlistCache = [];
+  let prepared = null;
+  let playerPlaying = false;
+  let blinkTimer = 0;
+  let blinkEndTimer = 0;
+  let lastNetworkBlink = 0;
+  let preloadImage = null;
+  const VIDEO_START_SECONDS = 180;
   const cabin = document.querySelector('.cabin');
   const place = document.getElementById('place');
   const status = document.getElementById('status');
@@ -844,6 +863,57 @@ body{display:grid;place-items:center}
     }
     return Math.floor(Math.random() * length);
   };
+  const validVideoId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{11}$/.test(value);
+  const validPlaylistId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{10,64}$/.test(value);
+  const sourceKey = source => validPlaylistId(source && source.playlistId)
+    ? `playlist:${source.playlistId}`
+    : (validVideoId(source && source.videoId) ? `video:${source.videoId}` : '');
+  const pickVideo = videos => {
+    const choices = videos.filter(id => validVideoId(id) && id !== selectedVideoId);
+    const pool = choices.length ? choices : videos.filter(validVideoId);
+    return pool.length ? pool[randomIndex(pool.length)] : '';
+  };
+  const warmThumbnail = videoId => {
+    if (!validVideoId(videoId)) return;
+    preloadImage = new Image();
+    preloadImage.decoding = 'async';
+    preloadImage.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  };
+  const clearBlinkSchedule = () => { clearTimeout(blinkTimer); blinkTimer = 0; };
+  const runBlink = kind => {
+    if (!cabin.classList.contains('walking')) return;
+    const className = `${kind}-blinking`;
+    const duration = kind === 'source' ? 780 : (kind === 'network' ? 560 : 380);
+    clearTimeout(blinkEndTimer);
+    cabin.classList.remove('source-blinking','gentle-blinking','network-blinking');
+    void cabin.offsetWidth;
+    cabin.classList.add(className);
+    blinkEndTimer = setTimeout(() => cabin.classList.remove(className), duration);
+  };
+  const scheduleGentleBlink = () => {
+    clearBlinkSchedule();
+    if (!cabin.classList.contains('walking')) return;
+    blinkTimer = setTimeout(() => {
+      if (playerPlaying) runBlink('gentle');
+      scheduleGentleBlink();
+    }, 20000 + randomIndex(10001));
+  };
+  const networkBlink = () => {
+    const now = Date.now();
+    if (now - lastNetworkBlink < 8000 || cabin.classList.contains('source-blinking')) return;
+    lastNetworkBlink = now;
+    runBlink('network');
+  };
+  const prepare = source => {
+    const key = sourceKey(source);
+    if (!key) return;
+    let videoId = validVideoId(source.videoId) ? source.videoId : '';
+    if (validPlaylistId(source.playlistId) && source.playlistId === activePlaylistId) {
+      videoId = pickVideo(playlistCache);
+    }
+    prepared = {key, videoId};
+    warmThumbnail(videoId);
+  };
   const shuffleAndSelect = target => {
     if (!playlistNeedsShuffle || typeof target.getPlaylist !== 'function') return false;
     const loaded = target.getPlaylist();
@@ -851,11 +921,12 @@ body{display:grid;place-items:center}
     target.setShuffle(true);
     const shuffled = target.getPlaylist();
     const choices = Array.isArray(shuffled) && shuffled.length ? shuffled : loaded;
-    const selected = choices[randomIndex(choices.length)];
-    if (typeof selected !== 'string' || !/^[A-Za-z0-9_-]{11}$/.test(selected)) return false;
+    playlistCache = choices.filter(validVideoId);
+    const selected = pickVideo(playlistCache);
+    if (!validVideoId(selected)) return false;
     playlistNeedsShuffle = false;
     selectedVideoId = selected;
-    target.loadVideoById(selected);
+    target.loadVideoById({videoId:selected,startSeconds:VIDEO_START_SECONDS});
     return true;
   };
   const waitForPlaylist = (target, token, attempt) => {
@@ -872,35 +943,46 @@ body{display:grid;place-items:center}
   };
   const apply = source => {
     if (!source || !Number.isInteger(source.token) || source.token <= 0) return;
-    const hasVideo = typeof source.videoId === 'string' && /^[A-Za-z0-9_-]{11}$/.test(source.videoId);
-    const hasPlaylist = typeof source.playlistId === 'string' && /^[A-Za-z0-9_-]{10,64}$/.test(source.playlistId);
+    const hasVideo = validVideoId(source.videoId);
+    const hasPlaylist = validPlaylistId(source.playlistId);
     if (hasVideo === hasPlaylist) return;
     const switching = currentToken !== 0;
+    const key = sourceKey(source);
+    const preparedVideoId = prepared && prepared.key === key && validVideoId(prepared.videoId)
+      ? prepared.videoId : '';
+    prepared = null;
     clearTimeout(playlistProbe);
+    clearBlinkSchedule();
     currentToken = source.token;
     acceptPlayerEvents = false;
+    currentHasPlaylist = hasPlaylist;
+    playerPlaying = false;
     place.textContent = String(source.place || '日本').slice(0, 96);
     updateStatus(hasPlaylist ? '正在讀取並隨機排列 YouTube 播放清單…' : '正在載入日本即時影像…');
     lastTime = -1; unchanged = 0; stalled = false;
     const startLoad = () => {
       if (currentToken !== source.token) return;
-      playlistNeedsShuffle = hasPlaylist;
+      playlistNeedsShuffle = hasPlaylist && !preparedVideoId;
       acceptPlayerEvents = true;
-      selectedVideoId = hasVideo ? source.videoId : '';
+      selectedVideoId = preparedVideoId || (hasVideo ? source.videoId : '');
       if (!window.YT || !window.YT.Player) { pending = source; return; }
       if (player) {
-        if (hasPlaylist && typeof player.loadPlaylist === 'function') {
-          player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:0});
+        if (preparedVideoId && typeof player.loadVideoById === 'function') {
+          player.loadVideoById({videoId:preparedVideoId,startSeconds:VIDEO_START_SECONDS});
+        } else if (hasPlaylist && typeof player.loadPlaylist === 'function') {
+          activePlaylistId = source.playlistId;
+          playlistCache = [];
+          player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:VIDEO_START_SECONDS});
           waitForPlaylist(player, source.token, 0);
         } else if (hasVideo && typeof player.loadVideoById === 'function') {
-          player.loadVideoById(source.videoId);
+          player.loadVideoById({videoId:source.videoId,startSeconds:VIDEO_START_SECONDS});
         }
         if (typeof player.mute === 'function') player.mute();
         return;
       }
       const options = {
       host:'https://www.youtube-nocookie.com',
-      playerVars:{autoplay:1,mute:1,playsinline:1,rel:0,controls:1,disablekb:1,fs:0,origin:'https://travel.screensaver.local'},
+      playerVars:{autoplay:1,mute:1,playsinline:1,rel:0,controls:0,cc_load_policy:0,disablekb:1,fs:0,iv_load_policy:3,start:VIDEO_START_SECONDS,origin:'https://travel.screensaver.local'},
       events:{
         onReady:event => {
           event.target.mute();
@@ -913,16 +995,27 @@ body{display:grid;place-items:center}
           if (!acceptPlayerEvents) return;
           if (playlistNeedsShuffle) return;
           if (event.data === YT.PlayerState.PLAYING) {
-            updateStatus(hasPlaylist ? '播放清單隨機影片播放中' : '日本即時影像播放中');
+            playerPlaying = true;
+            scheduleGentleBlink();
+            updateStatus(currentHasPlaylist ? '播放清單隨機影片播放中' : '日本即時影像播放中');
             send('playing',currentToken);
+          } else if (event.data === YT.PlayerState.BUFFERING) {
+            playerPlaying = false;
+            clearBlinkSchedule();
+            networkBlink();
           } else if (event.data === YT.PlayerState.ENDED && selectedVideoId) {
-            event.target.loadVideoById(selectedVideoId);
+            playerPlaying = false;
+            event.target.loadVideoById({videoId:selectedVideoId,startSeconds:VIDEO_START_SECONDS});
+          } else if (event.data === YT.PlayerState.PAUSED) {
+            playerPlaying = false;
+            clearBlinkSchedule();
           }
         },
         onError:event => { if (acceptPlayerEvents) { updateStatus('目前影像來源無法播放'); send('error',currentToken); } }
       }
       };
       if (hasPlaylist) {
+        activePlaylistId=source.playlistId;
         options.playerVars.listType='playlist'; options.playerVars.list=source.playlistId;
       } else {
         options.videoId=source.videoId;
@@ -930,23 +1023,20 @@ body{display:grid;place-items:center}
       player = new YT.Player('player', options);
     };
     if (switching && cabin.classList.contains('walking')) {
-      cabin.classList.remove('blinking');
-      void cabin.offsetWidth;
-      cabin.classList.add('blinking');
-      setTimeout(startLoad, 300);
-      setTimeout(() => cabin.classList.remove('blinking'), 720);
+      runBlink('source');
+      setTimeout(startLoad, 380);
     } else {
       startLoad();
     }
   };
   window.onYouTubeIframeAPIReady = () => { if (pending) { const source=pending; pending=null; currentToken=0; apply(source); } };
-  window.travel = {load: apply, setStatus:updateStatus};
+  window.travel = {load: apply, prepare, setStatus:updateStatus};
   if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('shell-ready');
   setInterval(() => {
     if (!player || typeof player.getPlayerState !== 'function' || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
     const current = Number(player.getCurrentTime());
     if (!Number.isFinite(current)) return;
-    if (current <= lastTime + .05) unchanged += 1; else unchanged = 0;
+    if (current <= lastTime + .05) { unchanged += 1; networkBlink(); } else unchanged = 0;
     lastTime = current;
     if (unchanged >= 3 && !stalled) { stalled=true; updateStatus('影像已停滯，正在準備切換'); send('stalled',currentToken); }
   },5000);
@@ -960,9 +1050,9 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
     let (class, label) = match style {
         TravelStyle::FreeFlight => ("free-flight", "自在飛行客艙窗景"),
         TravelStyle::TrainJourney => ("train-journey", "列車旅行車廂窗景"),
-        TravelStyle::JapaneseInn => ("japanese-inn", "日式旅館庭園窗景"),
-        TravelStyle::TrainCab => ("train-cab", "列車駕駛前方視角"),
-        TravelStyle::Walking => ("walking", "散步強烈攝影暗角視角"),
+        TravelStyle::JapaneseInn => ("japanese-inn", "和風庭園窗景"),
+        TravelStyle::TrainCab => ("train-cab", "御運轉士視角"),
+        TravelStyle::Walking => ("walking", "地方散策強烈攝影暗角視角"),
     };
     TRAVEL_HTML_TEMPLATE
         .replace("__TRAVEL_SCENE_CLASS__", class)
@@ -972,6 +1062,18 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
 pub(crate) fn load_source_script(source: &TravelSource, token: u32) -> String {
     format!(
         "window.travel.load({{videoId:{},playlistId:{},place:{},token:{token}}});",
+        json_string(&source.youtube_id),
+        source
+            .playlist_id
+            .as_deref()
+            .map_or_else(|| "null".to_owned(), json_string),
+        json_string(&source.place)
+    )
+}
+
+pub(crate) fn prepare_source_script(source: &TravelSource) -> String {
+    format!(
+        "window.travel.prepare({{videoId:{},playlistId:{},place:{}}});",
         json_string(&source.youtube_id),
         source
             .playlist_id
@@ -1048,7 +1150,7 @@ mod tests {
         assert_eq!(source.youtube_id, "Ee27soLzJ5c");
         assert_eq!(
             source.embed_url(),
-            "https://www.youtube-nocookie.com/embed/Ee27soLzJ5c?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&disablekb=1&fs=0&enablejsapi=1"
+            "https://www.youtube-nocookie.com/embed/Ee27soLzJ5c?autoplay=1&mute=1&playsinline=1&rel=0&controls=0&cc_load_policy=0&disablekb=1&fs=0&iv_load_policy=3&start=180&enablejsapi=1"
         );
     }
 
@@ -1169,9 +1271,9 @@ mod tests {
                 "train-journey",
                 "列車旅行車廂窗景",
             ),
-            (TravelStyle::JapaneseInn, "japanese-inn", "日式旅館庭園窗景"),
-            (TravelStyle::TrainCab, "train-cab", "列車駕駛前方視角"),
-            (TravelStyle::Walking, "walking", "散步強烈攝影暗角視角"),
+            (TravelStyle::JapaneseInn, "japanese-inn", "和風庭園窗景"),
+            (TravelStyle::TrainCab, "train-cab", "御運轉士視角"),
+            (TravelStyle::Walking, "walking", "地方散策強烈攝影暗角視角"),
         ] {
             let shell = travel_html_shell(style);
             assert_eq!(shell.matches("id=\"player\"").count(), 1);
@@ -1212,6 +1314,10 @@ mod tests {
         assert!(script.contains("\\u0026"));
         assert!(script.contains("\\n"));
         assert!(script.contains("token:7"));
+        let prepare = prepare_source_script(&source);
+        assert!(prepare
+            .starts_with("window.travel.prepare({videoId:\"Ee27soLzJ5c\",playlistId:null,place:"));
+        assert!(!prepare.contains("</script>"));
         assert_eq!(
             set_status_script("離線 <重試>"),
             "window.travel.setStatus(\"離線 \\u003c重試\\u003e\");"
@@ -1241,9 +1347,19 @@ mod tests {
             "loadPlaylist({listType:'playlist'",
             "setShuffle(true)",
             "getPlaylist()",
-            "target.loadVideoById(selected)",
-            "@keyframes blinkTop",
-            "setTimeout(startLoad, 300)",
+            "target.loadVideoById({videoId:selected,startSeconds:VIDEO_START_SECONDS})",
+            "window.travel = {load: apply, prepare, setStatus:updateStatus}",
+            "controls:0",
+            "cc_load_policy:0",
+            "iv_load_policy:3",
+            "start:VIDEO_START_SECONDS",
+            "@keyframes sourceBlinkTop",
+            "@keyframes gentleBlinkTop",
+            "20000 + randomIndex(10001)",
+            "YT.PlayerState.BUFFERING",
+            "now - lastNetworkBlink < 8000",
+            "event.target.loadVideoById({videoId:selectedVideoId,startSeconds:VIDEO_START_SECONDS})",
+            "setTimeout(startLoad, 380)",
             "radial-gradient(ellipse at center",
             ".walking .window{inset:0;width:100%;height:100%",
             ".train-cab .window{left:29%;top:23.5%;width:42%;height:37.75%",

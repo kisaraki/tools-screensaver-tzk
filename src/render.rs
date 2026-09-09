@@ -493,9 +493,9 @@ fn japan_travel(
         let scene_name = match style.travel_style {
             TravelStyle::FreeFlight => "自在飛行",
             TravelStyle::TrainJourney => "列車旅行",
-            TravelStyle::JapaneseInn => "日式旅館",
-            TravelStyle::TrainCab => "列車駕駛前方",
-            TravelStyle::Walking => "散步模式",
+            TravelStyle::JapaneseInn => "和風庭園",
+            TravelStyle::TrainCab => "御運轉士",
+            TravelStyle::Walking => "地方散策",
         };
         let title_text = format!("{scene_name}・{}", caption.place);
         let title = Font::fit(

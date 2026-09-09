@@ -31,13 +31,13 @@ begin
   if Report = '' then
     Exit;
   try
-    Check(ProductVersionsEqual('0.10.2.0', '0.10.2.0'), 'exact version');
-    Check(ProductVersionsEqual('0.10.2', '0.10.2.0'), 'equivalent version');
-    Check(ProductVersionsEqual(' 0.10.2.0 ', '0.10.2'), 'trim version');
-    Check(not ProductVersionsEqual('0.10.1.0', '0.10.2.0'), 'older version');
-    Check(not ProductVersionsEqual('0.11.0.0', '0.10.2.0'), 'newer version');
+    Check(ProductVersionsEqual('0.11.0.0', '0.11.0.0'), 'exact version');
+    Check(ProductVersionsEqual('0.11.0', '0.11.0.0'), 'equivalent version');
+    Check(ProductVersionsEqual(' 0.11.0.0 ', '0.11.0'), 'trim version');
+    Check(not ProductVersionsEqual('0.10.2.0', '0.11.0.0'), 'older version');
+    Check(not ProductVersionsEqual('0.12.0.0', '0.11.0.0'), 'newer version');
     Check(ProductVersionsEqual('unknown', ' unknown '), 'same malformed label');
-    Check(not ProductVersionsEqual('unknown', '0.10.2.0'), 'malformed mismatch');
+    Check(not ProductVersionsEqual('unknown', '0.11.0.0'), 'malformed mismatch');
     Check(ProductInstallAction(False, False, False, False) = piaProceed,
       'not installed');
     Check(ProductInstallAction(True, True, False, False) = piaProceed,

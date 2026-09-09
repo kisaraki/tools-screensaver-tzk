@@ -363,6 +363,7 @@ impl TravelHost {
         };
         for completion in completions {
             let mut should_load = false;
+            let mut prepare_script = None;
             {
                 let mut travel_slot = self.travel.borrow_mut();
                 let Some(travel) = travel_slot.as_mut() else {
@@ -382,6 +383,7 @@ impl TravelHost {
                             && travel.state == NetworkState::Playing
                             && !travel.rotation.due(travel.last_playing, now);
                         if keep_prefetched {
+                            prepare_script = Some(travel::prepare_source_script(&source));
                             travel.prefetched_source = Some(source);
                         } else {
                             travel.activate_source(source, now);
@@ -407,6 +409,9 @@ impl TravelHost {
                 }
             }
             self.update_travel_status();
+            if let Some(script) = prepare_script {
+                let _ = self.with_travel_browser(|browser| browser.execute_script(&script));
+            }
             if should_load {
                 self.load_current_travel_source(now);
             }

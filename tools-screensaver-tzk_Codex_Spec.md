@@ -1,6 +1,6 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：2.3（修訂版）<br>
+> 文件版本：2.4（修訂版）<br>
 > 修訂日期：2026-09-09<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,15 +16,15 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定播放清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突檢查、詢問及先移除舊版的流程。
+- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定播放清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱、三分鐘起點、播放器最小 UI、地方散策自適應眨眼與下一來源預備。
 
-### 0.2 v1.2～v2.3 的主要修訂
+### 0.2 v1.2～v2.4 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
 | 第三種畫面 | v1.3 新增「日本旅行模式」，內部識別 `JapanTravel`；不改動既有 `TimeDate=0`、`Countdown=1` | 1、8.6、10 |
 | 網路邊界 | 只有 `/s` 的 `JapanTravel` 可連線；`/p`、`/c` 與另外兩種模式維持零網路請求 | 7、8.6、11、17 |
-| 來源與輪換 | v2.1 的自在飛行、列車旅行、列車駕駛前方及散步模式使用四份指定 YouTube playlist；每次啟動與切換時由 IFrame API 更新清單、隨機選片。日式旅館保留 tw.live 8 個 camera seed；可選 1～1440 分鐘或不切換；失敗有界重試及離線 fallback | 8.6、10～11、16～17 |
+| 來源與輪換 | 自在飛行、列車旅行、御運轉士及地方散策使用四份指定 YouTube playlist；啟動時由 IFrame API 更新清單並隨機選片，輪換前預選下一候選。和風庭園保留 tw.live 8 個 camera seed；可選 1～1440 分鐘或不切換；失敗有界重試及離線 fallback | 8.6、10～11、16～17 |
 | 旅行場景 | v2.1 新增 `TrainCab=3` 與 `Walking=4`；v2.2 將列車駕駛影片孔改為中央 16:9，左右加入擬真設備，散步改用全畫面強烈攝影暗角，中央約 65% 為主要視域，不含眼球、皮膚或血管 | 8.6、10～11 |
 | 播放器與旅行框 | 每個螢幕以本機 HTML／CSS shell 呈現完整 WebView2 播放器、所選旅行場景及 player 外的地點／狀態；preview、等待與錯誤 fallback 使用對應 GDI 靜態畫面 | 8.6 |
 | 旅行多螢幕 | 正式 `/s` 每個螢幕各建立一個 autoplay player，獨立來源、計時、狀態與錯誤路由；預覽不得誤標成連線失敗 | 5.2、8.6 |
@@ -32,7 +32,8 @@
 | WebView2 Runtime | 使用靜態 WebView2 loader；v1.7 的 Setup 偵測並補裝電腦層級 Runtime，可取消以使用離線模式；`.scr` 缺少 Runtime 時仍只顯示 fallback，不下載或提權 | 2.2、8.6、15、17、19 |
 | 安裝版本衝突 | v2.3 使用固定 AppId 的 uninstall metadata 比對已安裝與 Setup 版本；不同版本須詢問，接受後先完整移除舊版才安裝，拒絕或移除失敗即停止；靜默衝突不得自動移除 | 15.4、17～19 |
 | Registry schema | v1.9 schema 5 新增 `TravelSwitchMinutes`；v2.0 升為 6；v2.1 升為 7，加入 `TravelStyle=3/4`。舊設定逐欄相容，來源清單不寫入 registry | 10 |
-| 桌曆時鐘色彩 | v2.0 新增暗淺藍與琥珀色；自動模式依共同 `GetTickCount64` 時基，每 120 秒循環六種實色，多螢幕保持一致 | 9、10～11 |
+| 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；自動模式依共同 `GetTickCount64` 時基，每 120 秒循環六種實色，多螢幕保持一致 | 9、10～11 |
+| 播放體驗 | v2.4 的影片由約 3:00 開始；控制列、預設字幕與註解依官方參數停用，輪換前預選來源並預熱；地方散策換片完全眨眼、順暢時每 20～30 秒輕眨、緩衝時溫和加深 | 8.6、11、17、19 |
 | 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
 | 離線模式畫面密度 | v1.6 將桌曆時鐘與番茄鐘的大型畫面置中於 64%W×60%H 安全區，降低視覺壓迫；小型 Windows preview 保留較大可視面積，日本旅行 player 不縮小 | 8.1～8.3、19 |
 | 鐘面數字間距 | v1.9 的 12／3／6／9 目標字高由 0.40R 降為 0.30R，中心距離由 0.62R 內收到 0.58R，避免與外刻度黏連 | 8.2、17、19 |
@@ -54,7 +55,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v2.3 對應安裝版本衝突處理的目標軟體版號為 `0.10.2`。
+- 文件版本與軟體版本分開；文件 v2.4 對應播放體驗與顯示名稱調整的目標軟體版號為 `0.11.0`。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -67,7 +68,7 @@
 
 ## 1. 專案目標與需求追蹤
 
-建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」、「列車旅行」、「日式旅館」、「列車駕駛前方」或「散步模式」，在每個螢幕以本機 HTML／CSS shell 與 WebView2 播放線上影片，preview、播放器等待及錯誤 fallback 由 GDI 繪製對應靜態場景。
+建立可由 Windows「螢幕保護程式設定」選取的 `tools-screensaver-tzk.scr`，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」三種螢幕保護畫面。內部程式與登錄值依序使用 `TimeDate=0`、`Countdown=1`、`JapanTravel=2`。前兩種畫面由 Rust 呼叫 Win32 GDI 繪製且可離線執行；日本旅行模式可選「自在飛行」、「列車旅行」、「和風庭園」、「御運轉士」或「地方散策」，在每個螢幕以本機 HTML／CSS shell 與 WebView2 播放線上影片，preview、播放器等待及錯誤 fallback 由 GDI 繪製對應靜態場景。
 
 ### 1.1 必要功能
 
@@ -85,7 +86,7 @@
 | R10 | 單一 `.scr` 與 Inno Setup 安裝 EXE | 13～15 | 0、5 | AC01、AC13 |
 | R11 | 安裝／移除不擅改安全設定、不影響其他帳號 | 15 | 5 | AC14 |
 | R12 | 實際測試紀錄、版本與雜湊可追溯 | 17～19、22 | 4、5 | AC15 |
-| R13 | 「自在飛行」、「列車旅行」與「日式旅館」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7、13 | AC16、AC26 |
+| R13 | 「自在飛行」、「列車旅行」與「和風庭園」窗景、目前城市／地區及鏡頭名稱 | 7、8.6、10～11 | 6～7、13 | AC16、AC26 |
 | R14 | 預設每 1 分鐘隨機換來源、來源健康檢查、有界 failover；可設定分鐘或不切換 | 5、8.6、10～11、16～17 | 6、12 | AC17、AC25 |
 | R15 | 前兩模式與所有 preview 無網路；Runtime／斷線安全 fallback 與第三方揭露 | 2、7～8、15～18、22 | 6 | AC18 |
 | R16 | 產品、原始碼、建置、安裝、設定路徑、文件與公開網站統一使用 `tools-screensaver-tzk` 識別 | 0、2、10、13～15、19 | 8 | AC19 |
@@ -95,10 +96,11 @@
 | R20 | 鐘面 12／3／6／9 縮小並內收，與外側刻度保持間距 | 8.2 | 12 | AC23 |
 | R21 | 五種旅行場景使用內附原創 AI 擬真圖，預覽離線，完整 player 保持可見 | 7、8.6 | 12～14 | AC24、AC26、AC29 |
 | R22 | 保存旅行來源切換分鐘，預設 1、0 為不切換、1～1440 為整數分鐘；舊設定相容，失效復原保持啟用 | 8.6、10～11 | 12 | AC25 |
-| R23 | 新增日式旅館場景；新增暗淺藍、琥珀色與每 2 分鐘自動換色 | 8.6、9～11 | 13 | AC26～AC27 |
-| R24 | 四種移動場景每次啟動與切換時更新指定 playlist 並隨機選片；日式旅館維持原來源 | 8.6、16～17 | 14 | AC28 |
-| R25 | 列車駕駛前方以設備包圍中央 16:9 影片；散步採全畫面強烈攝影暗角、中央約 65% 主要視域且無眼球／血管；來源切換時保留 700 ms 眨眼 | 8.6、10～11 | 14～15 | AC29 |
+| R23 | 和風庭園場景；雪藍、琥珀與每 2 分鐘自動換色 | 8.6、9～11 | 13、17 | AC26～AC27、AC31 |
+| R24 | 四種移動場景在啟動時更新指定 playlist 並隨機選片；和風庭園維持原來源 | 8.6、16～17 | 14、17 | AC28、AC31 |
+| R25 | 御運轉士以設備包圍中央 16:9 影片；地方散策採全畫面強烈攝影暗角、中央約 65% 主要視域且無眼球／血管，並依切換與網路狀態眨眼 | 8.6、10～11 | 14～15、17 | AC29、AC31 |
 | R26 | Setup 比對已安裝與本版版本；不同版本先詢問並移除舊版，拒絕、移除失敗或靜默衝突即停止，不能同時存在兩版 | 15.4 | 16 | AC30 |
+| R27 | 更新五個顯示名稱；影片約從 3:00 開始、最小化播放器 UI、輪換前預備下一候選；地方散策依播放健康狀態眨眼 | 8.6、9、11 | 17 | AC31 |
 
 ### 1.2 非目標
 
@@ -106,7 +108,7 @@
 - 不使用 Direct2D、DirectWrite、OpenGL、Vulkan；第一版固定 GDI。
 - 不加入 `rand`、資料庫或使用者可編輯的執行期 JSON／TOML／INI 設定。旅行來源的 process-local session state 不是使用者設定，不能保存影音內容；Cargo 自身的 TOML 與測試報告不受此限制。
 - 不做程式遙測、檢查更新、帳號登入、下載字型、錄影、回放、轉存、轉播或播放聲音。只有使用者已選定日本旅行模式且 `/s` 正式啟動時，才可連線至第 8.6 節規定的 HTTPS 來源。
-- 不持續遮蔽、裁切或改造 YouTube 嵌入播放器；旅行框、地名與狀態放在 player 外。散步模式只可在程式主動切換來源時，以 700 ms 本機上下眼瞼動畫短暫覆蓋 player，且不得用於遮蔽品牌、廣告或控制項。
+- 不持續遮蔽、裁切或改造 YouTube 嵌入播放器；旅行框、地名與狀態放在 player 外。地方散策可在來源切換、20～30 秒自然間隔與緩衝事件短暫覆蓋 player，但不得以覆蓋層持續遮蔽品牌或廣告。
 - 不加入暫停、續跑、歸零、快捷鍵操作、百分秒、背景常駐計時或重啟後恢復倒數。
 - 不自行驗證密碼、替代鎖定畫面、切換安全桌面或繞過 Windows 登入政策。
 - 不產生 MSI，不支援 Windows 7／8／8.1、32 位元 Windows 或 ARM64。
@@ -598,7 +600,7 @@ SS = display_seconds % 60
 
 #### 8.6.1 來源發現與可信邊界
 
-- `https://tw.live/japan/` 是日式旅館場景的旅行來源目錄；其他四種場景使用規格指定的 YouTube playlist。所有清單、camera ID、video ID、授權及可用性均可能由第三方改變。
+- `https://tw.live/japan/` 是和風庭園場景的旅行來源目錄；其他四種場景使用規格指定的 YouTube playlist。所有清單、camera ID、video ID、授權及可用性均可能由第三方改變。
 - v0.2.0 內建 8 個 tw.live camera seed：札幌、奧多摩、京都中京區、大阪 JR 放出車站、廣島宮島、沖繩名護、鹿兒島櫻島及長野上高地。camera ID 與最後一次探測結果記錄於 `docs/japan-travel-sources.md`；固定的是 camera ID，不是會隨直播重啟改變的 YouTube video ID。
 - `/s` 啟動後，source worker 先以有界 HTTPS GET 驗證日本目錄標記，再把 8 個 seed 隨機排序，直接取得 `/cam/?id=...` detail。它不在執行期掃描地區頁或全部都道府縣；detail 只解析鏡頭標題及允許的 YouTube player URL，不執行 tw.live 的 script、廣告或追蹤碼。
 - WinHTTP 只接受 `https://tw.live` 的日本目錄與 camera detail path，redirect 完全停用。connect／send／receive 各 4 秒，單次讀取總時間 15 秒，response body 上限 512 KiB；HTTP `2xx` 以外、內容型別不符、非法 UTF-8、非法 path 或結構無法解析都視為失敗。
@@ -608,20 +610,20 @@ SS = display_seconds % 60
 
 #### 8.6.2 旅行場景與地名
 
-- 日本旅行模式提供 `FreeFlight=0`（自在飛行）、`TrainJourney=1`（列車旅行）、`JapaneseInn=2`（日式旅館）、`TrainCab=3`（列車駕駛前方）與 `Walking=4`（散步模式）五種可保存場景。五者使用內附的原創 AI 擬真點陣圖，不宣稱是真實 A380、特定列車、旅館或業者照片，不包含附件像素、第三方照片、人物或商標。
-- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。列車駕駛模式的 player 為中央 16:9，寬約 42%、高約 37.75%，左右由擬真設備填滿。散步 player 鋪滿 16:9 場景，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源仍以 700 ms 上下閉合動畫過場，於 300 ms 閉合點載入新來源。
+- 日本旅行模式提供 `FreeFlight=0`（自在飛行）、`TrainJourney=1`（列車旅行）、`JapaneseInn=2`（和風庭園）、`TrainCab=3`（御運轉士）與 `Walking=4`（地方散策）五種可保存場景。只改顯示名稱，enum 數值與 registry schema 不變。五者使用內附的原創 AI 擬真點陣圖，不宣稱是真實 A380、特定列車、旅館或業者照片，不包含附件像素、第三方照片、人物或商標。
+- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。御運轉士的 player 為中央 16:9，寬約 42%、高約 37.75%，左右由擬真設備填滿。地方散策 player 鋪滿 16:9 場景，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源使用約 780 ms 上下完全閉合動畫，於約 380 ms 閉合點載入新來源；順暢播放時每 20～30 秒作一次較淺、約 380 ms 的輕眨，發生 BUFFERING 或播放時間進度異常時以不超過每 8 秒一次的較慢、較深眨眼柔化停頓。
 - 每個螢幕正式 `/s` 依保存場景使用本機 HTML／CSS shell 及擬真場景圖；`/p`、`/c`、播放器等待及 Runtime／網路 fallback 由 GDI 繪製對應內附靜態圖片，不連網。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換設定或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
-- player 維持完整 16:9 矩形並全部可見。場景外框、障子、陰影、地名及狀態區位於 player element 外，不得持續覆蓋、遮蔽或裁切影片、YouTube 品牌、廣告或 controls；散步模式的短暫眨眼過場是唯一例外。
+- player 維持完整 16:9 矩形並全部可見。場景外框、障子、陰影、地名及狀態區位於 player element 外，不得持續覆蓋、遮蔽或裁切影片、YouTube 品牌或廣告；地方散策的短暫眨眼是唯一覆蓋 player 的本機動畫。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
-- 影片固定靜音，不播放來源音訊。不得隱藏播放器原生 attribution／controls；螢幕保護程式的一般鍵鼠退出規則仍優先，使用者輸入不轉成對遠端 player 的自動操作。
+- 影片固定靜音，不播放來源音訊。播放器設定 `controls=0`、`cc_load_policy=0`、`iv_load_policy=3`、`disablekb=1`、`fs=0`，並讓 iframe 不接收滑鼠事件，使控制列、預設字幕、註解與全螢幕按鈕不顯示。YouTube 已停用 `showinfo` 與 `modestbranding`，產品不得以無效參數宣稱能完全移除平台必要的短暫標題或品牌資訊，也不得用持續覆蓋層遮住它們。螢幕保護程式的一般鍵鼠退出規則仍優先。
 
 #### 8.6.3 隨機輪換與多螢幕
 
-- 第一個健康來源隨機選擇。`FreeFlight`、`TrainJourney`、`TrainCab`、`Walking` 分別使用 playlist `PLdsqwBj2O1Nw`、`PLBH60D9AGfu0`、`PLB-Fmt68BNm4`、`PLbYZr39owNGo`。每次啟動及切換時，以官方 IFrame API 重新讀取並 shuffle 清單後隨機選片，不解析 YouTube HTML、不保存清單。`TravelSwitchMinutes` 預設 1，允許 0～1440；0 表示不定時切換。正整數設定在播放進入 `PLAYING` 後，以 `GetTickCount64` 建立 deadline。
-- 只有啟用定時切換時，才在距離輪換剩餘最後 1 分鐘時，於背景從排除目前 camera 的 7 個 seed 中隨機排序並預抓下一個來源；預設 1 分鐘間隔可在 `PLAYING` 後立即預抓，較長間隔則延後，避免長時間保留已失效的直播 ID。使用既有 xorshift32 的純 Rust 有界選擇，seed 可測且 index 永不越界。到 deadline 時載入已準備的來源；若預抓仍在進行，保留目前畫面，並在第一個成功結果到達時切換。
+- 第一個健康來源隨機選擇。`FreeFlight`、`TrainJourney`、`TrainCab`、`Walking` 分別使用 playlist `PLdsqwBj2O1Nw`、`PLBH60D9AGfu0`、`PLB-Fmt68BNm4`、`PLbYZr39owNGo`。每次全螢幕啟動時以官方 IFrame API 讀取並 shuffle 清單後隨機選片，不解析 YouTube HTML、不持久保存清單。`TravelSwitchMinutes` 預設 1，允許 0～1440；0 表示不定時切換。正整數設定在播放進入 `PLAYING` 後，以 `GetTickCount64` 建立 deadline。
+- 只有啟用定時切換時，才在距離輪換剩餘最後 1 分鐘時，於背景預抓下一來源。和風庭園從排除目前 camera 的 7 個 seed 中隨機排序並解析下一個 video ID；播放清單場景從本次啟動已讀取的清單預選不同影片。WebView shell 可預熱該候選的 YouTube 縮圖/CDN 連線，但不得建立第二個隱藏 player、背景播放影音或持久保存縮圖。預設 1 分鐘間隔可在 `PLAYING` 後立即預抓，較長間隔則延後。到 deadline 時直接載入已準備的來源；若預抓仍在進行，保留目前畫面，並在第一個成功結果到達時切換。無有效預選時回退到 `loadPlaylist` 重新取得清單。
 - 不切換時不建立輪換 deadline，不預抓下一來源；目前健康來源持續播放。初次來源尋找、來源失敗／停滯時的換候選、網路健康檢查與有界重試仍保持啟用；不得把「不切換」解釋為停止失敗復原或永久保證同一鏡頭。
-- HTTP／解析 preflight 在目前影片繼續顯示時執行；候選尚未驗證完成不得先清空 player。取得來源後，在同一 player 呼叫 `loadVideoById` 並更新地點／載入狀態；只有收到新 player 的 `PLAYING` 且啟用切換時，才建立下一個設定分鐘的 deadline。
+- HTTP／解析 preflight 在目前影片繼續顯示時執行；候選尚未驗證完成不得先清空 player。取得來源後，在同一 player 以 `loadVideoById({videoId,startSeconds:180})` 載入並更新地點／載入狀態；初始 playlist 載入與同片重播也使用 180 秒起點。YouTube 可對直播、短片或 keyframe 調整此起點。只有收到新 player 的 `PLAYING` 且啟用切換時，才建立下一個設定分鐘的 deadline。
 - 睡眠、暫停或訊息阻塞跨過多個 deadline 時只做一次切換，不補跑漏掉的區間。播放中斷則不等到下一個切換時間，立即進入有界 failover。
 - 每個實體螢幕的 surface 都是獨立 WebView2 host，每個 screen／本機頁面最多一個 autoplay player。來源選擇、每輪最多 3 個候選的預算、首次 `PLAYING` 後的可選 deadline 與重試各自獨立，切換分鐘共用啟動設定快照；允許不同螢幕隨機選到同一地點。非同步通知帶入所屬 HWND，由 coordinator 路由回正確 host；拒絕過期 generation／playback token 與關閉後事件。某個來源失敗不得改動其他 host 的狀態或計時。共用退出流程必須關閉所有 host，記憶體與網路預算須考慮播放螢幕數。
 
@@ -651,8 +653,8 @@ SS = display_seconds % 60
 | 1 | 深橘 | 255, 140, 0 | `#FF8C00` |
 | 2 | 亮綠（預設） | 0, 255, 0 | `#00FF00` |
 | 3 | 灰白 | 245, 245, 245 | `#F5F5F5` |
-| 4 | 暗淺藍 | 101, 151, 178 | `#6597B2` |
-| 5 | 琥珀色 | 255, 191, 0 | `#FFBF00` |
+| 4 | 雪藍 | 101, 151, 178 | `#6597B2` |
+| 5 | 琥珀 | 255, 191, 0 | `#FFBF00` |
 | 6 | 自動切換 | 每 120 秒循環識別值 0～5 | — |
 
 `COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環六種固定色；不得依每個螢幕各自取時。六種固定色都須在黑底及 LCD 上驗收。
@@ -780,11 +782,11 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 ```
 
 - 模式群組：「標準桌曆暨時鐘模式」／「離機作業番茄鐘模式」／「日本旅行模式」三個 radio 選項。
-- 日本旅行場景群組：「自在飛行」／「列車旅行」／「日式旅館」／「列車駕駛前方」／「散步模式」五個 radio；非日本旅行模式時停用但保留草稿值。
+- 日本旅行場景群組：「自在飛行」／「列車旅行」／「和風庭園」／「御運轉士」／「地方散策」五個 radio；非日本旅行模式時停用但保留草稿值。
 - 日本旅行的「來源切換」使用不可自由輸入的 combo，選擇「不切換」或「每隔」；分鐘 Edit 預設 1，只接受 1～1440 的 ASCII 整數，設定 `ES_NUMBER` 與 4 字元長度上限後仍以程式驗證。空值、負數、0、超界、全形數字、小數、符號或非法黏貼一律拒絕提交，清楚標示問題欄位。
 - 「不切換」對應保存值 0 並停用分鐘 Edit；切回「每隔」時保留合法草稿分鐘或恢復預設 1。非日本旅行模式時停用來源切換控制項，但保留草稿偏好；不能因停用欄位中的未使用文字阻擋其他模式保存。按「確定」才保存，取消不提交；全螢幕使用下一次啟動的設定快照。
-- 日本旅行 radio 附近以非互動文字說明「需要網路；全螢幕連線至 YouTube，日式旅館另使用 tw.live；影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
-- 顏色群組：深紅、深橘、亮綠、灰白、暗淺藍、琥珀色與「自動切換（2 分鐘）」七個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
+- 日本旅行 radio 附近以非互動文字說明「需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
+- 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀與「自動切換（2 分鐘）」七個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
 - 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
@@ -1056,8 +1058,9 @@ tools-screensaver-tzk.scr --install-set-current
 | UT38 | 0／1／2／1440 分鐘設定、deadline 前後、最後 1 分鐘前後、睡眠跳過與失效 | 0 無排程／預抓但仍復原；長間隔僅最後 1 分鐘預抓，到時切一次；以 `PLAYING` 起算 |
 | UT39 | 三個內附 PNG 的 WIC 解碼、輸出大小與離屏繪製 | 圖片完整、像素尺寸合法、資源釋放；無需網路、player 或可見 UI |
 | UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 回到第一色，多螢幕共用 tick |
-| UT41 | 四份指定 playlist 映射、清單更新／隨機選片／同片重播、散步眨眼與暗角結構 | 每種移動場景使用正確 playlist；失效復原有界；700 ms 眨眼於 300 ms 載入且暗角不攔截輸入 |
+| UT41 | 四份指定 playlist 映射、清單更新／隨機選片／同片重播、地方散策眨眼與暗角結構 | 每種移動場景使用正確 playlist；失效復原有界；暗角與眨眼不攔截輸入 |
 | UT42 | 未安裝、同版、較舊／較新版、格式異常、接受／拒絕移除、靜默衝突及 uninstall command | 同版可修復；不同版接受才移除，拒絕或靜默即停止；命令只抽取既有 uninstaller 執行檔 |
+| UT43 | 顯示名稱、180 秒起點、最小播放器 UI、預備腳本與三種地方散策眨眼 | 設定／GDI／HTML 名稱一致；load/replay 都有 startSeconds；20～30 秒、BUFFERING 與完整換片動畫結構固定；預抓 completion 注入 `prepare` |
 
 - Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
 - 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
@@ -1094,7 +1097,7 @@ tools-screensaver-tzk.scr --install-set-current
 | MT13 | 較舊／較新版衝突、拒絕、接受、同版修復、靜默衝突、正在使用、解除安裝 | 顯示兩個版本；拒絕／失敗不安裝；接受後只留本版與單一解除安裝項；固定 AppId、偏好及其他 saver 設定不變 |
 | MT14 | 兩種 GDI 模式各30分鐘；設定反覆切字型／DPI／resize | GDI／USER／記憶體穩定與完整釋放 |
 | MT15 | 未安裝開發工具／VC++ Redistributable 的乾淨 Windows 10 x64 目標機 | 單一 `.scr` 無 VC/UCRT／WebView2Loader DLL 缺失；前兩模式離線可用，缺 WebView2 時旅行 fallback 可用 |
-| MT16 | Win10 `/s` 日本旅行模式，正常網路，至少連續 5 次預設 1 分鐘輪換；另測自訂分鐘與不切換 | 實際 `PLAYING` 後依設定換不同來源；不切換持續播放且失效仍復原；地名吻合、靜音、擬真窗景內 player／controls／品牌未遮蔽 |
+| MT16 | Win10 `/s` 日本旅行模式，正常網路，至少連續 5 次預設 1 分鐘輪換；另測自訂分鐘與不切換 | 實際 `PLAYING` 後依設定換不同來源；不切換持續播放且失效仍復原；地名吻合、靜音、約 3:00 起播、控制列與字幕不顯示，平台必要品牌未被覆蓋 |
 | MT17 | tw.live／YouTube 不可達、timeout、所有候選失效、WebView2 Runtime 缺失 | 顯示正確 fallback、retry 有界、鍵鼠可退出；不開對話框／瀏覽器、不下載 Runtime或觸發 UAC |
 | MT18 | 日本旅行模式多螢幕、150%／200%、4K、直向、resize／拓撲變化 | 每個螢幕各有一個 player 與真實地點／狀態；各自輪換與來源失敗互不覆蓋；框與 label 不裁切，清理後無殘留 child process |
 | MT19 | 日本旅行模式 30 分鐘且至少 29 次來源輪換 | parent＋WebView2 process tree 的 CPU、記憶體、handle、controller 與子程序數無每分鐘持續累積 |
@@ -1157,11 +1160,12 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC23 | 鐘面 12／3／6／9 目標字高 0.30R、中心距離 0.58R，與刻度分離；一般、小型、直向與高 DPI 版面無裁切 | Phase 12 GDI fixtures、視覺檢查 |
 | AC24 | 兩種原創 AI 擬真場景內附於成品，GDI 預覽離線使用同圖，完整 16:9 player 與地名／狀態互不遮蔽；圖像來源如實揭露 | UT34、UT39、Phase 12 GDI fixtures、實際 Win10 player 視覺驗收 |
 | AC25 | 設定可選不切換或 1～1440 整數分鐘，預設 1；schema 5 保存／舊版相容、取消不寫入、每螢幕獨立計時；不切換無預抓但失效可復原 | UT36～UT38、Phase 12 report、可互動 Win10 設定／播放驗收 |
-| AC26 | 日式旅館擬真 PNG 內附於 SCR，本機 HTML 與 GDI 使用同圖；完整 16:9 player 位於無遮蔽庭園窗孔，來源如實揭露 | UT34、UT39、Phase 13 fixtures、實際 Win10 player 視覺驗收 |
-| AC27 | 暗淺藍、琥珀色與自動模式可保存；自動模式每 120 秒循環六色且多螢幕一致，schema 6 舊值相容 | UT20～UT26、UT40、Phase 13 GDI fixtures、可互動 Win10 設定驗收 |
-| AC28 | 四種移動場景每次啟動與到期切換時更新指定 YouTube playlist 並隨機選片；日式旅館維持原來源 | UT41、Phase 14 source health、可互動 Win10 播放驗收 |
-| AC29 | 列車駕駛中央 16:9 player 由擬真設備包圍；散步為全畫面強烈攝影暗角且不含眼球／血管，換片保留眨眼 | UT34、UT39、UT41、Phase 15 fixtures、可互動 Win10 視覺驗收 |
+| AC26 | 和風庭園擬真 PNG 內附於 SCR，本機 HTML 與 GDI 使用同圖；完整 16:9 player 位於庭園窗孔，來源如實揭露 | UT34、UT39、Phase 13 fixtures、實際 Win10 player 視覺驗收 |
+| AC27 | 雪藍、琥珀與自動模式可保存；自動模式每 120 秒循環六色且多螢幕一致，schema 6 舊值相容 | UT20～UT26、UT40、Phase 13 GDI fixtures、可互動 Win10 設定驗收 |
+| AC28 | 四種移動場景在全螢幕啟動時更新指定 YouTube playlist 並隨機選片；和風庭園維持原來源 | UT41、Phase 14 source health、可互動 Win10 播放驗收 |
+| AC29 | 御運轉士中央 16:9 player 由擬真設備包圍；地方散策為全畫面強烈攝影暗角且不含眼球／血管，換片保留眨眼 | UT34、UT39、UT41、Phase 15 fixtures、可互動 Win10 視覺驗收 |
 | AC30 | Setup 準確辨識不同產品版本並詢問；接受後只留下本版及一個解除安裝項，拒絕、移除失敗或靜默衝突時不寫入新版 | UT42、Phase 16 policy report、MT13 |
+| AC31 | 五個新顯示名稱一致；影片約從 3:00 開始、播放器控制列／預設字幕／註解停用、下一候選先預備；地方散策具有完整換片眨眼與依網路狀態變化的輕眨 | UT43、Phase 17 report、可互動 Win10 播放驗收 |
 
 ### 18.2 報告格式
 
@@ -1182,7 +1186,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定播放清單及旅行視覺；v2.3 的 Phase 16 加入安裝版本衝突處理。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定播放清單及旅行視覺；Phase 16 加入安裝版本衝突處理；v2.4 的 Phase 17 改良播放與顯示名稱。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1402,12 +1406,21 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 新增共用 Pascal policy 與最低權限非互動 harness，涵蓋 15 個版本判斷及 uninstall command 案例；不得顯示 wizard、提示、執行舊 uninstaller、寫 registry 或觸發 UAC。
 6. 重跑 build、smoke 與 package，更新 README、Pages、規格及驗收文件，發布 v0.10.2；實際升級／降版／同版修復與 UAC 流程列為人工驗收。
 
+### Phase 17：播放體驗與顯示名稱
+
+1. 軟體版本升為 `0.11.0`，registry schema、內部 enum 與固定 AppId 不變。
+2. 顯示名稱改為和風庭園、御運轉士、地方散策、雪藍與琥珀；設定資源、GDI fallback、HTML aria、README、Pages 與現行來源文件一致。
+3. 所有 YouTube 載入與同片重播使用約 180 秒起點；以現行官方參數停用控制列、預設字幕、註解、鍵盤與全螢幕按鈕。平台必要的短暫標題或品牌資訊列為第三方限制，不用覆蓋層遮蔽。
+4. 地方散策切換來源使用約 780 ms 完全閉眼；播放順暢時每 20～30 秒輕眨，BUFFERING 或時間進度異常時使用有節制的較慢眨眼。
+5. 定時切換前最後一分鐘先由原生 worker 解析來源，WebView 預選不同播放清單影片並預熱縮圖/CDN 連線；切換時重用單一 player，不能建立隱藏播放實例。
+6. 重跑非互動 build、smoke、installer policy 與 package，更新 README、Pages、規格及驗收文件，發布 v0.11.0；實際 player UI、字幕偏好、三分鐘 seek、眨眼流暢度及網路節流列為可互動 Win10 驗收。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v2.3 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v2.4 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1421,7 +1434,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 - 直接複製或嵌入 tw.live 整頁 HTML／CSS／JavaScript、執行其廣告／追蹤碼，或把遠端頁面當成產品 UI。旅行模式只解析有界 metadata 並使用官方 player。
 - 在 `/p`、`/c`、TimeDate 或 Countdown 發出 request，或在 network callback 同步等待、無界 retry、接受非 HTTPS／非允許 top-level navigation。
 - 把 HTTP 200、縮圖或 iframe document 成功寫成影片已播放，或把公開來源暫時可達寫成永久授權／可用性保證。
-- 持續在 YouTube player 上疊旅行框／地名、遮 controls／branding、同一 screen 同時 autoplay 多個 player，或用錯誤 Referer／nested iframe 規避政策；散步模式只有換片時的短暫眨眼動畫例外。
+- 持續在 YouTube player 上疊旅行框／地名、以覆蓋層遮廣告／branding、同一 screen 同時 autoplay 多個 player、建立隱藏預載 player，或用錯誤 Referer／nested iframe 規避政策；地方散策只允許規格定義的短暫眨眼動畫。
 - 讓倒數模式每螢幕建立自己的 deadline、按 timer 次數遞減或 paint 時各取不同時間。旅行模式的來源播放計時依第 8.6 節各自保存。
 - 在preview中顯示輸入框、topmost、隱藏全域游標或啟用fullscreen退出規則。
 - 倒數輸入未完成便鋪全螢幕、吞掉使用者輸入或由保存失敗直接開始。

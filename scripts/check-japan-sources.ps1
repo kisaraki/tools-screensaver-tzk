@@ -27,8 +27,8 @@ $cameras = @(
 $playlists = @(
     [ordered]@{ style = 'FreeFlight'; label = '自在飛行'; id = 'PLdsqwBj2O1Nw' },
     [ordered]@{ style = 'TrainJourney'; label = '列車旅行'; id = 'PLBH60D9AGfu0' },
-    [ordered]@{ style = 'TrainCab'; label = '列車駕駛前方'; id = 'PLB-Fmt68BNm4' },
-    [ordered]@{ style = 'Walking'; label = '散步模式'; id = 'PLbYZr39owNGo' }
+    [ordered]@{ style = 'TrainCab'; label = '御運轉士'; id = 'PLB-Fmt68BNm4' },
+    [ordered]@{ style = 'Walking'; label = '地方散策'; id = 'PLbYZr39owNGo' }
 )
 
 function Invoke-BoundedGet {
