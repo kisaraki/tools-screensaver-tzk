@@ -199,6 +199,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
+- [截至 v0.13.0 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
+- [從零重新開發、驗證、封裝與發布步驟](docs/tools-screensaver-tzk-redevelopment-steps.md)
 - [Codex 開發規格 v2.7](tools-screensaver-tzk_Codex_Spec.md)
 - [Phase 20 旅行播放與安裝完成設定報告](docs/phase20-report.md)
 - [Phase 19 暗色藥劑瓶玻璃面板報告](docs/phase19-report.md)
