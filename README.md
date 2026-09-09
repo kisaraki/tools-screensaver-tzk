@@ -7,24 +7,24 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.12.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.12.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.12.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.12.1) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase13/fixtures/07-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.12.0 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
+> **v0.12.1 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.1/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.1/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.12.1/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 9,550,848 | `b753e9330741161e267a9f1042bbf6635433dbb5c7a9987a824fb2fe5f43715e` |
-| `tools-screensaver-tzk-Setup.exe` | 12,606,717 | `2cd226c69b6eb91afe330a1c86b3462cb99932ec4432809673d65503453e0400` |
+| `tools-screensaver-tzk.scr` | 9,553,408 | `3c1f9d2dcf43c7351849dcbecd803cbd9b8e124c83173d5c408eb6df5397b500` |
+| `tools-screensaver-tzk-Setup.exe` | 12,607,444 | `31ab561567fde1b965af7504bffe111b0f8c84f62ae2ab8cde16e925d357df5c` |
 
 ## 安裝與使用
 
@@ -92,7 +92,7 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 
 - **置中留白**：桌曆時鐘與番茄鐘在寬至少 640 px 且高至少 360 px 的畫面，收進中央 64% 寬、60% 高的內容區；左右各留 18%、上下各留 20% 初始空間。內容區面積比先前縮小約 47%，小型預覽保持可讀性。
 - **標準桌曆暨時鐘模式**：圓角方形刻度鐘、連續移動的指針、星期一為首欄的六列 Gregorian 月曆，以及今天的圓形標示。主色包含雪藍、琥珀與鐵灰色；選擇「自動切換」時每 2 分鐘循環七種固定色，多螢幕共用同一時基。
-- **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍；計時面板使用深棕底、棕銅邊框、反光帶與底部暗帶，呈現暗色藥劑瓶般的玻璃質感。
+- **離機作業番茄鐘模式**：六位七段數字、沙漏、剩餘比例線、最後十秒警示與歸零閃爍；計時面板採近黑褐透光核心、平滑上下光衰減、琥珀色瓶壁折射、局部柔光與細銅色唇邊，呈現暗色藥劑瓶玻璃質感。
 - **日本旅行模式**：五種內附原創擬真場景，包括「自在飛行」、「列車旅行」、「和風庭園」、「御運轉士」及「地方散策」。御運轉士以設備櫃、螢幕、通風板和控制台包圍中央 16:9 影片；地方散策影片鋪滿 16:9 畫面，再以強烈攝影暗角把主要視域集中在中央約 65%。換片時以 780 ms 上下眼瞼完全閉合；眼瞼末端使用多段黑色透明漸層，避免鋒利切線。順暢播放時每 20～30 秒輕眨，緩衝或進度異常時則以稍慢、稍深的眨眼柔化停頓。
 - **旅行切換時間**：預設每 1 分鐘；可選 1～1440 整數分鐘或「不切換」。啟用輪換時，player 回報 `PLAYING` 後才開始計時，於剩餘最後 1 分鐘預抓下一個候選；不切換時仍保留來源失效復原。
 - **來源與復原**：自在飛行、列車旅行、御運轉士及地方散策分別使用文件列出的 YouTube 播放清單；全螢幕啟動時由官方 IFrame Player API 讀取清單、隨機排列並選片。和風庭園保留 8 個 tw.live camera ID 候選。輪換前一分鐘先解析下一來源、預選播放清單候選並預熱縮圖/CDN 連線，切換時直接從約 3:00 開始播放；無候選時回退到重新讀取清單。清單、來源解析或 player 失敗時有界重試，沒有可用來源時顯示靜態 fallback。
@@ -104,7 +104,7 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
 - **執行邊界**：前兩種模式、`/p` 系統預覽及 `/c` 設定預覽不建立 WebView2，也不連公開網站；程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
 
-![離機作業番茄鐘模式：置中的數字、沙漏與深棕玻璃質感計時面板](docs/evidence/phase18/fixtures/23-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
+![離機作業番茄鐘模式：置中的數字、沙漏與暗色藥劑瓶玻璃面板](docs/evidence/phase19/fixtures/23-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
 
 ## 日本旅行模式的網路與隱私
 
@@ -177,7 +177,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.12.0 的 59 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過；本版另有 55 張 GDI fixture，涵蓋鐵灰色與深棕玻璃計時面板。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.12.1 的 59 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過；本版另有 55 張 GDI fixture，涵蓋平滑漸層與各尺寸番茄鐘面板。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -199,7 +199,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [Codex 開發規格 v2.5](tools-screensaver-tzk_Codex_Spec.md)
+- [Codex 開發規格 v2.6](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 19 暗色藥劑瓶玻璃面板報告](docs/phase19-report.md)
 - [Phase 18 啟動設定、游標、眨眼與色彩報告](docs/phase18-report.md)
 - [Phase 17 播放體驗與顯示名稱報告](docs/phase17-report.md)
 - [Phase 16 安裝版本衝突處理報告](docs/phase16-report.md)
@@ -219,7 +220,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～18 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.12.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～19 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.12.1 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 

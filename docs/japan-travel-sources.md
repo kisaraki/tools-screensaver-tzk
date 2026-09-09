@@ -1,7 +1,7 @@
 # 日本旅行模式來源、網路與授權紀錄
 
-產品版本：0.12.0<br>
-規格文件：v2.5<br>
+產品版本：0.12.1<br>
+規格文件：v2.6<br>
 最後非互動 HTTP 檢查：2026-09-09<br>
 證據：[Phase 17 source-health.json](evidence/phase17/source-health.json)
 

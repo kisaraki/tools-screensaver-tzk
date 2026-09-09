@@ -784,42 +784,95 @@ fn countdown(
         .min(layout.panel.h * 0.04)
         .max(1.0);
     let panel = layout.panel.inset(border / 2.0, border / 2.0);
-    let panel_radius = layout.panel.h * 0.07;
+    let panel_radius = layout.panel.h * 0.10;
     canvas.rounded(
         panel,
-        Some(rgb(38, 21, 15)),
-        rgb(112, 76, 50),
-        border,
+        Some(rgb(12, 7, 6)),
+        rgb(105, 73, 54),
+        border * 1.35,
         panel_radius,
     )?;
-    // Layer restrained brown highlights and shadows inside the bottle-dark
-    // base. GDI has no dependency on an alpha compositor here, so the bands
-    // provide a stable glass impression in previews and fullscreen alike.
-    let glass = panel.inset(border * 1.5, border * 1.5);
+
+    // Use a restrained copper lip and a smooth, nearly-black brown interior.
+    // The continuous gradients below model transmitted light through bottle
+    // glass; broad flat bands made the previous version look like chocolate.
+    let edge = (panel.h * 0.018).max(border).max(1.0);
+    let rim = panel.inset(edge, edge);
+    canvas.rounded(
+        rim,
+        Some(rgb(39, 22, 17)),
+        rgb(157, 108, 77),
+        (border * 0.75).max(1.0),
+        (panel_radius - edge).max(1.0),
+    )?;
+    let glass = rim.inset(edge * 1.35, edge * 1.35);
+    let glass_radius = (panel_radius - edge * 2.35).max(1.0);
     canvas.rounded(
         glass,
-        Some(rgb(49, 28, 20)),
-        rgb(72, 45, 31),
-        border.max(1.0),
-        (panel_radius - border).max(1.0),
+        Some(rgb(16, 9, 8)),
+        rgb(65, 43, 33),
+        1.0,
+        glass_radius,
     )?;
-    canvas.fill(
-        Rect {
-            x: glass.x + glass.w * 0.03,
-            y: glass.y + glass.h * 0.10,
-            w: glass.w * 0.94,
-            h: (glass.h * 0.07).max(1.0),
-        },
-        rgb(86, 55, 37),
-    )?;
-    canvas.fill(
-        Rect {
-            x: glass.x + glass.w * 0.02,
-            y: glass.y + glass.h * 0.82,
-            w: glass.w * 0.96,
-            h: (glass.h * 0.10).max(1.0),
-        },
-        rgb(27, 14, 11),
+    {
+        let _clip = canvas.clip_rounded(glass, glass_radius)?;
+        let upper = Rect {
+            x: glass.x,
+            y: glass.y,
+            w: glass.w,
+            h: glass.h * 0.52,
+        };
+        let lower = Rect {
+            x: glass.x,
+            y: upper.bottom(),
+            w: glass.w,
+            h: glass.h - upper.h,
+        };
+        canvas.gradient(upper, rgb(52, 31, 23), rgb(14, 8, 7), true)?;
+        canvas.gradient(lower, rgb(14, 8, 7), rgb(35, 20, 15), true)?;
+
+        let side_width = glass.w * 0.10;
+        canvas.gradient(
+            Rect {
+                x: glass.x,
+                y: glass.y,
+                w: side_width,
+                h: glass.h,
+            },
+            rgb(88, 52, 36),
+            rgb(20, 12, 10),
+            false,
+        )?;
+        canvas.gradient(
+            Rect {
+                x: glass.right() - side_width,
+                y: glass.y,
+                w: side_width,
+                h: glass.h,
+            },
+            rgb(20, 12, 10),
+            rgb(67, 39, 29),
+            false,
+        )?;
+
+        canvas.gradient(
+            Rect {
+                x: glass.x + glass.w * 0.075,
+                y: glass.y + glass.h * 0.085,
+                w: glass.w * 0.20,
+                h: (glass.h * 0.018).max(1.0),
+            },
+            rgb(139, 105, 82),
+            rgb(48, 29, 23),
+            false,
+        )?;
+    }
+    canvas.rounded(
+        glass,
+        None,
+        rgb(79, 54, 42),
+        (border * 0.8).max(1.0),
+        glass_radius,
     )?;
     let inner = layout.inner;
     let line_width = (3.0 * f64::from(dpi) / 96.0)

@@ -364,6 +364,53 @@ impl Canvas<'_> {
             )
         }
     }
+    pub fn gradient(
+        &mut self,
+        rect: Rect,
+        start: u32,
+        end: u32,
+        vertical: bool,
+    ) -> Result<(), AppError> {
+        let rect = win_rect(rect);
+        if rect.right <= rect.left || rect.bottom <= rect.top {
+            return Ok(());
+        }
+        let vertex = |x, y, color: u32| TRIVERTEX {
+            x,
+            y,
+            Red: ((color & 0xff) as u16) << 8,
+            Green: (((color >> 8) & 0xff) as u16) << 8,
+            Blue: (((color >> 16) & 0xff) as u16) << 8,
+            Alpha: 0,
+        };
+        let vertices = [
+            vertex(rect.left, rect.top, start),
+            vertex(rect.right, rect.bottom, end),
+        ];
+        let mesh = GRADIENT_RECT {
+            UpperLeft: 0,
+            LowerRight: 1,
+        };
+        // SAFETY: Both vertices and the single rectangular mesh remain live for
+        // the synchronous call. Coordinates are finite device pixels.
+        require(
+            unsafe {
+                GradientFill(
+                    self.dc,
+                    vertices.as_ptr(),
+                    vertices.len() as u32,
+                    std::ptr::from_ref(&mesh).cast(),
+                    1,
+                    if vertical {
+                        GRADIENT_FILL_RECT_V
+                    } else {
+                        GRADIENT_FILL_RECT_H
+                    },
+                )
+            } != 0,
+            "GradientFill",
+        )
+    }
     pub fn line(&mut self, points: &[(f64, f64)], width: f64, color: u32) -> Result<(), AppError> {
         let points: Vec<POINT> = points
             .iter()
@@ -518,6 +565,35 @@ impl Canvas<'_> {
             if !success {
                 AbortPath(self.dc);
                 return Err(AppError::OperationFailed("glass clip path"));
+            }
+            require(SelectClipPath(self.dc, RGN_AND) != 0, "SelectClipPath")?;
+        }
+        Ok(saved)
+    }
+    pub fn clip_rounded(&mut self, rect: Rect, radius: f64) -> Result<SavedDc, AppError> {
+        let saved = SavedDc::new(self.dc)?;
+        let rect = win_rect(rect);
+        if rect.right - rect.left <= 1 || rect.bottom - rect.top <= 1 {
+            return Ok(saved);
+        }
+        let diameter = px(radius * 2.0).max(1);
+        // SAFETY: The path is constructed synchronously on the live DC and is
+        // consumed by SelectClipPath before this function returns.
+        unsafe {
+            require(BeginPath(self.dc) != 0, "BeginPath")?;
+            if RoundRect(
+                self.dc,
+                rect.left,
+                rect.top,
+                rect.right,
+                rect.bottom,
+                diameter,
+                diameter,
+            ) == 0
+                || EndPath(self.dc) == 0
+            {
+                AbortPath(self.dc);
+                return Err(AppError::OperationFailed("rounded clip path"));
             }
             require(SelectClipPath(self.dc, RGN_AND) != 0, "SelectClipPath")?;
         }
