@@ -1395,6 +1395,10 @@ fn run(
                 )?);
             }
             session.sample_frame(true)?;
+            // Hide before the first fullscreen surface becomes visible. Windows
+            // may request a cursor again while showing or activating a surface;
+            // WM_SETCURSOR below reapplies the hidden state in that case.
+            session.hide_cursor();
             // SAFETY: Every surface is fully initialized and belongs to this UI
             // thread. Show without activating each monitor in turn, then request
             // the foreground only once; do not circumvent foreground policies.
@@ -1427,7 +1431,6 @@ fn run(
                 return Err(last_error("GetLastInputInfo"));
             }
             session.last_input_tick.set(Some(last_input.dwTime));
-            session.hide_cursor();
             session.initialize_travel(&surfaces);
         }
         Mode::Preview(parent) => {

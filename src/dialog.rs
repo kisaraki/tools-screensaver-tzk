@@ -305,7 +305,7 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_COLOR_DARK_RED),
-            i32::from(resource_ids::IDC_COLOR_AUTO),
+            i32::from(resource_ids::IDC_COLOR_IRON_GRAY),
             i32::from(match draft.color_preset {
                 ColorPreset::DarkRed => resource_ids::IDC_COLOR_DARK_RED,
                 ColorPreset::DarkOrange => resource_ids::IDC_COLOR_DARK_ORANGE,
@@ -314,6 +314,7 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
                 ColorPreset::MutedLightBlue => resource_ids::IDC_COLOR_MUTED_LIGHT_BLUE,
                 ColorPreset::Amber => resource_ids::IDC_COLOR_AMBER,
                 ColorPreset::Auto => resource_ids::IDC_COLOR_AUTO,
+                ColorPreset::IronGray => resource_ids::IDC_COLOR_IRON_GRAY,
             }),
         ) == 0
         {
@@ -369,7 +370,7 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
         value if value == resource_ids::IDC_TRAVEL_WALKING => TravelStyle::Walking,
         _ => draft.travel_style,
     };
-    if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO).contains(&id) {
+    if (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_IRON_GRAY).contains(&id) {
         draft.color_preset = match id {
             resource_ids::IDC_COLOR_DARK_RED => ColorPreset::DarkRed,
             resource_ids::IDC_COLOR_DARK_ORANGE => ColorPreset::DarkOrange,
@@ -377,7 +378,8 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
             resource_ids::IDC_COLOR_OFF_WHITE => ColorPreset::OffWhite,
             resource_ids::IDC_COLOR_MUTED_LIGHT_BLUE => ColorPreset::MutedLightBlue,
             resource_ids::IDC_COLOR_AMBER => ColorPreset::Amber,
-            _ => ColorPreset::Auto,
+            resource_ids::IDC_COLOR_AUTO => ColorPreset::Auto,
+            _ => ColorPreset::IronGray,
         };
     }
     state.draft.set(draft);
@@ -644,7 +646,7 @@ unsafe extern "system" fn config_proc(
                     || (resource_ids::IDC_TRAVEL_FREE_FLIGHT
                         ..=resource_ids::IDC_TRAVEL_WALKING)
                         .contains(&id)
-                    || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_AUTO)
+                    || (resource_ids::IDC_COLOR_DARK_RED..=resource_ids::IDC_COLOR_IRON_GRAY)
                         .contains(&id)) =>
         {
             update_draft_from_command(state, id);

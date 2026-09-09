@@ -1,0 +1,4 @@
+PASS: 19 policy checks
+machineRuntimePresent=1
+machineRuntimeVersion=152.0.4191.66
+interactive=false; runtimeExecuted=false; registryWrites=false

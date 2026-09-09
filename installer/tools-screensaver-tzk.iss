@@ -46,7 +46,7 @@ Source: "{#WebView2Bootstrapper}"; Flags: dontcopy
 
 [Tasks]
 Name: "webview2"; Description: "檢查並安裝 Microsoft Edge WebView2 Runtime（日本旅行模式需要；缺少時連網下載）"; Check: NeedsWebView2
-Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flags: unchecked
+Name: "setcurrent"; Description: "設為目前的螢幕保護程式並啟用（閒置 1 分鐘後啟動）"
 
 [Code]
 #include "webview2-policy.iss"
@@ -162,7 +162,7 @@ end;
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo,
   MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;
 var
-  Version, RuntimeStatus: String;
+  Version, RuntimeStatus, ScreenSaverStatus: String;
 begin
   if DetectMachineWebView2(Version) then
     RuntimeStatus := '已偵測到電腦層級 WebView2 Runtime ' + Version + '，略過安裝。'
@@ -170,8 +170,13 @@ begin
     RuntimeStatus := '未偵測到電腦層級 WebView2 Runtime。將使用 Microsoft 官方安裝引導程式連網下載並靜默安裝，供所有使用者共用。'
   else
     RuntimeStatus := '已略過 WebView2 安裝；日期時鐘與番茄鐘可正常使用。日本旅行模式需要另行安裝 Runtime。';
+  if WizardIsTaskSelected('setcurrent') then
+    ScreenSaverStatus := '將套用至發起安裝的使用者：指定 tools-screensaver-tzk、啟用螢幕保護程式，並將閒置逾時設為 60 秒；保留原有的登入畫面安全選項。'
+  else
+    ScreenSaverStatus := '已選擇不變更目前使用者的螢幕保護程式與閒置逾時。';
   Result := MemoDirInfo + NewLine + NewLine + MemoTasksInfo + NewLine +
-    NewLine + 'Microsoft Edge WebView2 Runtime:' + NewLine + Space + RuntimeStatus;
+    NewLine + '螢幕保護程式啟動設定:' + NewLine + Space + ScreenSaverStatus +
+    NewLine + NewLine + 'Microsoft Edge WebView2 Runtime:' + NewLine + Space + RuntimeStatus;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
@@ -246,8 +251,8 @@ begin
       Log(Format('setcurrent helper could not be started; Win32 error %d', [ResultCode]));
     if not WizardSilent then
       MsgBox(
-        '安裝已完成，但尚未設為目前的螢幕保護程式。' + #13#10 +
-        '請登入自己的帳號後，在 Windows 的螢幕保護程式設定中選取「tools-screensaver-tzk」。',
+        '安裝已完成，但未能完整套用目前使用者的螢幕保護程式與 60 秒閒置啟動設定。' + #13#10 +
+        '請登入自己的帳號後，在 Windows 的螢幕保護程式設定中選取「tools-screensaver-tzk」並確認等待時間；公司群組原則也可能覆蓋這些設定。',
         mbInformation, MB_OK);
   end;
 end;

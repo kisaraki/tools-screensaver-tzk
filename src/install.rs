@@ -12,13 +12,16 @@ use windows_sys::Win32::System::Registry::{
 use windows_sys::Win32::System::SystemInformation::GetSystemDirectoryW;
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    SendMessageTimeoutW, HWND_BROADCAST, SMTO_ABORTIFHUNG, SMTO_BLOCK, WM_SETTINGCHANGE,
+    SendMessageTimeoutW, SystemParametersInfoW, HWND_BROADCAST, SMTO_ABORTIFHUNG, SMTO_BLOCK,
+    SPIF_SENDCHANGE, SPIF_UPDATEINIFILE, SPI_SETSCREENSAVEACTIVE, SPI_SETSCREENSAVETIMEOUT,
+    WM_SETTINGCHANGE,
 };
 
 use crate::{error::AppError, utf16};
 
 const INSTALLED_FILENAME: &str = "tools-screensaver-tzk.scr";
 const MAX_WINDOWS_PATH: usize = 32_768;
+const DEFAULT_SCREENSAVER_TIMEOUT_SECONDS: u32 = 60;
 
 struct OwnedHandle(HANDLE);
 
@@ -131,16 +134,94 @@ fn require_non_elevated_token() -> Result<(), AppError> {
     Ok(())
 }
 
-fn write_and_verify_current(path: &str) -> Result<(), AppError> {
+fn desired_desktop_values(path: &str) -> [(&'static str, String); 3] {
+    [
+        ("SCRNSAVE.EXE", path.to_owned()),
+        ("ScreenSaveActive", "1".to_owned()),
+        (
+            "ScreenSaveTimeOut",
+            DEFAULT_SCREENSAVER_TIMEOUT_SECONDS.to_string(),
+        ),
+    ]
+}
+
+fn write_and_verify_value(key: HKEY, name: &str, expected: &str) -> Result<(), AppError> {
+    let value_name = utf16::nul_terminated(name)
+        .map_err(|_| refused("registry value name contains an embedded NUL"))?;
+    let value = utf16::nul_terminated(expected)
+        .map_err(|_| refused("registry value contains an embedded NUL"))?;
+    let value_bytes = u32::try_from(value.len() * size_of::<u16>())
+        .map_err(|_| refused("registry value is too large"))?;
+
+    // SAFETY: key is open with KEY_SET_VALUE; pointers and byte length describe value.
+    let status = unsafe {
+        RegSetValueExW(
+            key,
+            value_name.as_ptr(),
+            0,
+            REG_SZ,
+            value.as_ptr().cast(),
+            value_bytes,
+        )
+    };
+    if status != 0 {
+        return Err(registry_error(
+            "RegSetValueExW(screen saver setting)",
+            status,
+        ));
+    }
+
+    let mut kind = 0u32;
+    let mut actual_bytes = 0u32;
+    // SAFETY: key is open with query access and output fields are writable.
+    let status = unsafe {
+        RegQueryValueExW(
+            key,
+            value_name.as_ptr(),
+            ptr::null(),
+            &mut kind,
+            ptr::null_mut(),
+            &mut actual_bytes,
+        )
+    };
+    if status != 0 {
+        return Err(registry_error(
+            "RegQueryValueExW(screen saver setting size)",
+            status,
+        ));
+    }
+    if kind != REG_SZ || actual_bytes != value_bytes {
+        return Err(refused(
+            "screen saver registry verification type or length differs",
+        ));
+    }
+    let mut actual = vec![0u16; actual_bytes as usize / size_of::<u16>()];
+    // SAFETY: actual is sized from the preceding query and is writable for actual_bytes.
+    let status = unsafe {
+        RegQueryValueExW(
+            key,
+            value_name.as_ptr(),
+            ptr::null(),
+            &mut kind,
+            actual.as_mut_ptr().cast(),
+            &mut actual_bytes,
+        )
+    };
+    if status != 0 {
+        return Err(registry_error(
+            "RegQueryValueExW(screen saver setting data)",
+            status,
+        ));
+    }
+    if kind != REG_SZ || actual != value {
+        return Err(refused("screen saver registry verification data differs"));
+    }
+    Ok(())
+}
+
+fn write_and_verify_desktop_settings(path: &str) -> Result<(), AppError> {
     let subkey = utf16::nul_terminated("Control Panel\\Desktop")
         .map_err(|_| refused("registry subkey contains an embedded NUL"))?;
-    let value_name = utf16::nul_terminated("SCRNSAVE.EXE")
-        .map_err(|_| refused("registry value name contains an embedded NUL"))?;
-    let value = utf16::nul_terminated(path)
-        .map_err(|_| refused("installed path contains an embedded NUL"))?;
-    let value_bytes = u32::try_from(value.len() * size_of::<u16>())
-        .map_err(|_| refused("installed path is too large for the registry"))?;
-
     let mut raw_key: HKEY = ptr::null_mut();
     // SAFETY: Inputs are terminated UTF-16 and raw_key is writable.
     let status = unsafe {
@@ -156,63 +237,35 @@ fn write_and_verify_current(path: &str) -> Result<(), AppError> {
         return Err(registry_error("RegOpenKeyExW(HKCU Desktop)", status));
     }
     let key = OwnedKey(raw_key);
-    // SAFETY: key is open with KEY_SET_VALUE; pointers and byte length describe value.
-    let status = unsafe {
-        RegSetValueExW(
-            key.0,
-            value_name.as_ptr(),
-            0,
-            REG_SZ,
-            value.as_ptr().cast(),
-            value_bytes,
-        )
-    };
-    if status != 0 {
-        return Err(registry_error("RegSetValueExW(SCRNSAVE.EXE)", status));
-    }
 
-    let mut kind = 0u32;
-    let mut actual_bytes = 0u32;
-    // SAFETY: key is open with query access and output fields are writable.
-    let status = unsafe {
-        RegQueryValueExW(
-            key.0,
-            value_name.as_ptr(),
-            ptr::null(),
-            &mut kind,
+    for (name, value) in desired_desktop_values(path) {
+        write_and_verify_value(key.0, name, &value)?;
+    }
+    Ok(())
+}
+
+fn apply_system_screensaver_settings() -> Result<(), AppError> {
+    let flags = SPIF_UPDATEINIFILE | SPIF_SENDCHANGE;
+    // SAFETY: Both SET actions ignore pvParam. uiParam is documented as seconds
+    // for the timeout and as a Boolean for the active state.
+    if unsafe {
+        SystemParametersInfoW(
+            SPI_SETSCREENSAVETIMEOUT,
+            DEFAULT_SCREENSAVER_TIMEOUT_SECONDS,
             ptr::null_mut(),
-            &mut actual_bytes,
+            flags,
         )
-    };
-    if status != 0 {
-        return Err(registry_error(
-            "RegQueryValueExW(SCRNSAVE.EXE size)",
-            status,
+    } == 0
+    {
+        return Err(install_error(
+            "SystemParametersInfoW(SPI_SETSCREENSAVETIMEOUT)",
         ));
     }
-    if kind != REG_SZ || actual_bytes != value_bytes {
-        return Err(refused("SCRNSAVE.EXE verification type or length differs"));
-    }
-    let mut actual = vec![0u16; actual_bytes as usize / size_of::<u16>()];
-    // SAFETY: actual is sized from the preceding query and is writable for actual_bytes.
-    let status = unsafe {
-        RegQueryValueExW(
-            key.0,
-            value_name.as_ptr(),
-            ptr::null(),
-            &mut kind,
-            actual.as_mut_ptr().cast(),
-            &mut actual_bytes,
-        )
-    };
-    if status != 0 {
-        return Err(registry_error(
-            "RegQueryValueExW(SCRNSAVE.EXE data)",
-            status,
+    // SAFETY: SPI_SETSCREENSAVEACTIVE ignores pvParam; TRUE enables activation.
+    if unsafe { SystemParametersInfoW(SPI_SETSCREENSAVEACTIVE, 1, ptr::null_mut(), flags) } == 0 {
+        return Err(install_error(
+            "SystemParametersInfoW(SPI_SETSCREENSAVEACTIVE)",
         ));
-    }
-    if kind != REG_SZ || actual != value {
-        return Err(refused("SCRNSAVE.EXE verification data differs"));
     }
     Ok(())
 }
@@ -248,6 +301,28 @@ pub(crate) fn set_current() -> Result<(), AppError> {
         ));
     }
     require_non_elevated_token()?;
-    write_and_verify_current(&current)?;
+    write_and_verify_desktop_settings(&current)?;
+    apply_system_screensaver_settings()?;
+    write_and_verify_desktop_settings(&current)?;
     notify_shell()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn installer_desktop_plan_enables_a_one_minute_screensaver_without_changing_security() {
+        let values = desired_desktop_values(r"C:\Windows\System32\tools-screensaver-tzk.scr");
+        assert_eq!(values[0].0, "SCRNSAVE.EXE");
+        assert_eq!(
+            values[0].1,
+            r"C:\Windows\System32\tools-screensaver-tzk.scr"
+        );
+        assert_eq!(values[1], ("ScreenSaveActive", "1".to_owned()));
+        assert_eq!(values[2], ("ScreenSaveTimeOut", "60".to_owned()));
+        assert!(values
+            .iter()
+            .all(|(name, _)| *name != "ScreenSaverIsSecure"));
+    }
 }

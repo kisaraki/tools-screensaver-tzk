@@ -1,6 +1,6 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：2.4（修訂版）<br>
+> 文件版本：2.5（修訂版）<br>
 > 修訂日期：2026-09-09<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,9 +16,9 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定播放清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱、三分鐘起點、播放器最小 UI、地方散策自適應眨眼與下一來源預備。
+- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定播放清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱與播放體驗；v2.5 的 Phase 18 完整設定閒置啟動、提前隱藏游標、柔化眨眼邊緣，並新增鐵灰色與深棕玻璃番茄鐘面板。
 
-### 0.2 v1.2～v2.4 的主要修訂
+### 0.2 v1.2～v2.5 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -32,8 +32,11 @@
 | WebView2 Runtime | 使用靜態 WebView2 loader；v1.7 的 Setup 偵測並補裝電腦層級 Runtime，可取消以使用離線模式；`.scr` 缺少 Runtime 時仍只顯示 fallback，不下載或提權 | 2.2、8.6、15、17、19 |
 | 安裝版本衝突 | v2.3 使用固定 AppId 的 uninstall metadata 比對已安裝與 Setup 版本；不同版本須詢問，接受後先完整移除舊版才安裝，拒絕或移除失敗即停止；靜默衝突不得自動移除 | 15.4、17～19 |
 | Registry schema | v1.9 schema 5 新增 `TravelSwitchMinutes`；v2.0 升為 6；v2.1 升為 7，加入 `TravelStyle=3/4`。舊設定逐欄相容，來源清單不寫入 registry | 10 |
-| 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；自動模式依共同 `GetTickCount64` 時基，每 120 秒循環六種實色，多螢幕保持一致 | 9、10～11 |
+| 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；v2.5 新增鐵灰色。自動模式依共同 `GetTickCount64` 時基，每 120 秒循環七種實色，多螢幕保持一致 | 9、10～11 |
 | 播放體驗 | v2.4 的影片由約 3:00 開始；控制列、預設字幕與註解依官方參數停用，輪換前預選來源並預熱；地方散策換片完全眨眼、順暢時每 20～30 秒輕眨、緩衝時溫和加深 | 8.6、11、17、19 |
+| 安裝後閒置啟動 | v2.5 的 `setcurrent` 預設勾選；以原使用者身分設定程式路徑、啟用狀態與 60 秒逾時，透過系統 API 與通知立即套用，保留登入安全設定；群組原則可能覆蓋 | 15.2～15.3、17～19 |
+| 游標與眨眼 | 全螢幕第一個 surface 顯示前隱藏游標並於所有退出路徑還原；地方散策的上下眼瞼改用多段黑色透明漸層柔化末端 | 6.3、8.6、17、19 |
+| 鐵灰與深棕玻璃 | 新增 `IronGray=7`、schema 8，自動模式循環七種實色；番茄鐘面板使用深棕底、棕銅框、反光與底部暗帶 | 8.3、9～11、17、19 |
 | 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
 | 離線模式畫面密度 | v1.6 將桌曆時鐘與番茄鐘的大型畫面置中於 64%W×60%H 安全區，降低視覺壓迫；小型 Windows preview 保留較大可視面積，日本旅行 player 不縮小 | 8.1～8.3、19 |
 | 鐘面數字間距 | v1.9 的 12／3／6／9 目標字高由 0.40R 降為 0.30R，中心距離由 0.62R 內收到 0.58R，避免與外刻度黏連 | 8.2、17、19 |
@@ -55,7 +58,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v2.4 對應播放體驗與顯示名稱調整的目標軟體版號為 `0.11.0`。
+- 文件版本與軟體版本分開；文件 v2.5 對應啟動、游標、眨眼與色彩調整的目標軟體版號為 `0.12.0`。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -79,7 +82,7 @@
 | R03 | 倒數開始前輸入時、分、秒 | 6.2、11.5 | 3 | AC06 |
 | R04 | 七段數字、沙漏、LCD 面板、剩餘比例線 | 8.3 | 2 | AC07 |
 | R05 | 多螢幕、負座標、混合 DPI | 5～8 | 1、2、4 | AC08 |
-| R06 | 六種固定顏色、自動換色、四種字型模式與系統選字型 | 9、11 | 3、13 | AC09、AC27 |
+| R06 | 七種固定顏色、自動換色、四種字型模式與系統選字型 | 9、11 | 3、13、18 | AC09、AC27、AC32 |
 | R07 | HKCU 保存、取消不提交、異常資料回退 | 10、11 | 3 | AC10 |
 | R08 | 全螢幕輸入退出、預覽不搶焦點 | 6.3、7 | 1 | AC03、AC11 |
 | R09 | 群組位移、雙緩衝與資源穩定 | 8.4、8.5、12 | 2、4 | AC12 |
@@ -96,11 +99,12 @@
 | R20 | 鐘面 12／3／6／9 縮小並內收，與外側刻度保持間距 | 8.2 | 12 | AC23 |
 | R21 | 五種旅行場景使用內附原創 AI 擬真圖，預覽離線，完整 player 保持可見 | 7、8.6 | 12～14 | AC24、AC26、AC29 |
 | R22 | 保存旅行來源切換分鐘，預設 1、0 為不切換、1～1440 為整數分鐘；舊設定相容，失效復原保持啟用 | 8.6、10～11 | 12 | AC25 |
-| R23 | 和風庭園場景；雪藍、琥珀與每 2 分鐘自動換色 | 8.6、9～11 | 13、17 | AC26～AC27、AC31 |
+| R23 | 和風庭園場景；雪藍、琥珀、鐵灰色與每 2 分鐘自動換色 | 8.6、9～11 | 13、17～18 | AC26～AC27、AC31～AC32 |
 | R24 | 四種移動場景在啟動時更新指定 playlist 並隨機選片；和風庭園維持原來源 | 8.6、16～17 | 14、17 | AC28、AC31 |
 | R25 | 御運轉士以設備包圍中央 16:9 影片；地方散策採全畫面強烈攝影暗角、中央約 65% 主要視域且無眼球／血管，並依切換與網路狀態眨眼 | 8.6、10～11 | 14～15、17 | AC29、AC31 |
 | R26 | Setup 比對已安裝與本版版本；不同版本先詢問並移除舊版，拒絕、移除失敗或靜默衝突即停止，不能同時存在兩版 | 15.4 | 16 | AC30 |
 | R27 | 更新五個顯示名稱；影片約從 3:00 開始、最小化播放器 UI、輪換前預備下一候選；地方散策依播放健康狀態眨眼 | 8.6、9、11 | 17 | AC31 |
+| R28 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並於退出還原游標；眨眼邊緣柔化；新增鐵灰色與深棕玻璃番茄鐘面板 | 6.3、8.3、8.6、9～11、15.2～15.3 | 18 | AC32 |
 
 ### 1.2 非目標
 
@@ -379,7 +383,7 @@ tools-screensaver-tzk/
 - 按鍵 `WM_KEYDOWN`／`WM_SYSKEYDOWN`、任何滑鼠按鈕按下、垂直／水平滾輪立即退出，寬限期不忽略新按鍵。
 - 倒數輸入框結束後，消耗其結束事件，再啟動全螢幕輸入判定，避免「開始」那次 Enter／click 被誤當退出。
 - 同程序多螢幕視窗彼此切換焦點不退出；寬限後前景轉到外部程序才退出。不要把每個 `WA_INACTIVE` 一律判成全程結束。
-- 使用 `WM_SETCURSOR` 與空游標；若使用 `ShowCursor`，必須對稱恢復，不用無界迴圈操縱計數。
+- 全螢幕在第一個 surface 顯示前以 `SetCursor(NULL)` 隱藏游標，保存第一次取得的 borrowed cursor handle；後續 `WM_SETCURSOR` 必須再次套用空游標。正常退出、建立失敗、顯示拓撲改變與 session 結束都走同一清理路徑並還原保存的游標；不得刪除該 borrowed handle。若改用 `ShowCursor`，必須對稱恢復，不用無界迴圈操縱計數。
 - 不攔截系統安全快捷鍵、不反覆搶回前景。`WM_CLOSE` 與系統 session 結束採正常清理。
 
 ### 6.4 顯示配置與電源事件
@@ -509,7 +513,7 @@ r = R / (abs(u)^6 + abs(v)^6)^(1/6)
 - 上方沙漏，下方 LCD；全群組符合第 8.1 節安全矩形。畫面至少 640×360 時與桌曆時鐘共用置中 64%W×60%H 安全區；小型 preview 維持 88%W×82%H。
 - 沙漏寬約 client 短邊 10～14%、高 14～20%；若總高不足，與 LCD 一起縮小。
 - 一般畫面的 LCD 寬約 client 的 64%；小型 preview 可使用 72～88%。內部留至少面板寬 4% 的左右 padding。
-- 面板底色 `RGB(201,207,191)`，外框 `RGB(48,54,61)`；中央顯示固定 `HH:MM:SS`，小時含前導零。
+- 面板採暗色藥劑瓶般的深棕玻璃質感：基底約 `RGB(38,21,15)`、內層約 `RGB(49,28,20)`、棕銅框約 `RGB(112,76,50)`，並加入上方反光帶與底部暗帶。中央顯示固定 `HH:MM:SS`，小時含前導零；所有主色仍須保持可讀。
 - 不顯示工具列、按鈕、操作提示、百分秒或額外倒數文字。
 
 #### 8.3.2 七段數字與系統字型
@@ -529,14 +533,14 @@ r = R / (abs(u)^6 + abs(v)^6)^(1/6)
 - 用可用內框求 h 的最大值，再驗證全部 glyph bounding boxes；不可只量數字而漏掉冒號／間距。
 - 冒號是兩個實心圓。第一版預設省略未點亮 segment，避免灰白模式在淺面板上難辨識。
 - Consolas、新細明體、自訂字型同樣繪製 `HH:MM:SS`，以文字量測適配；不能不論字型模式都強制畫七段。
-- 主色仍由使用者選擇；亮綠／灰白在淺色 LCD 上必須加深色描邊或陰影（`RGB(32,36,32)`），不能暗中改成另一種主色。GDI 文字可先畫小幅偏移的深色輪廓再畫主色。
+- 主色仍由使用者選擇；亮綠／灰白在深棕玻璃面板上可保留既有深色描邊或陰影（`RGB(32,36,32)`），不能暗中改成另一種主色。GDI 文字可先畫小幅偏移的深色輪廓再畫主色。
 
 #### 8.3.3 沙漏與比例線
 
 - 沙漏包含上下端蓋、玻璃輪廓、上／下砂區及落砂細線，皆由 geometry 產生。
 - 上砂高度按 `ratio` 變少，下砂按 `1-ratio` 變多；屬原稿指定的線性高度效果，不要求真實物理沙量模擬。
 - 用玻璃形狀 clip 砂區，不能把矩形砂畫到外面；到零移除落砂細線。
-- 金屬／玻璃輪廓使用中性灰，砂使用主色；六種固定色票下都要可辨識。
+- 金屬／玻璃輪廓使用中性灰，砂使用主色；七種固定色票下都要可辨識。
 - LCD 內紅色垂直比例線由右往左，`x=inner_left+ratio×inner_width`；中心座標須縮進半個筆寬，確保線的外框也在內框內。
 - 主線 `RGB(255,32,32)`，寬度約 3 個 96-DPI 邏輯像素，再依內框可用尺寸限制；可加較寬暗紅底線。
 - 繪製順序：背景 → 沙漏 → LCD 底及框 → 比例線 → 數字 → 外框警示。比例線不能遮掉數字的主要筆畫。
@@ -611,7 +615,7 @@ SS = display_seconds % 60
 #### 8.6.2 旅行場景與地名
 
 - 日本旅行模式提供 `FreeFlight=0`（自在飛行）、`TrainJourney=1`（列車旅行）、`JapaneseInn=2`（和風庭園）、`TrainCab=3`（御運轉士）與 `Walking=4`（地方散策）五種可保存場景。只改顯示名稱，enum 數值與 registry schema 不變。五者使用內附的原創 AI 擬真點陣圖，不宣稱是真實 A380、特定列車、旅館或業者照片，不包含附件像素、第三方照片、人物或商標。
-- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。御運轉士的 player 為中央 16:9，寬約 42%、高約 37.75%，左右由擬真設備填滿。地方散策 player 鋪滿 16:9 場景，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源使用約 780 ms 上下完全閉合動畫，於約 380 ms 閉合點載入新來源；順暢播放時每 20～30 秒作一次較淺、約 380 ms 的輕眨，發生 BUFFERING 或播放時間進度異常時以不超過每 8 秒一次的較慢、較深眨眼柔化停頓。
+- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。御運轉士的 player 為中央 16:9，寬約 42%、高約 37.75%，左右由擬真設備填滿。地方散策 player 鋪滿 16:9 場景，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源使用約 780 ms 上下完全閉合動畫，於約 380 ms 閉合點載入新來源；順暢播放時每 20～30 秒作一次較淺、約 380 ms 的輕眨，發生 BUFFERING 或播放時間進度異常時以不超過每 8 秒一次的較慢、較深眨眼柔化停頓。上下遮罩高度約 60%，末端使用多段 alpha 黑色漸層；完全閉合時兩側不透明區必須重疊，動態邊界不得呈現鋒利直線。
 - 每個螢幕正式 `/s` 依保存場景使用本機 HTML／CSS shell 及擬真場景圖；`/p`、`/c`、播放器等待及 Runtime／網路 fallback 由 GDI 繪製對應內附靜態圖片，不連網。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換設定或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
 - player 維持完整 16:9 矩形並全部可見。場景外框、障子、陰影、地名及狀態區位於 player element 外，不得持續覆蓋、遮蔽或裁切影片、YouTube 品牌或廣告；地方散策的短暫眨眼是唯一覆蓋 player 的本機動畫。
@@ -655,9 +659,10 @@ SS = display_seconds % 60
 | 3 | 灰白 | 245, 245, 245 | `#F5F5F5` |
 | 4 | 雪藍 | 101, 151, 178 | `#6597B2` |
 | 5 | 琥珀 | 255, 191, 0 | `#FFBF00` |
-| 6 | 自動切換 | 每 120 秒循環識別值 0～5 | — |
+| 6 | 自動切換 | 每 120 秒循環七種固定色 | — |
+| 7 | 鐵灰色 | 154, 160, 163 | `#9AA0A3` |
 
-`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環六種固定色；不得依每個螢幕各自取時。六種固定色都須在黑底及 LCD 上驗收。
+`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環深紅、深橘、亮綠、灰白、雪藍、琥珀及鐵灰色；不得依每個螢幕各自取時。七種固定色都須在黑底及深棕玻璃面板上驗收。
 
 ### 9.2 字型模式
 
@@ -707,11 +712,11 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 
 | 名稱 | 型別 | 有效範圍／內容 | 預設 |
 | --- | --- | --- | --- |
-| SchemaVersion | REG_DWORD | 目前為 7 | 7 |
+| SchemaVersion | REG_DWORD | 目前為 8 | 8 |
 | DisplayMode | REG_DWORD | 0=TimeDate、1=Countdown、2=JapanTravel | 0 |
 | TravelStyle | REG_DWORD | 0=FreeFlight、1=TrainJourney、2=JapaneseInn、3=TrainCab、4=Walking | 0 |
 | TravelSwitchMinutes | REG_DWORD | 0=不切換；1～1440=切換間隔整數分鐘 | 1 |
-| ColorPreset | REG_DWORD | 0～6；6=每 2 分鐘自動切換 | 2 |
+| ColorPreset | REG_DWORD | 0～7；6=每 2 分鐘自動切換、7=IronGray | 2 |
 | FontMode | REG_DWORD | 0～3 | 0 |
 | CustomLogFont | REG_BINARY | 完整、已驗證 LOGFONTW | 無 |
 | CustomPointSizeTenth | REG_DWORD | 180～2400 | 480 |
@@ -724,8 +729,9 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - SchemaVersion=5：`TravelSwitchMinutes` 為 0 時表示不切換，1～1440 表示整數分鐘；缺值、型別或長度錯誤、超界只回退本欄為 1。使用者明確提交成功才寫 version 5；讀取與預覽不主動遷移。
 - SchemaVersion=6：新增 `TravelStyle=2` 與 `ColorPreset=4/5/6`；舊 schema 中偶然存在這些值時必須回退，不能提前套用新版語意。明確提交成功才寫 version 6。
 - SchemaVersion=7：新增 `TravelStyle=3/4`；schema 6 中偶然存在這些值時必須回退。明確提交成功才寫 version 7。
+- SchemaVersion=8：新增 `ColorPreset=7`（鐵灰色）；schema 7 中偶然存在此值時必須回退。明確提交成功才寫 version 8。
 - schema 型別損壞／0：視為損壞資料，使用預設，允許下一次明確提交修復已知值。
-- SchemaVersion>7：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
+- SchemaVersion>8：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
 
 ### 10.2 讀取
 
@@ -773,6 +779,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 #define IDC_COLOR_MUTED_LIGHT_BLUE 1105
 #define IDC_COLOR_AMBER         1106
 #define IDC_COLOR_AUTO          1107
+#define IDC_COLOR_IRON_GRAY     1108
 #define IDC_FONT_COMBO          1201
 #define IDC_CHOOSE_FONT         1202
 #define IDC_PREVIEW             1301
@@ -786,7 +793,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - 日本旅行的「來源切換」使用不可自由輸入的 combo，選擇「不切換」或「每隔」；分鐘 Edit 預設 1，只接受 1～1440 的 ASCII 整數，設定 `ES_NUMBER` 與 4 字元長度上限後仍以程式驗證。空值、負數、0、超界、全形數字、小數、符號或非法黏貼一律拒絕提交，清楚標示問題欄位。
 - 「不切換」對應保存值 0 並停用分鐘 Edit；切回「每隔」時保留合法草稿分鐘或恢復預設 1。非日本旅行模式時停用來源切換控制項，但保留草稿偏好；不能因停用欄位中的未使用文字阻擋其他模式保存。按「確定」才保存，取消不提交；全螢幕使用下一次啟動的設定快照。
 - 日本旅行 radio 附近以非互動文字說明「需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
-- 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀與「自動切換（2 分鐘）」七個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
+- 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰色與「自動切換（2 分鐘）」八個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
 - 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
@@ -939,17 +946,18 @@ OutputBaseFilename=tools-screensaver-tzk-Setup
 
 ### 15.2 使用者系統設定
 
-預設不勾選「將它設為目前的螢幕保護程式」；只在明確勾選時執行第 15.3 節。
+預設勾選「設為目前的螢幕保護程式並啟用（閒置 1 分鐘後啟動）」；使用者可取消勾選以完全保留原有個人螢幕保護設定。只有選取時執行第 15.3 節。
 
 ```ini
 [Tasks]
-Name: "setcurrent"; Description: "將它設為目前的螢幕保護程式"; Flags: unchecked
+Name: "setcurrent"; Description: "設為目前的螢幕保護程式並啟用（閒置 1 分鐘後啟動）"
 ```
 
-- 成功操作只更新原使用者的 `HKCU\Control Panel\Desktop\SCRNSAVE.EXE`，值為安裝後 `.scr` 完整路徑。
-- 不修改 `ScreenSaveTimeOut`、`ScreenSaverIsSecure` 或 `ScreenSaveActive`；不新增其他開啟螢幕保護的安裝工作。
-- 因不強制開啟 ScreenSaveActive，選定本程式不保證使用者目前已啟用閒置啟動；UI／README 應清楚說明可到 Windows 設定頁自行啟用。
-- 靜默安裝未明確選定 task 時不修改 HKCU；不能在無互動情境彈倒數輸入框。
+- 成功操作更新原使用者的 `HKCU\Control Panel\Desktop`：`SCRNSAVE.EXE` 為安裝後 `.scr` 完整路徑、`ScreenSaveActive` 為 REG_SZ `1`、`ScreenSaveTimeOut` 為 REG_SZ `60`。
+- `ScreenSaverIsSecure` 必須保持原值；Setup 不選擇是否鎖定、不更動密碼或登入政策。不得寫其他使用者 hive，也不得寫 policy key 規避公司或學校的群組原則。
+- 寫入後呼叫 `SystemParametersInfoW` 的 `SPI_SETSCREENSAVETIMEOUT` 與 `SPI_SETSCREENSAVEACTIVE`，使用 `SPIF_UPDATEINIFILE | SPIF_SENDCHANGE`，再讀回三個目標值並以有逾時的 `WM_SETTINGCHANGE` 通知 shell。
+- 群組原則可覆蓋 HKCU 個人值；Setup 摘要、失敗訊息、README 與 Pages 必須如實說明，不能宣稱在受管理裝置必然準時啟動。
+- 靜默安裝沿用預設勾選並套用上述設定；部署者可明確排除 `setcurrent` task。安裝 helper 不能顯示倒數輸入框或其他產品 UI。
 
 ### 15.3 提權後的帳號歸屬
 
@@ -964,9 +972,9 @@ tools-screensaver-tzk.scr --install-set-current
 - 此命令只接受完整的一個旗標，不接受任意 registry key、檔案路徑或外部程式參數。
 - installer 只有在 setcurrent 被選取時，以 `ExecAsOriginalUser` 執行已安裝 `.scr` 並等待結果；正常成功 code `0`，拒絕／失敗 code `4`。
 - helper 先檢查自身為預期 System32 安裝路徑、token 非 elevated；不符合就拒絕，不降權猜帳號、不修改別人的 hive。
-- helper 只依自身實際完整路徑寫入本 token 的 HKCU，查核成功後以有逾時的系統設定變更通知更新 shell。不得改安全／逾時／啟用值。
+- helper 只依自身實際完整路徑寫入本 token 的 HKCU，設定程式路徑、60 秒逾時與啟用狀態，透過系統 API 套用、讀回查核，再以有逾時的系統設定變更通知更新 shell。不得修改 `ScreenSaverIsSecure` 或 policy key。
 - 此路徑不載入畫面模式、不顯示設定或倒數對話框、不啟動 renderer、不需要額外 helper EXE／PowerShell runtime。
-- 如果 installer 一開始就以管理員身分啟動、無法還原原使用者，或 helper 拒絕，安裝本體可成功，但必須明確顯示「尚未設為目前螢幕保護程式」，引導使用者在自己帳號的 Windows 設定頁選取；不得宣稱 task 成功。
+- 如果 installer 一開始就以管理員身分啟動、無法還原原使用者，或 helper 拒絕，安裝本體可成功，但必須明確顯示「未能完整套用目前程式與 60 秒閒置啟動」，引導使用者在自己帳號的 Windows 設定頁確認，並提示群組原則可能覆蓋；不得宣稱 task 成功。
 - `ExecAsOriginalUser` 用於安裝階段且不支援 uninstall，不能直接把同一方案複製到解除安裝。[Inno：ExecAsOriginalUser](https://jrsoftware.org/ishelp/topic_isxfunc_execasoriginaluser.htm)、[runasoriginaluser 限制](https://jrsoftware.org/ishelp/topic_runsection.htm)
 
 ### 15.4 升級與解除安裝
@@ -1043,7 +1051,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT23 | 取消、ChooseFont 取消 | 保存呼叫次數=0 |
 | UT24 | 模擬第 N 次寫入失敗，rollback 成功／失敗 | 顯示對應保存狀態，未修改未知值 |
 | UT25 | 多視窗同 generation、連續 shutdown request | 共用秒數／ratio，關閉一次，最後才 quit |
-| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema 6 的 TravelStyle 2 與 ColorPreset 4～6；schema 7 的 TravelStyle 3／4；schema >7 | 舊值相容、五場景／色彩 round-trip、未知新版禁止降版寫入 |
+| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema 6 的 TravelStyle 2 與 ColorPreset 4～6；schema 7 的 TravelStyle 3／4；schema 8 的 ColorPreset 7；schema >8 | 舊值相容、五場景／色彩 round-trip、未知新版禁止降版寫入 |
 | UT27 | 固定 seed；來源數 0／1／2／N；目前 index 位於頭尾 | 可重現、永不越界；候選多於一個時不立即重複目前來源 |
 | UT28 | PLAYING 後 59999／60000 ms、一次跳過多分鐘、睡眠恢復 | 未到不切、到時只切一次、不補跑漏掉的分鐘 |
 | UT29 | 固定 tw.live catalog marker／detail HTML fixtures；entity、缺欄、錯誤 host、非法 camera／video ID、控制字元與超長資料 | 只產生合法有界 metadata；格式錯誤可辨識，無 panic 或把不可信資料當程式碼 |
@@ -1057,10 +1065,11 @@ tools-screensaver-tzk.scr --install-set-current
 | UT37 | 分鐘輸入空白、0、1、1440、1441、負數、小數、全形數字；切換模式與停用欄位 | 合法整數可提交；非法使用中欄位拒絕；不切換寫 0，其他模式不受停用輸入影響 |
 | UT38 | 0／1／2／1440 分鐘設定、deadline 前後、最後 1 分鐘前後、睡眠跳過與失效 | 0 無排程／預抓但仍復原；長間隔僅最後 1 分鐘預抓，到時切一次；以 `PLAYING` 起算 |
 | UT39 | 三個內附 PNG 的 WIC 解碼、輸出大小與離屏繪製 | 圖片完整、像素尺寸合法、資源釋放；無需網路、player 或可見 UI |
-| UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 回到第一色，多螢幕共用 tick |
+| UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 顯示鐵灰色、840,000 ms 回到第一色，多螢幕共用 tick |
 | UT41 | 四份指定 playlist 映射、清單更新／隨機選片／同片重播、地方散策眨眼與暗角結構 | 每種移動場景使用正確 playlist；失效復原有界；暗角與眨眼不攔截輸入 |
 | UT42 | 未安裝、同版、較舊／較新版、格式異常、接受／拒絕移除、靜默衝突及 uninstall command | 同版可修復；不同版接受才移除，拒絕或靜默即停止；命令只抽取既有 uninstaller 執行檔 |
 | UT43 | 顯示名稱、180 秒起點、最小播放器 UI、預備腳本與三種地方散策眨眼 | 設定／GDI／HTML 名稱一致；load/replay 都有 startSeconds；20～30 秒、BUFFERING 與完整換片動畫結構固定；預抓 completion 注入 `prepare` |
+| UT44 | 安裝 helper 目標值、schema 8 鐵灰 round-trip、七色自動循環、眨眼漸層與 55 張 GDI fixture | helper 只規劃 SCRNSAVE.EXE／active／timeout 且排除安全值；鐵灰與深棕玻璃面板可辨識；漸層眼瞼仍可完全閉合 |
 
 - Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
 - 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
@@ -1102,6 +1111,7 @@ tools-screensaver-tzk.scr --install-set-current
 | MT18 | 日本旅行模式多螢幕、150%／200%、4K、直向、resize／拓撲變化 | 每個螢幕各有一個 player 與真實地點／狀態；各自輪換與來源失敗互不覆蓋；框與 label 不裁切，清理後無殘留 child process |
 | MT19 | 日本旅行模式 30 分鐘且至少 29 次來源輪換 | parent＋WebView2 process tree 的 CPU、記憶體、handle、controller 與子程序數無每分鐘持續累積 |
 | MT20 | 前兩模式及所有 preview 的網路 capture；旅行模式的 outbound capture | 前者 0 request；後者只有目錄與官方 player 所需流量，無程式遙測、登入、下載、錄影或額外 top-level navigation |
+| MT21 | v0.12.0 Setup 預設／取消 setcurrent、原使用者與另一管理員 UAC、受群組原則裝置；全螢幕游標及地方散策眨眼 | 預設值為本程式／active=1／timeout=60，安全值不變；取消時四值不變；policy 覆蓋時如實提示；游標顯示前隱藏且所有退出還原；眼瞼邊緣主觀柔和 |
 
 MT08 與 MT16～MT20 是必要產品相容性 gate：手動短暫 `Start-Process /s` 或公開網站 HTTP 200 不能代替它們。如果缺互動桌面、硬體、可控網路或 VM，一律記錄未測與缺少條件。
 
@@ -1143,12 +1153,12 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC06 | 倒數每次輸入一次，有效值開始、取消無全螢幕，真實閒置流程可用 | UT08～UT09、MT07～MT08 |
 | AC07 | 六位數、沙漏、比例線、最後十秒／四次閃爍／保持零皆正確 | UT10～UT15、MT07、MT09 |
 | AC08 | 多螢幕共用快照、負座標／混合 DPI 正確、拓撲變化清理 | UT25、MT03～MT04、MT10 |
-| AC09 | 六種固定色、自動色彩與四字型可用、缺字fallback、LCD對比與極端點數不裁切 | UT18～UT22、UT40、視覺證據 |
+| AC09 | 七種固定色、自動色彩與四字型可用、缺字fallback、深棕面板對比與極端點數不裁切 | UT18～UT22、UT40、UT44、視覺證據 |
 | AC10 | 設定型別／schema／取消／部分失敗符合契約，不破壞未知值 | UT20～UT24、隔離registry測試 |
 | AC11 | 所有指定輸入可退出；4px／500ms、同程序焦點、游標恢復正確 | MT02～MT03、MT10 |
 | AC12 | 無busy loop／已知handle leak；兩種 GDI 模式與旅行模式各有30分鐘資源紀錄 | MT14、MT19、效能報告 |
 | AC13 | Setup安裝至64位元System32、可由Windows選取、版本一致 | MT01、MT13、成品hash |
-| AC14 | setcurrent身分正確／失敗可辨；不改安全／逾時／啟用及其他帳號設定 | MT11～MT13、前後值比較 |
+| AC14 | setcurrent 身分正確／失敗可辨；只改目前程式、60 秒逾時與啟用，不改安全、policy 或其他帳號設定 | UT44、MT11～MT13、MT21、前後值比較 |
 | AC15 | README、原始碼、測試、必要成品及逐項驗收報告完整 | 第22節清單 |
 | AC16 | 日本旅行的三種原創擬真場景、完整 player、城市／地區及鏡頭名稱符合 layout／第三方 player 規則 | UT26、UT34、UT39、MT16、MT18、視覺證據 |
 | AC17 | 來源發現、預設 1 分鐘隨機輪換、三層健康檢查、failover、timeout 與 shutdown 均有界；自訂間隔與不切換符合 AC25 | UT27～UT32、UT38、MT16～MT19 |
@@ -1161,11 +1171,12 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC24 | 兩種原創 AI 擬真場景內附於成品，GDI 預覽離線使用同圖，完整 16:9 player 與地名／狀態互不遮蔽；圖像來源如實揭露 | UT34、UT39、Phase 12 GDI fixtures、實際 Win10 player 視覺驗收 |
 | AC25 | 設定可選不切換或 1～1440 整數分鐘，預設 1；schema 5 保存／舊版相容、取消不寫入、每螢幕獨立計時；不切換無預抓但失效可復原 | UT36～UT38、Phase 12 report、可互動 Win10 設定／播放驗收 |
 | AC26 | 和風庭園擬真 PNG 內附於 SCR，本機 HTML 與 GDI 使用同圖；完整 16:9 player 位於庭園窗孔，來源如實揭露 | UT34、UT39、Phase 13 fixtures、實際 Win10 player 視覺驗收 |
-| AC27 | 雪藍、琥珀與自動模式可保存；自動模式每 120 秒循環六色且多螢幕一致，schema 6 舊值相容 | UT20～UT26、UT40、Phase 13 GDI fixtures、可互動 Win10 設定驗收 |
+| AC27 | 雪藍、琥珀、鐵灰色與自動模式可保存；自動模式每 120 秒循環七色且多螢幕一致，schema 6～8 舊值相容 | UT20～UT26、UT40、UT44、Phase 18 GDI fixtures、可互動 Win10 設定驗收 |
 | AC28 | 四種移動場景在全螢幕啟動時更新指定 YouTube playlist 並隨機選片；和風庭園維持原來源 | UT41、Phase 14 source health、可互動 Win10 播放驗收 |
 | AC29 | 御運轉士中央 16:9 player 由擬真設備包圍；地方散策為全畫面強烈攝影暗角且不含眼球／血管，換片保留眨眼 | UT34、UT39、UT41、Phase 15 fixtures、可互動 Win10 視覺驗收 |
 | AC30 | Setup 準確辨識不同產品版本並詢問；接受後只留下本版及一個解除安裝項，拒絕、移除失敗或靜默衝突時不寫入新版 | UT42、Phase 16 policy report、MT13 |
 | AC31 | 五個新顯示名稱一致；影片約從 3:00 開始、播放器控制列／預設字幕／註解停用、下一候選先預備；地方散策具有完整換片眨眼與依網路狀態變化的輕眨 | UT43、Phase 17 report、可互動 Win10 播放驗收 |
+| AC32 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並退出還原游標；眨眼邊緣柔和；鐵灰色與深棕玻璃番茄鐘面板完成 | UT44、MT21、Phase 18 report、可互動 Win10 安裝與視覺驗收 |
 
 ### 18.2 報告格式
 
@@ -1186,7 +1197,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定播放清單及旅行視覺；Phase 16 加入安裝版本衝突處理；v2.4 的 Phase 17 改良播放與顯示名稱。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定播放清單及旅行視覺；Phase 16 加入安裝版本衝突處理；Phase 17 改良播放與顯示名稱；v2.5 的 Phase 18 完成啟動設定、游標、眨眼及色彩面板。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1415,12 +1426,21 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 定時切換前最後一分鐘先由原生 worker 解析來源，WebView 預選不同播放清單影片並預熱縮圖/CDN 連線；切換時重用單一 player，不能建立隱藏播放實例。
 6. 重跑非互動 build、smoke、installer policy 與 package，更新 README、Pages、規格及驗收文件，發布 v0.11.0；實際 player UI、字幕偏好、三分鐘 seek、眨眼流暢度及網路節流列為可互動 Win10 驗收。
 
+### Phase 18：啟動設定、游標、眨眼與色彩面板
+
+1. 軟體版本升為 `0.12.0`、registry schema 升為 8；固定 AppId、既有 enum 值與來源設定保持相容。
+2. Setup 的 `setcurrent` 預設勾選，以 `ExecAsOriginalUser` 執行 helper；設定 `SCRNSAVE.EXE`、`ScreenSaveActive=1` 與 `ScreenSaveTimeOut=60`，透過 `SystemParametersInfoW` 立即套用，保留 `ScreenSaverIsSecure`，並明列群組原則可能覆蓋。
+3. 全螢幕在第一個 surface 顯示前隱藏游標，`WM_SETCURSOR` 持續維持隱藏；正常與錯誤退出沿同一清理路徑還原保存的 borrowed cursor handle。
+4. 地方散策眼瞼高度提高為足以完整閉合的 60%，末端使用多段黑色透明漸層，柔化完整換片、定時輕眨與網路眨眼的可見切線。
+5. 新增 `IronGray=7`（RGB 154,160,163）及設定 radio；自動模式每 2 分鐘循環七種實色。番茄鐘面板改成深棕玻璃基底、棕銅框、上方反光帶與底部暗帶。
+6. 執行非互動 build、59 個預設測試、smoke、34 個 installer policy checks、55 張離屏 GDI fixture 與 package；不開啟 `/s`、設定 UI、Setup，不執行安裝或觸發 UAC。更新 README、Pages、規格及驗收文件並發布 v0.12.0；實際閒置啟動、policy、游標與眨眼觀感列為可互動 Win10 驗收。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v2.4 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v2.5 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1440,20 +1460,22 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 - 倒數輸入未完成便鋪全螢幕、吞掉使用者輸入或由保存失敗直接開始。
 - 刪除仍選入DC的GDI object、刪stock object、混用CloseHandle／DeleteObject／DestroyWindow。
 - 把HWND截斷32位元、把registry bytes直接當可信結構或讓panic跨FFI。
-- 強制改螢幕保護逾時／密碼／啟用，或由提權installer猜測並修改別的帳號HKCU。
+- 修改 `ScreenSaverIsSecure`／密碼／policy key，或由提權 installer 猜測並修改別的帳號 HKCU；個人逾時與啟用只能依第 15.2～15.3 節由原使用者 helper 套用。
 - 為通過效能門檻省略畫面，或把無法取得硬體／安全桌面環境的項目寫成PASS。
 - 把授權不明字型、私鑰、憑證密碼或參考截圖放進交付安裝程式。
 - 宣稱Inno Setup直接產生MSI、單純更名就完成系統整合，或編譯成功即代表產品驗收成功。
 
 ## 21. 參考資料與來源限制
 
-既有 Win32 查核日期為2026-09-04；日本旅行來源查核日期為2026-09-07，播放器每頁／每螢幕 autoplay 規則於2026-09-08再次查核。連結用於 API 契約、第三方限制與既有設計來源，實作仍須以鎖定工具版本編譯及 Windows 實測。
+既有 Win32 查核日期為2026-09-04；日本旅行來源查核日期為2026-09-07，播放器每頁／每螢幕 autoplay 規則於2026-09-08再次查核，螢幕保護逾時與系統參數於2026-09-09再次查核。連結用於 API 契約、第三方限制與既有設計來源，實作仍須以鎖定工具版本編譯及 Windows 實測。
 
 | 來源 | 用途 |
 | --- | --- |
 | [Microsoft：Handling Screen Savers](https://learn.microsoft.com/en-us/windows/win32/lwef/screen-saver-library) | 系統整合、資源與傳統library背景；留意歷史範例適用範圍 |
 | [Microsoft：GetTickCount64](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64) | 毫秒tick與解析度 |
 | [Microsoft：GetMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessagew) | 訊息迴圈三種返回值 |
+| [Microsoft：SystemParametersInfoW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow) | `SPI_SETSCREENSAVETIMEOUT`、`SPI_SETSCREENSAVEACTIVE` 與設定廣播 |
+| [Microsoft：Group Policy Screensaver setting isn't working](https://learn.microsoft.com/en-us/troubleshoot/windows-client/group-policy/group-policy-screensaver-setting-not-work) | 缺少 `ScreenSaveTimeOut` 可能使螢幕保護程式不啟動；policy 覆蓋與逾時設定限制 |
 | [Microsoft：SetParent](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setparent) | 跨程序parent與DPI差異 |
 | [Microsoft：SetThreadDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext) | 暫時thread DPI context |
 | [Microsoft：CHOOSEFONTW](https://learn.microsoft.com/en-us/windows/win32/api/commdlg/ns-commdlg-choosefontw) | 點數、flags與限制 |

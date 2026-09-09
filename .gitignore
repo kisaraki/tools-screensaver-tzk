@@ -8,3 +8,5 @@
 *.pfx
 *.p12
 *.key
+docs/evidence/**/product-version-policy-tests.exe
+docs/evidence/**/webview2-policy-tests.exe

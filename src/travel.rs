@@ -788,9 +788,9 @@ body{display:grid;place-items:center}
 .walking .window::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 0 32%,rgba(0,0,0,.08) 43%,rgba(0,0,0,.48) 61%,rgba(0,0,0,.88) 76%,#000 94%)}
 .blink{display:none;position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
 .walking .blink{display:block}
-.blink::before,.blink::after{content:"";position:absolute;left:0;width:100%;height:51%;background:#000}
-.blink::before{top:0;transform:translateY(-100%)}
-.blink::after{bottom:0;transform:translateY(100%)}
+.blink::before,.blink::after{content:"";position:absolute;left:0;width:100%;height:60%;will-change:transform}
+.blink::before{top:0;transform:translateY(-100%);background:linear-gradient(to bottom,#000 0 88%,rgba(0,0,0,.98) 92%,rgba(0,0,0,.82) 95%,rgba(0,0,0,.46) 98%,transparent 100%)}
+.blink::after{bottom:0;transform:translateY(100%);background:linear-gradient(to top,#000 0 88%,rgba(0,0,0,.98) 92%,rgba(0,0,0,.82) 95%,rgba(0,0,0,.46) 98%,transparent 100%)}
 .walking.source-blinking .blink::before{animation:sourceBlinkTop 760ms ease-in-out}
 .walking.source-blinking .blink::after{animation:sourceBlinkBottom 760ms ease-in-out}
 .walking.gentle-blinking .blink::before{animation:gentleBlinkTop 360ms ease-in-out}
@@ -1355,6 +1355,8 @@ mod tests {
             "start:VIDEO_START_SECONDS",
             "@keyframes sourceBlinkTop",
             "@keyframes gentleBlinkTop",
+            "height:60%;will-change:transform",
+            "rgba(0,0,0,.46) 98%,transparent 100%",
             "20000 + randomIndex(10001)",
             "YT.PlayerState.BUFFERING",
             "now - lastNetworkBlink < 8000",

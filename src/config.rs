@@ -6,7 +6,7 @@ use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
 
-pub const SCHEMA_VERSION: u32 = 7;
+pub const SCHEMA_VERSION: u32 = 8;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
 pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
@@ -22,6 +22,7 @@ pub enum ColorPreset {
     MutedLightBlue,
     Amber,
     Auto,
+    IronGray,
 }
 
 impl ColorPreset {
@@ -34,6 +35,7 @@ impl ColorPreset {
             4 => Some(Self::MutedLightBlue),
             5 => Some(Self::Amber),
             6 => Some(Self::Auto),
+            7 => Some(Self::IronGray),
             _ => None,
         }
     }
@@ -47,6 +49,7 @@ impl ColorPreset {
             Self::MutedLightBlue => 4,
             Self::Amber => 5,
             Self::Auto => 6,
+            Self::IronGray => 7,
         }
     }
 }
@@ -226,11 +229,12 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .unwrap_or(DEFAULT_TRAVEL_SWITCH_MINUTES);
     let color_preset = dword(get(store, COLOR_PRESET))
         .and_then(ColorPreset::from_registry)
-        .filter(|preset| {
-            !matches!(
-                preset,
-                ColorPreset::MutedLightBlue | ColorPreset::Amber | ColorPreset::Auto
-            ) || schema.is_some_and(|version| version >= 6)
+        .filter(|preset| match preset {
+            ColorPreset::MutedLightBlue | ColorPreset::Amber | ColorPreset::Auto => {
+                schema.is_some_and(|version| version >= 6)
+            }
+            ColorPreset::IronGray => schema.is_some_and(|version| version >= 8),
+            _ => true,
         })
         .unwrap_or(ColorPreset::BrightGreen);
     let font_mode = dword(get(store, FONT_MODE))
@@ -499,11 +503,12 @@ mod tests {
             (4, ColorPreset::MutedLightBlue),
             (5, ColorPreset::Amber),
             (6, ColorPreset::Auto),
+            (7, ColorPreset::IronGray),
         ] {
             assert_eq!(ColorPreset::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(ColorPreset::from_registry(7), None);
+        assert_eq!(ColorPreset::from_registry(8), None);
 
         for (raw, expected) in [
             (0, FontMode::SevenSegment),
@@ -568,6 +573,7 @@ mod tests {
             Some(5),
             Some(6),
             Some(7),
+            Some(8),
         ] {
             let mut store = MemoryStore::default();
             if let Some(schema) = schema {
@@ -607,8 +613,14 @@ mod tests {
         assert_eq!(load(&legacy).travel_style, TravelStyle::FreeFlight);
         legacy.values.insert(SCHEMA.into(), RawValue::dword(7));
         assert_eq!(load(&legacy).travel_style, TravelStyle::Walking);
+        legacy
+            .values
+            .insert(COLOR_PRESET.into(), RawValue::dword(7));
+        assert_eq!(load(&legacy).color_preset, ColorPreset::BrightGreen);
+        legacy.values.insert(SCHEMA.into(), RawValue::dword(8));
+        assert_eq!(load(&legacy).color_preset, ColorPreset::IronGray);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(8));
+        future.values.insert(SCHEMA.into(), RawValue::dword(9));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -616,9 +628,9 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(8))
+            Err(SaveError::FutureSchema(9))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(8));
+        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(9));
 
         for broken_schema in [
             RawValue::dword(0),

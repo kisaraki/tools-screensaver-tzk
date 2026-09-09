@@ -13,13 +13,14 @@ use windows_sys::Win32::Foundation::HWND;
 use windows_sys::Win32::Graphics::Gdi::*;
 
 const AUTO_COLOR_INTERVAL_MS: u64 = 120_000;
-const AUTO_COLORS: [ColorPreset; 6] = [
+const AUTO_COLORS: [ColorPreset; 7] = [
     ColorPreset::DarkRed,
     ColorPreset::DarkOrange,
     ColorPreset::BrightGreen,
     ColorPreset::OffWhite,
     ColorPreset::MutedLightBlue,
     ColorPreset::Amber,
+    ColorPreset::IronGray,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -95,6 +96,7 @@ impl Style {
             ColorPreset::BrightGreen => rgb(0, 255, 0),
             ColorPreset::MutedLightBlue => rgb(101, 151, 178),
             ColorPreset::Amber => rgb(255, 191, 0),
+            ColorPreset::IronGray => rgb(154, 160, 163),
             ColorPreset::Auto => unreachable!("auto palette must be resolved"),
         }
     }
@@ -782,12 +784,42 @@ fn countdown(
         .min(layout.panel.h * 0.04)
         .max(1.0);
     let panel = layout.panel.inset(border / 2.0, border / 2.0);
+    let panel_radius = layout.panel.h * 0.07;
     canvas.rounded(
         panel,
-        Some(rgb(201, 207, 191)),
-        rgb(48, 54, 61),
+        Some(rgb(38, 21, 15)),
+        rgb(112, 76, 50),
         border,
-        layout.panel.h * 0.07,
+        panel_radius,
+    )?;
+    // Layer restrained brown highlights and shadows inside the bottle-dark
+    // base. GDI has no dependency on an alpha compositor here, so the bands
+    // provide a stable glass impression in previews and fullscreen alike.
+    let glass = panel.inset(border * 1.5, border * 1.5);
+    canvas.rounded(
+        glass,
+        Some(rgb(49, 28, 20)),
+        rgb(72, 45, 31),
+        border.max(1.0),
+        (panel_radius - border).max(1.0),
+    )?;
+    canvas.fill(
+        Rect {
+            x: glass.x + glass.w * 0.03,
+            y: glass.y + glass.h * 0.10,
+            w: glass.w * 0.94,
+            h: (glass.h * 0.07).max(1.0),
+        },
+        rgb(86, 55, 37),
+    )?;
+    canvas.fill(
+        Rect {
+            x: glass.x + glass.w * 0.02,
+            y: glass.y + glass.h * 0.82,
+            w: glass.w * 0.96,
+            h: (glass.h * 0.10).max(1.0),
+        },
+        rgb(27, 14, 11),
     )?;
     let inner = layout.inner;
     let line_width = (3.0 * f64::from(dpi) / 96.0)
@@ -992,7 +1024,8 @@ mod tests {
         assert_eq!(style.color_at(120_000), rgb(255, 140, 0));
         assert_eq!(style.color_at(240_000), rgb(0, 255, 0));
         assert_eq!(style.color_at(600_000), rgb(255, 191, 0));
-        assert_eq!(style.color_at(720_000), rgb(139, 0, 0));
+        assert_eq!(style.color_at(720_000), rgb(154, 160, 163));
+        assert_eq!(style.color_at(840_000), rgb(139, 0, 0));
     }
     #[allow(clippy::too_many_arguments)]
     fn draw(
@@ -1210,6 +1243,7 @@ mod tests {
                 ColorPreset::MutedLightBlue,
                 ColorPreset::Amber,
                 ColorPreset::Auto,
+                ColorPreset::IronGray,
             ] {
                 cases.push((
                     mode,

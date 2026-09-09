@@ -50,24 +50,26 @@ function Get-DesktopSnapshot {
     }
 }
 
-function Restore-CurrentSaver($Snapshot) {
+function Restore-DesktopSnapshot($Snapshot) {
     $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Control Panel\Desktop', $true)
     if (-not $key) { throw 'HKCU\Control Panel\Desktop cannot be opened for final restoration.' }
     try {
-        $entry = $Snapshot['SCRNSAVE.EXE']
-        if ($entry.exists) {
-            $kind = [Enum]::Parse([Microsoft.Win32.RegistryValueKind], [string]$entry.kind)
-            $key.SetValue('SCRNSAVE.EXE', $entry.value, $kind)
-        } else {
-            $key.DeleteValue('SCRNSAVE.EXE', $false)
+        foreach ($name in @('SCRNSAVE.EXE', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure', 'ScreenSaveActive')) {
+            $entry = $Snapshot[$name]
+            if ($entry.exists) {
+                $kind = [Enum]::Parse([Microsoft.Win32.RegistryValueKind], [string]$entry.kind)
+                $key.SetValue($name, $entry.value, $kind)
+            } else {
+                $key.DeleteValue($name, $false)
+            }
         }
     } finally {
         $key.Dispose()
     }
 }
 
-function Assert-ProtectedValuesUnchanged($Expected, $Actual) {
-    foreach ($name in @('ScreenSaveTimeOut', 'ScreenSaverIsSecure', 'ScreenSaveActive')) {
+function Assert-SecuritySettingUnchanged($Expected, $Actual) {
+    foreach ($name in @('ScreenSaverIsSecure')) {
         $a = $Expected[$name] | ConvertTo-Json -Compress
         $b = $Actual[$name] | ConvertTo-Json -Compress
         if ($a -ne $b) { throw "Protected desktop setting changed: $name" }
@@ -114,7 +116,7 @@ try {
         throw 'A prior installation exists. This clean-install harness refuses to overwrite an unowned installation.'
     }
 
-    Invoke-Setup @() '01-clean-default.log' 'clean install with setcurrent unchecked'
+    Invoke-Setup @('/MERGETASKS="!setcurrent"') '01-clean-opt-out.log' 'clean install with setcurrent explicitly unchecked'
     $installedByTest = $true
     if (-not (Test-Path -LiteralPath $installedScr)) { throw 'System32 .scr is missing after install.' }
     $entries = Get-ProductEntries
@@ -128,17 +130,25 @@ try {
     $afterDefault = Get-DesktopSnapshot
     if (($baseline | ConvertTo-Json -Depth 5 -Compress) -ne
         ($afterDefault | ConvertTo-Json -Depth 5 -Compress)) {
-        throw 'Default unchecked install changed a screensaver desktop value.'
+        throw 'Explicit setcurrent opt-out changed a screensaver desktop value.'
     }
-    $results.Add([ordered]@{ case = 'clean install / task unchecked'; status = 'PASS' })
+    $results.Add([ordered]@{ case = 'clean install / explicit setcurrent opt-out'; status = 'PASS' })
 
     Invoke-Setup @('/TASKS="setcurrent"') '02-setcurrent.log' 'same-version overlay with setcurrent selected'
     $afterSelected = Get-DesktopSnapshot
-    Assert-ProtectedValuesUnchanged $baseline $afterSelected
+    Assert-SecuritySettingUnchanged $baseline $afterSelected
     if (-not $afterSelected['SCRNSAVE.EXE'].exists -or
         -not ([string]$afterSelected['SCRNSAVE.EXE'].value).Equals(
             $installedScr, [StringComparison]::OrdinalIgnoreCase)) {
         throw 'Selected setcurrent task did not update the original user HKCU to the installed path.'
+    }
+    if (-not $afterSelected['ScreenSaveActive'].exists -or
+        [string]$afterSelected['ScreenSaveActive'].value -ne '1') {
+        throw 'Selected setcurrent task did not enable ScreenSaveActive for the original user.'
+    }
+    if (-not $afterSelected['ScreenSaveTimeOut'].exists -or
+        [string]$afterSelected['ScreenSaveTimeOut'].value -ne '60') {
+        throw 'Selected setcurrent task did not set the original-user timeout to 60 seconds.'
     }
     if ((Get-ProductEntries).Count -ne 1) { throw 'Same-version overlay duplicated the uninstall entry.' }
     $results.Add([ordered]@{ case = 'task checked / original-user helper / same-version overlay'; status = 'PASS' })
@@ -154,7 +164,7 @@ try {
         saverExitedByInstaller = $trackedSaver.HasExited
     })
 
-    Restore-CurrentSaver $baseline
+    Restore-DesktopSnapshot $baseline
     $elevatedHelper = Invoke-Elevated $installedScr @('--install-set-current') 'direct elevated helper refusal'
     if ($elevatedHelper.exitCode -ne 4) {
         throw "Elevated helper exited $($elevatedHelper.exitCode); expected refusal code 4."
@@ -210,8 +220,8 @@ try {
             }
         }
     }
-    try { Restore-CurrentSaver $baseline } catch {
-        $results.Add([ordered]@{ case = 'restore original SCRNSAVE.EXE'; status = 'FAIL'; reason = $_.Exception.Message })
+    try { Restore-DesktopSnapshot $baseline } catch {
+        $results.Add([ordered]@{ case = 'restore original screensaver desktop settings'; status = 'FAIL'; reason = $_.Exception.Message })
     }
     if ($installedByTest) {
         $results.Add([ordered]@{
