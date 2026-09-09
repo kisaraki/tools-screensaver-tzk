@@ -48,6 +48,9 @@ Source: "{#WebView2Bootstrapper}"; Flags: dontcopy
 Name: "webview2"; Description: "檢查並安裝 Microsoft Edge WebView2 Runtime（日本旅行模式需要；缺少時連網下載）"; Check: NeedsWebView2
 Name: "setcurrent"; Description: "設為目前的螢幕保護程式並啟用（閒置 1 分鐘後啟動）"
 
+[Run]
+Filename: "{sys}\tools-screensaver-tzk.scr"; Parameters: "/c"; Description: "開啟 tools-screensaver-tzk「設定」面板"; Flags: postinstall nowait skipifsilent runasoriginaluser
+
 [Code]
 #include "webview2-policy.iss"
 #include "product-version-policy.iss"

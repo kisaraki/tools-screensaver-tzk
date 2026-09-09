@@ -1,0 +1,23 @@
+
+
+Name  : cameraTotal
+Value : 8
+
+Name  : cameraReachable
+Value : 8
+
+Name  : playlistTotal
+Value : 4
+
+Name  : playlistReachable
+Value : 4
+
+Name  : unavailable
+Value : 0
+
+Name  : networkHealthy
+Value : True
+
+
+
+Evidence: C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk\docs\evidence\phase20\source-health.json

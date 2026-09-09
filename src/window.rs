@@ -1359,6 +1359,10 @@ pub(crate) fn preview(instance: HINSTANCE, icon: HICON, parent: usize) -> Result
     }
 }
 
+fn cursor_parking_point(bounds: Bounds) -> (i32, i32) {
+    (bounds.x, bounds.y)
+}
+
 fn run(
     instance: HINSTANCE,
     icon: HICON,
@@ -1384,8 +1388,10 @@ fn run(
     session.coordinator.set(coordinator);
     match mode {
         Mode::Fullscreen => {
+            let monitors = monitor::enumerate()?;
+            let cursor_parking_point = monitors.first().copied().map(cursor_parking_point);
             let mut surfaces = Vec::new();
-            for bounds in monitor::enumerate()? {
+            for bounds in monitors {
                 surfaces.push(class.create(
                     WindowState::new(Rc::clone(&session), Role::Surface),
                     bounds,
@@ -1395,6 +1401,16 @@ fn run(
                 )?);
             }
             session.sample_frame(true)?;
+            // Park at the primary monitor's outer corner, outside every travel
+            // player rectangle, before hiding. The movement baseline is sampled
+            // later, so this programmatic move cannot dismiss the saver.
+            if let Some((x, y)) = cursor_parking_point {
+                // SAFETY: The point comes from the primary monitor's validated
+                // bounds. SetCursorPos clips it if a display topology changes.
+                if unsafe { SetCursorPos(x, y) } == 0 {
+                    return Err(last_error("SetCursorPos"));
+                }
+            }
             // Hide before the first fullscreen surface becomes visible. Windows
             // may request a cursor again while showing or activating a surface;
             // WM_SETCURSOR below reapplies the hidden state in that case.
@@ -1846,6 +1862,19 @@ fn paint_black(hwnd: HWND) -> Result<(), AppError> {
 mod tests {
     use super::*;
     use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+
+    #[test]
+    fn cursor_parks_at_the_primary_monitor_outer_corner() {
+        assert_eq!(
+            cursor_parking_point(Bounds {
+                x: -3840,
+                y: -2160,
+                width: 3840,
+                height: 2160,
+            }),
+            (-3840, -2160)
+        );
+    }
 
     #[test]
     fn travel_events_and_cleanup_are_isolated_per_monitor() {

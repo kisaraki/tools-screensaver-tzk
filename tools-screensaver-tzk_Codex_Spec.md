@@ -1,6 +1,6 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：2.6（修訂版）<br>
+> 文件版本：2.7（修訂版）<br>
 > 修訂日期：2026-09-09<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
@@ -16,9 +16,9 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定播放清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱與播放體驗；v2.5 的 Phase 18 完整設定閒置啟動、提前隱藏游標、柔化眨眼邊緣，並新增鐵灰色；v2.6 的 Phase 19 重製暗色藥劑瓶玻璃番茄鐘面板。
+- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定影片清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱與播放體驗；v2.5 的 Phase 18 完整設定閒置啟動、提前隱藏游標、柔化眨眼邊緣，並新增鐵灰色；v2.6 的 Phase 19 重製暗色藥劑瓶玻璃番茄鐘面板；v2.7 的 Phase 20 修正旅行框景、眨眼、隨機起點、字幕控制、游標停放與安裝完成設定入口。
 
-### 0.2 v1.2～v2.6 的主要修訂
+### 0.2 v1.2～v2.7 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -33,9 +33,10 @@
 | 安裝版本衝突 | v2.3 使用固定 AppId 的 uninstall metadata 比對已安裝與 Setup 版本；不同版本須詢問，接受後先完整移除舊版才安裝，拒絕或移除失敗即停止；靜默衝突不得自動移除 | 15.4、17～19 |
 | Registry schema | v1.9 schema 5 新增 `TravelSwitchMinutes`；v2.0 升為 6；v2.1 升為 7，加入 `TravelStyle=3/4`。舊設定逐欄相容，來源清單不寫入 registry | 10 |
 | 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；v2.5 新增鐵灰色。自動模式依共同 `GetTickCount64` 時基，每 120 秒循環七種實色，多螢幕保持一致 | 9、10～11 |
-| 播放體驗 | v2.4 的影片由約 3:00 開始；控制列、預設字幕與註解依官方參數停用，輪換前預選來源並預熱；地方散策換片完全眨眼、順暢時每 20～30 秒輕眨、緩衝時溫和加深 | 8.6、11、17、19 |
+| 播放體驗 | v2.7 每次載入由 3:01～8:59 隨機起播；控制列、鍵盤與註解以播放器參數停用，並於 ready、playing、API module 變更時要求關閉字幕；輪換前預選來源並預熱；地方散策使用明確閉合、展開兩段動畫，順暢時每 20～30 秒輕眨、緩衝時溫和加深 | 8.6、11、17、19 |
 | 安裝後閒置啟動 | v2.5 的 `setcurrent` 預設勾選；以原使用者身分設定程式路徑、啟用狀態與 60 秒逾時，透過系統 API 與通知立即套用，保留登入安全設定；群組原則可能覆蓋 | 15.2～15.3、17～19 |
-| 游標與眨眼 | 全螢幕第一個 surface 顯示前隱藏游標並於所有退出路徑還原；地方散策的上下眼瞼改用多段黑色透明漸層柔化末端 | 6.3、8.6、17、19 |
+| 游標與眨眼 | 全螢幕先把游標停在主要螢幕外角的非 player 區域，再於第一個 surface 顯示前隱藏，所有退出路徑還原游標形狀；地方散策的上下眼瞼使用橢圓曲線與模糊黑暈 | 6.3、8.6、17、19 |
+| 旅行框景與安裝後設定 | 御運轉士的 16:9 player 置中覆滿寬螢幕窗孔，以容器裁掉少量上下影像，不遮蓋窗框且不留左右黑帶；一般 Setup 完成頁預設勾選開啟 `/c` 設定，使用原啟動者身分且靜默安裝不開啟 | 8.6、15、17、19 |
 | 鐵灰與暗色藥劑瓶玻璃 | 新增 `IronGray=7`、schema 8，自動模式循環七種實色；v2.6 移除分格式實色橫帶，番茄鐘面板改用近黑褐核心、上下連續光衰減、左右琥珀瓶壁折射、細銅色唇邊與局部柔光 | 8.3、9～11、17、19 |
 | 產品識別 | v1.5 將 repository、Cargo package／binary、Rust crate、`.scr`／Setup、VERSIONINFO、manifest、視窗、Registry、WebView2 資料目錄、腳本、文件與 Pages 全數統一為 `tools-screensaver-tzk`；Rust 程式碼中的 crate 識別依語法正規化為 `tools_screensaver_tzk` | 2、10、13～15、19 |
 | 離線模式畫面密度 | v1.6 將桌曆時鐘與番茄鐘的大型畫面置中於 64%W×60%H 安全區，降低視覺壓迫；小型 Windows preview 保留較大可視面積，日本旅行 player 不縮小 | 8.1～8.3、19 |
@@ -58,7 +59,7 @@
 
 ### 0.3 開發前固定事項
 
-- 文件版本與軟體版本分開；文件 v2.6 對應暗色藥劑瓶玻璃面板重製的目標軟體版號為 `0.12.1`。
+- 文件版本與軟體版本分開；文件 v2.7 對應旅行播放與安裝完成設定修正的目標軟體版號為 `0.13.0`。
 - 不虛構公司或作者。專案擁有者已於 2026-09-05 指定以 MIT License 公開發布，copyright holder 使用 GitHub 帳號 `kisaraki`；CompanyName 可留空。
 - 技術預設可依本文件直接實作；若實驗證明必要條件互斥，先提交具體失敗證據與最小變更方案，不可自行刪除需求或假報通過。
 
@@ -106,6 +107,7 @@
 | R27 | 更新五個顯示名稱；影片約從 3:00 開始、最小化播放器 UI、輪換前預備下一候選；地方散策依播放健康狀態眨眼 | 8.6、9、11 | 17 | AC31 |
 | R28 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並於退出還原游標；眨眼邊緣柔化；新增鐵灰色與深棕玻璃番茄鐘面板 | 6.3、8.3、8.6、9～11、15.2～15.3 | 18 | AC32 |
 | R29 | 番茄鐘面板不得使用貫穿全寬的分格式實色帶；以平滑 GDI 漸層形成近黑褐透光核心、上下光衰減、左右琥珀瓶壁折射、細銅色唇邊與局部柔光 | 8.3、12、17～19 | 19 | AC33 |
+| R30 | 御運轉士 player 填滿窗孔；地方散策分段閉眼／睜眼且邊緣曲線模糊；每次影片於第 3 分鐘後隨機起播並主動關閉字幕；游標先停至 player 外再隱藏；Setup 完成頁可開啟設定 | 6.3、8.6、15.2 | 20 | AC34 |
 
 ### 1.2 非目標
 
@@ -113,7 +115,7 @@
 - 不使用 Direct2D、DirectWrite、OpenGL、Vulkan；第一版固定 GDI。
 - 不加入 `rand`、資料庫或使用者可編輯的執行期 JSON／TOML／INI 設定。旅行來源的 process-local session state 不是使用者設定，不能保存影音內容；Cargo 自身的 TOML 與測試報告不受此限制。
 - 不做程式遙測、檢查更新、帳號登入、下載字型、錄影、回放、轉存、轉播或播放聲音。只有使用者已選定日本旅行模式且 `/s` 正式啟動時，才可連線至第 8.6 節規定的 HTTPS 來源。
-- 不持續遮蔽、裁切或改造 YouTube 嵌入播放器；旅行框、地名與狀態放在 player 外。地方散策可在來源切換、20～30 秒自然間隔與緩衝事件短暫覆蓋 player，但不得以覆蓋層持續遮蔽品牌或廣告。
+- 不持續遮蔽或改造 YouTube 嵌入播放器；旅行框、地名與狀態放在 player 外。御運轉士只可由窗孔容器上下等量裁切 16:9 player 以填滿較寬開口；地方散策可在來源切換、20～30 秒自然間隔與緩衝事件短暫覆蓋 player。兩者都不得用覆蓋層持續遮蔽品牌或廣告。
 - 不加入暫停、續跑、歸零、快捷鍵操作、百分秒、背景常駐計時或重啟後恢復倒數。
 - 不自行驗證密碼、替代鎖定畫面、切換安全桌面或繞過 Windows 登入政策。
 - 不產生 MSI，不支援 Windows 7／8／8.1、32 位元 Windows 或 ARM64。
@@ -384,7 +386,7 @@ tools-screensaver-tzk/
 - 按鍵 `WM_KEYDOWN`／`WM_SYSKEYDOWN`、任何滑鼠按鈕按下、垂直／水平滾輪立即退出，寬限期不忽略新按鍵。
 - 倒數輸入框結束後，消耗其結束事件，再啟動全螢幕輸入判定，避免「開始」那次 Enter／click 被誤當退出。
 - 同程序多螢幕視窗彼此切換焦點不退出；寬限後前景轉到外部程序才退出。不要把每個 `WA_INACTIVE` 一律判成全程結束。
-- 全螢幕在第一個 surface 顯示前以 `SetCursor(NULL)` 隱藏游標，保存第一次取得的 borrowed cursor handle；後續 `WM_SETCURSOR` 必須再次套用空游標。正常退出、建立失敗、顯示拓撲改變與 session 結束都走同一清理路徑並還原保存的游標；不得刪除該 borrowed handle。若改用 `ShowCursor`，必須對稱恢復，不用無界迴圈操縱計數。
+- 全螢幕 surfaces 建立後、顯示前，先以 `SetCursorPos` 把游標停到主要螢幕左上外角；所有旅行 player 都必須留下該角落的非 player 範圍。完成程式性移動後才記錄新的 `GetCursorPos` baseline，避免誤判成使用者退出。接著以 `SetCursor(NULL)` 隱藏游標並保存第一次取得的 borrowed cursor handle；後續 `WM_SETCURSOR` 必須再次套用空游標。正常退出、建立失敗、顯示拓撲改變與 session 結束都走同一清理路徑並還原保存的游標形狀；不得刪除該 borrowed handle。若改用 `ShowCursor`，必須對稱恢復，不用無界迴圈操縱計數。
 - 不攔截系統安全快捷鍵、不反覆搶回前景。`WM_CLOSE` 與系統 session 結束採正常清理。
 
 ### 6.4 顯示配置與電源事件
@@ -616,19 +618,19 @@ SS = display_seconds % 60
 #### 8.6.2 旅行場景與地名
 
 - 日本旅行模式提供 `FreeFlight=0`（自在飛行）、`TrainJourney=1`（列車旅行）、`JapaneseInn=2`（和風庭園）、`TrainCab=3`（御運轉士）與 `Walking=4`（地方散策）五種可保存場景。只改顯示名稱，enum 數值與 registry schema 不變。五者使用內附的原創 AI 擬真點陣圖，不宣稱是真實 A380、特定列車、旅館或業者照片，不包含附件像素、第三方照片、人物或商標。
-- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。御運轉士的 player 為中央 16:9，寬約 42%、高約 37.75%，左右由擬真設備填滿。地方散策 player 鋪滿 16:9 場景，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源使用約 780 ms 上下完全閉合動畫，於約 380 ms 閉合點載入新來源；順暢播放時每 20～30 秒作一次較淺、約 380 ms 的輕眨，發生 BUFFERING 或播放時間進度異常時以不超過每 8 秒一次的較慢、較深眨眼柔化停頓。上下遮罩高度約 60%，末端使用多段 alpha 黑色漸層；完全閉合時兩側不透明區必須重疊，動態邊界不得呈現鋒利直線。
+- 原始 PNG 位於 `assets/travel/` 下對應五種場景的檔案。御運轉士的窗孔寬約 46.4%、高約 35.2%；16:9 player 以中央裁切的 cover 方式覆滿窗孔，僅由 `overflow:hidden` 裁掉少量上下影像，不得跨到窗框，也不得留下左右黑帶。地方散策 player 保留至少 0.4% 的場景外緣作為非 player 游標停放區，另用徑向攝影暗角把主要視域集中於中央約 65%；素材不得含眼球、皮膚或血管。切換來源先以約 420 ms 完全閉眼，在閉合點載入新來源，再以約 520 ms 明確睜眼；順暢播放時每 20～30 秒作一次較淺、約 380 ms 的輕眨，發生 BUFFERING 或播放時間進度異常時以不超過每 8 秒一次的較慢、較深眨眼柔化停頓。上下遮罩高度約 62%，左右超出場景約 8%，前緣使用橢圓曲線與 9～18 px 模糊黑暈；完全閉合時兩側不透明區必須重疊，動態邊界不得呈現鋒利直線。
 - 每個螢幕正式 `/s` 依保存場景使用本機 HTML／CSS shell 及擬真場景圖；`/p`、`/c`、播放器等待及 Runtime／網路 fallback 由 GDI 繪製對應內附靜態圖片，不連網。場景只改變本機 frame，不改變來源清單、網路健康判定、靜音、輪換設定或 failover。
 - 本機 shell 透過 WebView2 virtual host mapping 以 `https://travel.screensaver.local/index.html` 載入。shell 檔與 per-user WebView2 profile 位於 `%LOCALAPPDATA%\KOMSMOS\tools-screensaver-tzk\`，不從遠端網站取得產品 UI。
-- player 維持完整 16:9 矩形並全部可見。場景外框、障子、陰影、地名及狀態區位於 player element 外，不得持續覆蓋、遮蔽或裁切影片、YouTube 品牌或廣告；地方散策的短暫眨眼是唯一覆蓋 player 的本機動畫。
+- player element 維持 16:9。自在飛行、列車旅行與和風庭園完整顯示；御運轉士只允許由窗孔容器對影片上下作等量、置中的少量裁切，以填滿較寬的實體窗孔，窗框本身不得覆蓋 player。場景外框、障子、陰影、地名及狀態區位於 player element 外；地方散策的短暫眨眼是唯一覆蓋 player 的本機動畫。
 - 地名區使用 detail 解析後的標題；沒有可用標題時使用對應 camera seed 的城市／地區提示。文字必須清除控制字元並限制長度；來源尚未確認時顯示日本旅行模式與連線狀態，不能把固定縮圖冒充即時播放。
-- 影片固定靜音，不播放來源音訊。播放器設定 `controls=0`、`cc_load_policy=0`、`iv_load_policy=3`、`disablekb=1`、`fs=0`，並讓 iframe 不接收滑鼠事件，使控制列、預設字幕、註解與全螢幕按鈕不顯示。YouTube 已停用 `showinfo` 與 `modestbranding`，產品不得以無效參數宣稱能完全移除平台必要的短暫標題或品牌資訊，也不得用持續覆蓋層遮住它們。螢幕保護程式的一般鍵鼠退出規則仍優先。
+- 影片固定靜音，不播放來源音訊。播放器設定 `controls=0`、`cc_load_policy=0`、`iv_load_policy=3`、`disablekb=1`、`fs=0`，並讓 iframe 不接收滑鼠事件；在 player ready、每次 load、進入 `PLAYING` 與 `onApiChange` 時再次要求關閉字幕 track 並卸載 captions module。此處只能關閉 YouTube 可切換字幕，無法移除來源影片本身燒錄的文字。YouTube 已停用 `showinfo` 與 `modestbranding`，產品不得以無效參數宣稱能完全移除平台必要的短暫標題或品牌資訊，也不得用持續覆蓋層遮住它們。螢幕保護程式的一般鍵鼠退出規則仍優先。
 
 #### 8.6.3 隨機輪換與多螢幕
 
 - 第一個健康來源隨機選擇。`FreeFlight`、`TrainJourney`、`TrainCab`、`Walking` 分別使用 playlist `PLdsqwBj2O1Nw`、`PLBH60D9AGfu0`、`PLB-Fmt68BNm4`、`PLbYZr39owNGo`。每次全螢幕啟動時以官方 IFrame API 讀取並 shuffle 清單後隨機選片，不解析 YouTube HTML、不持久保存清單。`TravelSwitchMinutes` 預設 1，允許 0～1440；0 表示不定時切換。正整數設定在播放進入 `PLAYING` 後，以 `GetTickCount64` 建立 deadline。
-- 只有啟用定時切換時，才在距離輪換剩餘最後 1 分鐘時，於背景預抓下一來源。和風庭園從排除目前 camera 的 7 個 seed 中隨機排序並解析下一個 video ID；播放清單場景從本次啟動已讀取的清單預選不同影片。WebView shell 可預熱該候選的 YouTube 縮圖/CDN 連線，但不得建立第二個隱藏 player、背景播放影音或持久保存縮圖。預設 1 分鐘間隔可在 `PLAYING` 後立即預抓，較長間隔則延後。到 deadline 時直接載入已準備的來源；若預抓仍在進行，保留目前畫面，並在第一個成功結果到達時切換。無有效預選時回退到 `loadPlaylist` 重新取得清單。
+- 只有啟用定時切換時，才在距離輪換剩餘最後 1 分鐘時，於背景預抓下一來源。和風庭園從排除目前 camera 的 7 個 seed 中隨機排序並解析下一個 video ID；影片清單場景從本次啟動已讀取的清單預選不同影片。WebView shell 可預熱該候選的 YouTube 縮圖/CDN 連線，但不得建立第二個隱藏 player、背景播放影音或持久保存縮圖。預設 1 分鐘間隔可在 `PLAYING` 後立即預抓，較長間隔則延後。到 deadline 時直接載入已準備的來源；若預抓仍在進行，保留目前畫面，並在第一個成功結果到達時切換。無有效預選時回退到 `loadPlaylist` 重新取得清單。
 - 不切換時不建立輪換 deadline，不預抓下一來源；目前健康來源持續播放。初次來源尋找、來源失敗／停滯時的換候選、網路健康檢查與有界重試仍保持啟用；不得把「不切換」解釋為停止失敗復原或永久保證同一鏡頭。
-- HTTP／解析 preflight 在目前影片繼續顯示時執行；候選尚未驗證完成不得先清空 player。取得來源後，在同一 player 以 `loadVideoById({videoId,startSeconds:180})` 載入並更新地點／載入狀態；初始 playlist 載入與同片重播也使用 180 秒起點。YouTube 可對直播、短片或 keyframe 調整此起點。只有收到新 player 的 `PLAYING` 且啟用切換時，才建立下一個設定分鐘的 deadline。
+- HTTP／解析 preflight 在目前影片繼續顯示時執行；候選尚未驗證完成不得先清空 player。每次取得來源、初始影片清單選片及同片重播都重新產生 `startSeconds=181～539`，從 3:01～8:59 的隨機位置開始。YouTube 可對直播、短片或 keyframe 調整此起點。只有收到新 player 的 `PLAYING` 且啟用切換時，才建立下一個設定分鐘的 deadline。
 - 睡眠、暫停或訊息阻塞跨過多個 deadline 時只做一次切換，不補跑漏掉的區間。播放中斷則不等到下一個切換時間，立即進入有界 failover。
 - 每個實體螢幕的 surface 都是獨立 WebView2 host，每個 screen／本機頁面最多一個 autoplay player。來源選擇、每輪最多 3 個候選的預算、首次 `PLAYING` 後的可選 deadline 與重試各自獨立，切換分鐘共用啟動設定快照；允許不同螢幕隨機選到同一地點。非同步通知帶入所屬 HWND，由 coordinator 路由回正確 host；拒絕過期 generation／playback token 與關閉後事件。某個來源失敗不得改動其他 host 的狀態或計時。共用退出流程必須關閉所有 host，記憶體與網路預算須考慮播放螢幕數。
 
@@ -959,6 +961,7 @@ Name: "setcurrent"; Description: "設為目前的螢幕保護程式並啟用（�
 - 寫入後呼叫 `SystemParametersInfoW` 的 `SPI_SETSCREENSAVETIMEOUT` 與 `SPI_SETSCREENSAVEACTIVE`，使用 `SPIF_UPDATEINIFILE | SPIF_SENDCHANGE`，再讀回三個目標值並以有逾時的 `WM_SETTINGCHANGE` 通知 shell。
 - 群組原則可覆蓋 HKCU 個人值；Setup 摘要、失敗訊息、README 與 Pages 必須如實說明，不能宣稱在受管理裝置必然準時啟動。
 - 靜默安裝沿用預設勾選並套用上述設定；部署者可明確排除 `setcurrent` task。安裝 helper 不能顯示倒數輸入框或其他產品 UI。
+- 一般安裝的完成頁提供預設勾選的「開啟 tools-screensaver-tzk『設定』面板」選項；使用者完成安裝時可取消。只有在完成頁仍勾選時，才以 `runasoriginaluser`、`/c`、`postinstall nowait` 開啟已安裝的 `.scr`。`/SILENT` 與 `/VERYSILENT` 必須以 `skipifsilent` 略過，不能在無人操作部署中開啟視窗。
 
 ### 15.3 提權後的帳號歸屬
 
@@ -1072,6 +1075,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT43 | 顯示名稱、180 秒起點、最小播放器 UI、預備腳本與三種地方散策眨眼 | 設定／GDI／HTML 名稱一致；load/replay 都有 startSeconds；20～30 秒、BUFFERING 與完整換片動畫結構固定；預抓 completion 注入 `prepare` |
 | UT44 | 安裝 helper 目標值、schema 8 鐵灰 round-trip、七色自動循環、眨眼漸層與 55 張 GDI fixture | helper 只規劃 SCRNSAVE.EXE／active／timeout 且排除安全值；鐵灰與深棕玻璃面板可辨識；漸層眼瞼仍可完全閉合 |
 | UT45 | 番茄鐘玻璃的 GDI gradient、圓角 clipping、0×0～4K、96～288 DPI 與 50 次資源循環 | 不因空或極小矩形呼叫無效 clip；面板無貫穿全寬的分格式實色帶，平滑漸層在各尺寸可繪製且資源回收 |
+| UT46 | 御運轉士窗孔／16:9 cover、地方散策閉合與展開、3:01～8:59 隨機起點、字幕關閉 hooks、游標停放及 Setup 完成頁入口 | player 填滿窗孔且只在容器內裁切；兩段眨眼與曲線模糊固定；所有 load/replay 使用隨機函式；ready／playing／API change 重申字幕關閉；Setup 的 `/c` 為 `postinstall skipifsilent runasoriginaluser` |
 
 - Registry 測試用假的 store 或測試專用 HKCU 子 key；不得刪除／損壞真實使用者設定來跑預設自動測試。
 - 視覺 fixture 注入固定日期、顏色、字型、尺寸與時間；不改系統時鐘。
@@ -1108,13 +1112,14 @@ tools-screensaver-tzk.scr --install-set-current
 | MT13 | 較舊／較新版衝突、拒絕、接受、同版修復、靜默衝突、正在使用、解除安裝 | 顯示兩個版本；拒絕／失敗不安裝；接受後只留本版與單一解除安裝項；固定 AppId、偏好及其他 saver 設定不變 |
 | MT14 | 兩種 GDI 模式各30分鐘；設定反覆切字型／DPI／resize | GDI／USER／記憶體穩定與完整釋放 |
 | MT15 | 未安裝開發工具／VC++ Redistributable 的乾淨 Windows 10 x64 目標機 | 單一 `.scr` 無 VC/UCRT／WebView2Loader DLL 缺失；前兩模式離線可用，缺 WebView2 時旅行 fallback 可用 |
-| MT16 | Win10 `/s` 日本旅行模式，正常網路，至少連續 5 次預設 1 分鐘輪換；另測自訂分鐘與不切換 | 實際 `PLAYING` 後依設定換不同來源；不切換持續播放且失效仍復原；地名吻合、靜音、約 3:00 起播、控制列與字幕不顯示，平台必要品牌未被覆蓋 |
+| MT16 | Win10 `/s` 日本旅行模式，正常網路，至少連續 5 次預設 1 分鐘輪換；另測自訂分鐘與不切換 | 實際 `PLAYING` 後依設定換不同來源；不切換持續播放且失效仍復原；地名吻合、靜音、3:01～8:59 隨機起播、控制列與可切換字幕不顯示，平台必要品牌未被覆蓋 |
 | MT17 | tw.live／YouTube 不可達、timeout、所有候選失效、WebView2 Runtime 缺失 | 顯示正確 fallback、retry 有界、鍵鼠可退出；不開對話框／瀏覽器、不下載 Runtime或觸發 UAC |
 | MT18 | 日本旅行模式多螢幕、150%／200%、4K、直向、resize／拓撲變化 | 每個螢幕各有一個 player 與真實地點／狀態；各自輪換與來源失敗互不覆蓋；框與 label 不裁切，清理後無殘留 child process |
 | MT19 | 日本旅行模式 30 分鐘且至少 29 次來源輪換 | parent＋WebView2 process tree 的 CPU、記憶體、handle、controller 與子程序數無每分鐘持續累積 |
 | MT20 | 前兩模式及所有 preview 的網路 capture；旅行模式的 outbound capture | 前者 0 request；後者只有目錄與官方 player 所需流量，無程式遙測、登入、下載、錄影或額外 top-level navigation |
 | MT21 | v0.12.0 Setup 預設／取消 setcurrent、原使用者與另一管理員 UAC、受群組原則裝置；全螢幕游標及地方散策眨眼 | 預設值為本程式／active=1／timeout=60，安全值不變；取消時四值不變；policy 覆蓋時如實提示；游標顯示前隱藏且所有退出還原；眼瞼邊緣主觀柔和 |
 | MT22 | v0.12.1 番茄鐘於 800×369 preview、1920×1080、4K／150% 與各固定主色 | 中央近黑褐透光、上下光衰減及左右瓶壁折射連續；細銅色唇邊與局部柔光不遮字；沒有巧克力分格感 |
+| MT23 | v0.13.0 御運轉士／地方散策實際播放、鍵盤／滑鼠退出，以及一般／靜默 Setup 完成流程 | 御運轉士窗框無上下重疊與左右黑帶；地方散策可辨識閉眼與睜眼且邊緣柔和；游標先停於非 player 外角再隱藏；一般 Setup 可選擇開啟設定，靜默 Setup 不開 UI |
 
 MT08 與 MT16～MT20 是必要產品相容性 gate：手動短暫 `Start-Process /s` 或公開網站 HTTP 200 不能代替它們。如果缺互動桌面、硬體、可控網路或 VM，一律記錄未測與缺少條件。
 
@@ -1181,6 +1186,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC31 | 五個新顯示名稱一致；影片約從 3:00 開始、播放器控制列／預設字幕／註解停用、下一候選先預備；地方散策具有完整換片眨眼與依網路狀態變化的輕眨 | UT43、Phase 17 report、可互動 Win10 播放驗收 |
 | AC32 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並退出還原游標；眨眼邊緣柔和；鐵灰色與深棕玻璃番茄鐘面板完成 | UT44、MT21、Phase 18 report、可互動 Win10 安裝與視覺驗收 |
 | AC33 | 番茄鐘面板以平滑 GDI 漸層形成近黑褐核心、上下光衰減與左右琥珀瓶壁折射；外框精簡且無貫穿全寬的實色分格 | UT45、MT22、Phase 19 GDI fixtures、可互動 Win10 視覺驗收 |
+| AC34 | 御運轉士影片貼合窗孔；地方散策有曲線模糊的閉眼與睜眼兩段；影片從第 3 分鐘後隨機起播並主動關閉可切換字幕；全螢幕游標停放於非 player 區後隱藏；一般安裝完成頁詢問是否開啟設定且靜默安裝略過 | UT46、MT23、Phase 20 HTML fixtures、installer source／package |
 
 ### 18.2 報告格式
 
@@ -1201,7 +1207,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定播放清單及旅行視覺；Phase 16 加入安裝版本衝突處理；Phase 17 改良播放與顯示名稱；Phase 18 完成啟動設定、游標、眨眼及鐵灰色；v2.6 的 Phase 19 重製番茄鐘暗色藥劑瓶玻璃面板。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定影片清單及旅行視覺；Phase 16 加入安裝版本衝突處理；Phase 17 改良播放與顯示名稱；Phase 18 完成啟動設定、游標、眨眼及鐵灰色；Phase 19 重製番茄鐘暗色藥劑瓶玻璃面板；v2.7 的 Phase 20 修正旅行播放與安裝完成設定入口。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1393,9 +1399,9 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 5. 執行非互動 build、測試、離屏 GDI／headless HTML、smoke 與 package；不開正式 UI、player、Setup 或 UAC。實際多螢幕 player、設定畫面 DPI 與長時間自動色彩列明驗證缺口。
 6. 更新 README、Pages、視覺／素材／驗收文件及 `docs/phase13-report.md`；發布 v0.9.0 Release 與匿名 Pages 直連下載。
 
-### Phase 14：播放清單、列車駕駛前方與第一人稱散步
+### Phase 14：影片清單、列車駕駛前方與第一人稱散步
 
-目標：依場景使用指定的最新播放清單，新增兩種擬真視角，並讓散步換片具有自然的人眼眨眼過場。
+目標：依場景使用指定的最新影片清單，新增兩種擬真視角，並讓散步換片具有自然的人眼眨眼過場。
 
 1. 軟體版本升為 `0.10.0`、schema 升為 7；新增 `TrainCab=3` 與 `Walking=4`，schema 6 不得誤解新版 enum。
 2. 自在飛行、列車旅行、列車駕駛前方與散步模式各使用指定 playlist ID；每次全螢幕啟動及切換到期時由 YouTube IFrame API 重新讀取清單、隨機排列及選片，不解析 YouTube HTML，不保存過期影片清單。日式旅館保留 tw.live 來源。
@@ -1427,7 +1433,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 2. 顯示名稱改為和風庭園、御運轉士、地方散策、雪藍與琥珀；設定資源、GDI fallback、HTML aria、README、Pages 與現行來源文件一致。
 3. 所有 YouTube 載入與同片重播使用約 180 秒起點；以現行官方參數停用控制列、預設字幕、註解、鍵盤與全螢幕按鈕。平台必要的短暫標題或品牌資訊列為第三方限制，不用覆蓋層遮蔽。
 4. 地方散策切換來源使用約 780 ms 完全閉眼；播放順暢時每 20～30 秒輕眨，BUFFERING 或時間進度異常時使用有節制的較慢眨眼。
-5. 定時切換前最後一分鐘先由原生 worker 解析來源，WebView 預選不同播放清單影片並預熱縮圖/CDN 連線；切換時重用單一 player，不能建立隱藏播放實例。
+5. 定時切換前最後一分鐘先由原生 worker 解析來源，WebView 預選不同影片清單候選並預熱縮圖/CDN 連線；切換時重用單一 player，不能建立隱藏播放實例。
 6. 重跑非互動 build、smoke、installer policy 與 package，更新 README、Pages、規格及驗收文件，發布 v0.11.0；實際 player UI、字幕偏好、三分鐘 seek、眨眼流暢度及網路節流列為可互動 Win10 驗收。
 
 ### Phase 18：啟動設定、游標、眨眼與色彩面板
@@ -1447,12 +1453,23 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 4. 中央以近黑褐上下漸層模擬透光衰減，左右以相反方向琥珀褐漸層模擬厚瓶壁折射；外圈只留深棕瓶身、細銅色唇邊、低亮度內框與短局部柔光。
 5. 重跑非互動 build、59 個預設測試、smoke、34 個 installer policy checks、55 張離屏 GDI fixture 與 package；更新 README、Pages、規格及驗收文件並發布 v0.12.1。實際桌面觀感列為可互動 Win10 驗收。
 
+### Phase 20：旅行播放、游標與安裝完成設定
+
+1. 軟體版本升為 `0.13.0`；registry schema、AppId、設定值及來源識別保持不變。
+2. 全螢幕建立隱藏 surfaces 後，先把游標移到主要螢幕左上外角的非 player 區域，再保存新的輸入 baseline 並隱藏；`WM_SETCURSOR` 與既有清理路徑仍負責持續隱藏及恢復游標形狀。
+3. 御運轉士窗孔調整為擬真素材的實際開口，16:9 player 置中放大並由窗孔裁掉少量上下影像，使左右填滿且不跨入窗框；地方散策保留 0.4% 非 player 外緣。
+4. 地方散策換片改成約 420 ms 閉眼與約 520 ms 睜眼兩段；上下眼瞼寬 116%、高 62%，使用橢圓曲線與 9～18 px 模糊，完整閉合時保持黑色重疊。定時與網路眨眼沿用既有節制。
+5. 每次影片載入、影片清單選片及片尾重播，均從 3:01～8:59 重新隨機選擇起點。player 保留 `cc_load_policy=0`，並在 ready、load、playing 與 `onApiChange` 重申關閉可切換字幕；來源影片內嵌文字不在可控制範圍。
+6. 移除產品 UI 的「播放」加「清單」舊組合，改用場景名稱、「影片清單」或「清單」。
+7. 一般 Setup 完成頁預設勾選是否以原使用者身分執行已安裝 `.scr /c`；使用者可取消，靜默安裝固定略過。遠端驗證不得執行 Setup、開啟設定或觸發 UAC。
+8. 重跑非互動 build、60 個預設測試、smoke、installer policy、10 張離線 HTML fixture 與 package；更新 README、Pages、規格及驗收文件並發布 v0.13.0。實際字幕偏好、眨眼動態、游標位置、旅行播放與完成頁互動列為可互動 Win10 驗收。
+
 ### 19.2 可直接交給 Codex 的任務範本
 
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v2.6 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v2.7 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。

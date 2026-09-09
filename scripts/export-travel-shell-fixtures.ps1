@@ -27,8 +27,13 @@ window.addEventListener('load', () => {
   const cabin=document.querySelector('.cabin');
   const walking=cabin.classList.contains('walking'),trainCab=cabin.classList.contains('train-cab');
   const walkingFullFrame=!walking||(windowRect.w/art.w>=.99&&windowRect.h/art.h>=.99);
-  const trainCabDecor=!trainCab||(windowRect.w/art.w<=.43&&windowRect.h/art.h<=.39);
-  const pass=contains(art,windowRect)&&contains(windowRect,player)&&caption.y>=art.bottom-.1
+  const trainCabDecor=!trainCab||(windowRect.w/art.w<=.47&&windowRect.h/art.h<=.36);
+  const centeredCover=!trainCab||(
+    player.w>=windowRect.w-1&&player.h>=windowRect.h-1&&
+    Math.abs((player.x+player.w/2)-(windowRect.x+windowRect.w/2))<1&&
+    Math.abs((player.y+player.h/2)-(windowRect.y+windowRect.h/2))<1);
+  const playerFits=trainCab?centeredCover:contains(windowRect,player);
+  const pass=contains(art,windowRect)&&playerFits&&caption.y>=art.bottom-.1
     &&Math.abs(player.w/player.h-16/9)<.005&&caption.bottom<=innerHeight+1&&walkingFullFrame&&trainCabDecor;
   document.body.dataset.geometry=JSON.stringify({pass,viewport:[innerWidth,innerHeight],art,window:windowRect,player,caption});
   const marker=document.createElement('div');
@@ -76,9 +81,9 @@ foreach ($style in @('free-flight','train-journey','japanese-inn','train-cab','w
         try { $marker = $bitmap.GetPixel(0,0) } finally { $bitmap.Dispose() }
         if ($marker.R -ne 0 -or $marker.G -ne 255 -or $marker.B -ne 0) { throw "HTML layout bounds failed or validation script missing: $style-$labelSize" }
         Copy-Item -LiteralPath $screenshot -Destination (Join-Path $output "$style-$labelSize.png")
-        $reports += [pscustomobject]@{style=$style;size=$labelSize;geometry='PASS: player 16:9 inside window; window inside artwork; caption below artwork and inside viewport';validationMarker='2px green at top left';livePlayer=$false;networkHostsBlocked=$true}
+        $reports += [pscustomobject]@{style=$style;size=$labelSize;geometry='PASS: player 16:9 contained or center-cropped by window; window inside artwork; caption below artwork and inside viewport';validationMarker='2px green at top left';livePlayer=$false;networkHostsBlocked=$true}
     }
 }
 $report = [pscustomobject]@{capturedAt=[DateTimeOffset]::Now.ToString('o');browserVersion=(Get-Item -LiteralPath $edge).VersionInfo.FileVersion;interactive=$false;livePlayer=$false;result='PASS';fixtures=$reports}
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $output 'geometry.json') -Encoding utf8
-'PASS: ten offline headless HTML screenshots; player rectangles remain 16:9, train cab decor surrounds its player, full-frame walking vignette is present, and captions stay outside the artwork.'
+'PASS: ten offline headless HTML screenshots; player rectangles remain 16:9, the train cab aperture center-crops without side gaps, the walking vignette is present, and captions stay outside the artwork.'

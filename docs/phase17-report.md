@@ -8,11 +8,11 @@
 
 設定資源、GDI fallback、HTML aria、來源標籤、README 與 Pages 已統一使用「和風庭園」、「御運轉士」、「地方散策」、「雪藍」與「琥珀」。`JapaneseInn=2`、`TrainCab=3`、`Walking=4`、`MutedLightBlue=4` 與 `Amber=5` 的內部值不變，因此不需要提升 registry schema。
 
-YouTube IFrame player 的 URL 與 `playerVars` 改用 `controls=0`、`cc_load_policy=0`、`iv_load_policy=3`、`disablekb=1`、`fs=0`，iframe 也不接收滑鼠事件。初始載入、輪換、播放清單隨機選片與片尾重播均指定 180 秒起點。YouTube 已停用 `showinfo` 與 `modestbranding`，所以本版不宣稱能移除平台強制顯示的短暫標題或品牌資訊，也不用覆蓋層遮住它們。
+YouTube IFrame player 的 URL 與 `playerVars` 改用 `controls=0`、`cc_load_policy=0`、`iv_load_policy=3`、`disablekb=1`、`fs=0`，iframe 也不接收滑鼠事件。初始載入、輪換、影片清單隨機選片與片尾重播均指定 180 秒起點。YouTube 已停用 `showinfo` 與 `modestbranding`，所以本版不宣稱能移除平台強制顯示的短暫標題或品牌資訊，也不用覆蓋層遮住它們。
 
 地方散策具有三種本機動畫：來源切換使用 780 ms 完整上下閉眼並在約 380 ms 閉合點換片；健康播放每 20～30 秒隨機作 380 ms 輕眨；播放器 BUFFERING 或每 5 秒進度檢查發現異常時，使用 560 ms 較深眨眼，且至少間隔 8 秒。原有強烈暗角與中央約 65% 視域保持不變。
 
-來源輪換仍在最後一分鐘由原生 worker 預抓。成功的 prefetch completion 會把候選送入 WebView：和風庭園先取得下一個 YouTube video ID；播放清單場景從本次啟動讀取的清單預選不同 ID。shell 預熱候選縮圖/CDN 連線，切換時直接以同一個可見 player 載入；沒有建立第二個 player、背景播放影音或持久快取。沒有有效預選時回退到 `loadPlaylist`。
+來源輪換仍在最後一分鐘由原生 worker 預抓。成功的 prefetch completion 會把候選送入 WebView：和風庭園先取得下一個 YouTube video ID；影片清單場景從本次啟動讀取的清單預選不同 ID。shell 預熱候選縮圖/CDN 連線，切換時直接以同一個可見 player 載入；沒有建立第二個 player、背景播放影音或持久快取。沒有有效預選時回退到 `loadPlaylist`。
 
 ## 非互動驗證
 
