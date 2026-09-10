@@ -1,8 +1,8 @@
 # tools-screensaver-tzk 從零重新開發步驟
 
-文件版本：1.0
+文件版本：1.1
 
-目標基準：重建與 v0.13.0 相容的 Windows 10 x64 版本
+目標基準：重建與 v0.14.0（schema 9）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 
@@ -115,19 +115,21 @@ tools-screensaver-tzk/
 ## 4. 階段 B：建立純邏輯與設定 schema
 
 1. 在 `model.rs` 實作 Gregorian 月曆、連續指針角度、倒數 deadline/frame、`HH:MM:SS` 及有界 PRNG。
-2. 在 `config.rs` 建立 `DisplayMode`、`TravelStyle`、`ColorPreset`、`FontMode`、`AppConfig` 與 schema 8。
+2. 在 `config.rs` 建立 `DisplayMode`、`TravelStyle`、`ColorPreset`、`FontMode`、`AppConfig` 與 schema 9；加入 `CalendarStyle` 和五組有界 `SourceList`。
 3. 建立 `SettingsStore` trait，先以 memory store 測試，再於 `registry.rs` 實作 HKCU adapter。
 4. 實作局部回退、舊 schema gate、未來 schema 拒絕寫入與多值 rollback transaction。
 5. 對所有 enum 登錄值、預設值、錯誤型別、極端數字、rollback 及 future schema 寫 unit tests。
 
-完成條件：設定資料完全不依賴 UI 即可測試，且符合規格書第 6 節的 registry contract。
+另建立 `calendar_style.rs` 的三種月名／星期與 `youtube.rs` 的離線 URL 驗證、正規化、去重及數量限制。schema 9 才讀取新欄位；舊版預設中式及空自訂來源。倒數保存若推進 schema，必須清除舊 schema 的同名未知來源 key，不能意外啟用它們；schema 9 的倒數保存則保留來源與桌曆設定。所有新欄位納入原有 rollback，schema 最後寫入。
+
+完成條件：設定資料完全不依賴 UI 即可測試，且符合規格書第 6 節的 registry contract。涵蓋五場景 round-trip、清空、無效 host／ID、10 個上限、單欄損壞回退、schema 8 遷移與新欄位中途寫入失敗。
 
 ## 5. 階段 C：完成 GDI renderer
 
 1. 在 `gdi.rs` 用 RAII 包裝 HDC、bitmap、font、pen、brush、clip 與 selection。
 2. 在 `layout.rs` 以 client width/height 計算所有 `Rect`；不得在 renderer 中散落固定螢幕解析度。
 3. 建立黑色背景與雙緩衝。
-4. 完成日期時鐘：刻度、縮小並內移的 12/3/6/9、三支指針、月曆、今日圓形反白。
+4. 完成日期時鐘：刻度、縮小並內移的 12/3/6/9、三支指針、月曆、今日圓形反白；串接中式、英文與日式標籤，測量完整月名及星期文字，維持西曆日期與週一起算。
 5. 完成番茄鐘：倒數、沙漏、最後十秒、完成動畫，以及有透明層次、高光、暗部與圓角的深棕藥劑瓶玻璃進度面板。
 6. 完成色彩 preset、自動每 120 秒輪換、七段/Consolas/細明體/自訂字型。
 7. 實作 64%×60% 中央舞台、橫直向布局、Full/Compact/Tiny 與有界防烙印位移。
@@ -136,12 +138,14 @@ tools-screensaver-tzk/
 
 ## 6. 階段 D：完成設定與倒數 dialog
 
-1. 以 RC dialog template 建立三種主模式、五種旅行場景、八種色彩、字型與旅行切換欄位。
+1. 以 RC dialog template 建立三種主模式、五種旅行場景、八種色彩、字型與旅行切換欄位；主色名稱使用「鐵灰」。新增桌曆方式下拉選單，只在日期時鐘模式啟用。
 2. 加入 `KOMSMOS TOOLKIT／探真拓知酷` 圖示標示。
 3. 設定 dialog 載入 draft，控制項變更只刷新離線預覽；按確定才交易保存。
 4. 日本旅行未選中時停用場景與切換控制；選擇不切換時停用分鐘 edit。
 5. 自訂字型使用標準系統 font picker，保存正規化 LOGFONT 與 point size。
 6. 番茄鐘全螢幕啟動前顯示時間輸入；校驗 99:59:59 上限、禁止 0，取消即不啟動 saver。
+
+7. 建立每場景 YouTube 來源 modal 編輯器。每行一個影片或清單 URL，最多 10 個。子對話框確定只更新主對話框 draft，主對話框確定才保存；清空與取消的語意必須分開。旅行模式未選中時停用來源編輯按鈕。
 
 完成條件：取消不寫 registry、無效輸入有中文錯誤、tab order 與 access key 可用、預覽不連網。
 
@@ -404,7 +408,7 @@ HTTP 必須為 200，兩個 binary hash 必須與 release manifest 一致。Git 
 - [ ] 產品名稱與所有路徑均為 `tools-screensaver-tzk`。
 - [ ] Cargo、manifest、SCR、Setup、網站與 release 版本一致。
 - [ ] 三種主模式與五種旅行場景完整。
-- [ ] schema 8 讀寫與舊資料相容，future schema 不被覆寫。
+- [ ] schema 9 讀寫與舊資料相容，future schema 不被覆寫。
 - [ ] 日期時鐘與番茄鐘集中於中央友善面積。
 - [ ] 八種色彩與四種字型來源可用。
 - [ ] 多螢幕、負座標、PerMonitorV2、輸入退出與游標恢復完成。

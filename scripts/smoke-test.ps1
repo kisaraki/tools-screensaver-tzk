@@ -231,6 +231,7 @@ try {
         [ordered]@{ type = 14; id = 101; name = 'group icon' },
         [ordered]@{ type = 5; id = 2003; name = 'configuration dialog' },
         [ordered]@{ type = 5; id = 2004; name = 'countdown dialog' },
+        [ordered]@{ type = 5; id = 2005; name = 'YouTube sources dialog' },
         [ordered]@{ type = 6; id = 1; name = 'string table block' },
         [ordered]@{ type = 16; id = 1; name = 'version' },
         [ordered]@{ type = 24; id = 1; name = 'manifest' }
@@ -252,7 +253,9 @@ try {
         '地方散策(&K)',
         '雪藍(&B)',
         '琥珀(&M)',
-        '鐵灰色(&I)',
+        '鐵灰(&I)',
+        '桌曆顯示方式',
+        '編輯本場景 YouTube 來源…',
         '自動切換（2 分鐘）(&U)',
         '日本旅行場景與來源',
         '來源切換(&I)：',

@@ -25,6 +25,7 @@ const AUTO_COLORS: [ColorPreset; 7] = [
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Style {
+    pub calendar_style: crate::calendar_style::CalendarStyle,
     pub palette: ColorPreset,
     pub font: FontMode,
     pub custom: Option<FontSpec>,
@@ -34,6 +35,7 @@ pub(crate) struct Style {
 impl Default for Style {
     fn default() -> Self {
         Self {
+            calendar_style: crate::calendar_style::CalendarStyle::Chinese,
             palette: ColorPreset::BrightGreen,
             font: FontMode::SevenSegment,
             custom: None,
@@ -45,6 +47,7 @@ impl Default for Style {
 impl Style {
     pub fn from_config(config: AppConfig) -> Self {
         Self {
+            calendar_style: config.calendar_style,
             palette: config.color_preset,
             font: config.effective_font_mode(),
             custom: config.custom_font,
@@ -62,6 +65,7 @@ impl Style {
             draft.font_mode
         };
         Self {
+            calendar_style: draft.calendar_style,
             palette: draft.color_preset,
             font,
             custom: draft.custom_font,
@@ -132,11 +136,15 @@ impl Fonts {
             number_box.h * 0.90 * point_scale,
             false,
         )?;
+        let month_sample = (1..=12)
+            .map(|month| style.calendar_style.title(8888, month))
+            .max_by_key(|title| title.chars().count())
+            .unwrap_or_default();
         let month = Font::fit(
             dc,
             style.font,
             style.custom,
-            "8888年 88月",
+            &month_sample,
             cal.w * 0.97,
             cal.h * 0.13,
             cal.h * 0.09 * point_scale,
@@ -146,7 +154,7 @@ impl Fonts {
             dc,
             style.font,
             style.custom,
-            "日",
+            style.calendar_style.weekdays()[2],
             cal.w / 7.0 * 0.85,
             cal.h * 0.10,
             cal.h * 0.065 * point_scale,
@@ -625,18 +633,17 @@ fn time_date(
     let calendar = Calendar::new(frame.local.year, frame.local.month)
         .ok_or(AppError::OperationFailed("calendar snapshot"))?;
     if let Some(fonts) = fonts {
-        let mut title = format!("{}年 {}月", frame.local.year, frame.local.month);
+        let mut title = style
+            .calendar_style
+            .title(frame.local.year, frame.local.month);
         let _selected = Selection::new(canvas.dc, fonts.month.handle())?;
         if layout.detail != Detail::Full
             || f64::from(gdi::measure(canvas.dc, &title)?.cx) > header.w
         {
-            title = format!("{}月", frame.local.month);
+            title = style.calendar_style.month(frame.local.month);
         }
         canvas.text(&fonts.month, &title, header, color, false)?;
-        for (column, label) in ["一", "二", "三", "四", "五", "六", "日"]
-            .into_iter()
-            .enumerate()
-        {
+        for (column, label) in style.calendar_style.weekdays().into_iter().enumerate() {
             canvas.text(
                 &fonts.weekday,
                 label,
@@ -1167,6 +1174,49 @@ mod tests {
     }
 
     #[test]
+    fn translated_calendar_headers_and_weekdays_fit_their_cells() {
+        use crate::calendar_style::CalendarStyle;
+        let screen = Screen::new();
+        for (w, h) in [(120, 80), (320, 180), (1920, 1080), (1080, 1920)] {
+            let layout = Layout::new(w, h, DisplayMode::TimeDate).unwrap();
+            for calendar_style in [
+                CalendarStyle::Chinese,
+                CalendarStyle::English,
+                CalendarStyle::Japanese,
+            ] {
+                let style = Style {
+                    calendar_style,
+                    ..Style::default()
+                };
+                let fonts = Fonts::new(screen.0, layout, style).unwrap();
+                {
+                    let _selected = Selection::new(screen.0, fonts.month.handle()).unwrap();
+                    for month in 1..=12 {
+                        let label = if layout.detail == Detail::Full {
+                            calendar_style.title(2026, month)
+                        } else {
+                            calendar_style.month(month)
+                        };
+                        assert!(
+                            f64::from(gdi::measure(screen.0, &label).unwrap().cx)
+                                <= layout.calendar.w + 1.0,
+                            "{w}x{h}: {label}"
+                        );
+                    }
+                }
+                let _selected = Selection::new(screen.0, fonts.weekday.handle()).unwrap();
+                for label in calendar_style.weekdays() {
+                    assert!(
+                        f64::from(gdi::measure(screen.0, label).unwrap().cx)
+                            <= layout.calendar.w / 7.0 + 1.0,
+                        "{w}x{h}: {label}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn gdi_small_sizes_fit_and_fifty_resource_cycles_release_objects() {
         let screen = Screen::new();
         let modes = [
@@ -1404,6 +1454,35 @@ mod tests {
                 300000,
                 label,
             ));
+        }
+        for (calendar_style, label) in [
+            (
+                crate::calendar_style::CalendarStyle::Chinese,
+                "calendar-chinese",
+            ),
+            (
+                crate::calendar_style::CalendarStyle::English,
+                "calendar-english",
+            ),
+            (
+                crate::calendar_style::CalendarStyle::Japanese,
+                "calendar-japanese",
+            ),
+        ] {
+            for (w, h) in [(1920, 1080), (1080, 1920), (320, 180)] {
+                cases.push((
+                    DisplayMode::TimeDate,
+                    w,
+                    h,
+                    96,
+                    Style {
+                        calendar_style,
+                        ..Style::default()
+                    },
+                    300000,
+                    label,
+                ));
+            }
         }
         for (index, (mode, w, h, dpi, style, tick, label)) in cases.into_iter().enumerate() {
             let mut renderer = Renderer::default();

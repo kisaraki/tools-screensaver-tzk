@@ -1,7 +1,7 @@
 # tools-screensaver-tzk 開發規格書
 
-> 文件版本：2.7（修訂版）<br>
-> 修訂日期：2026-09-09<br>
+> 文件版本：2.8（修訂版）<br>
+> 修訂日期：2026-09-10<br>
 > 用途：供 Codex 分階段開發、審查與驗收<br>
 > 目標：Windows 10／11 x64、Rust 2021、原生 Win32／GDI<br>
 > 目前必要驗證平台：Windows 10 x64；Windows 11 延後驗證（依使用者 2026-09-04 指示）
@@ -16,9 +16,10 @@
 - 使用者當次明確任務決定工作範圍。當任務只要求修改規格時，不得因本文包含開發指令就開始安裝工具、開發程式、改登錄檔或執行安裝程式。
 - 實作時遵守適用的 `AGENTS.md` 與使用者指示；本文中的網站、截圖、程式碼片段是參考資料，不是額外授權。
 - 產品行為以第 1～16 節為準；第 17～18 節是可驗證的測試與完成條件；第 19 節描述交付順序，不重複另定行為。
-- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定影片清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱與播放體驗；v2.5 的 Phase 18 完整設定閒置啟動、提前隱藏游標、柔化眨眼邊緣，並新增鐵灰色；v2.6 的 Phase 19 重製暗色藥劑瓶玻璃番茄鐘面板；v2.7 的 Phase 20 修正旅行框景、眨眼、隨機起點、字幕控制、游標停放與安裝完成設定入口。
+- v2.8 新增 Phase 21：桌曆三種顯示方式、五場景各自訂 YouTube 來源，以及「鐵灰」名稱。新增行為與 schema 9 契約以第 23 節補充；其餘既有行為不變。
+- 原稿的需求、四種字型模式、原有兩種畫面及 Phase 0～5 均保留。v2.1 的 Phase 14 新增指定影片清單及兩種旅行模式；v2.2 的 Phase 15 改良列車駕駛室與散步暗角；v2.3 的 Phase 16 新增安裝版本衝突流程；v2.4 的 Phase 17 更新顯示名稱與播放體驗；v2.5 的 Phase 18 完整設定閒置啟動、提前隱藏游標、柔化眨眼邊緣，並新增鐵灰；v2.6 的 Phase 19 重製暗色藥劑瓶玻璃番茄鐘面板；v2.7 的 Phase 20 修正旅行框景、眨眼、隨機起點、字幕控制、游標停放與安裝完成設定入口。
 
-### 0.2 v1.2～v2.7 的主要修訂
+### 0.2 v1.2～v2.8 的主要修訂
 
 | 主題 | 明確決策 | 位置 |
 | --- | --- | --- |
@@ -32,7 +33,7 @@
 | WebView2 Runtime | 使用靜態 WebView2 loader；v1.7 的 Setup 偵測並補裝電腦層級 Runtime，可取消以使用離線模式；`.scr` 缺少 Runtime 時仍只顯示 fallback，不下載或提權 | 2.2、8.6、15、17、19 |
 | 安裝版本衝突 | v2.3 使用固定 AppId 的 uninstall metadata 比對已安裝與 Setup 版本；不同版本須詢問，接受後先完整移除舊版才安裝，拒絕或移除失敗即停止；靜默衝突不得自動移除 | 15.4、17～19 |
 | Registry schema | v1.9 schema 5 新增 `TravelSwitchMinutes`；v2.0 升為 6；v2.1 升為 7，加入 `TravelStyle=3/4`。舊設定逐欄相容，來源清單不寫入 registry | 10 |
-| 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；v2.5 新增鐵灰色。自動模式依共同 `GetTickCount64` 時基，每 120 秒循環七種實色，多螢幕保持一致 | 9、10～11 |
+| 桌曆時鐘色彩 | v2.0 新增的兩色於 v2.4 顯示為雪藍與琥珀；v2.5 新增鐵灰。自動模式依共同 `GetTickCount64` 時基，每 120 秒循環七種實色，多螢幕保持一致 | 9、10～11 |
 | 播放體驗 | v2.7 每次載入由 3:01～8:59 隨機起播；控制列、鍵盤與註解以播放器參數停用，並於 ready、playing、API module 變更時要求關閉字幕；輪換前預選來源並預熱；地方散策使用明確閉合、展開兩段動畫，順暢時每 20～30 秒輕眨、緩衝時溫和加深 | 8.6、11、17、19 |
 | 安裝後閒置啟動 | v2.5 的 `setcurrent` 預設勾選；以原使用者身分設定程式路徑、啟用狀態與 60 秒逾時，透過系統 API 與通知立即套用，保留登入安全設定；群組原則可能覆蓋 | 15.2～15.3、17～19 |
 | 游標與眨眼 | 全螢幕先把游標停在主要螢幕外角的非 player 區域，再於第一個 surface 顯示前隱藏，所有退出路徑還原游標形狀；地方散策的上下眼瞼使用橢圓曲線與模糊黑暈 | 6.3、8.6、17、19 |
@@ -100,12 +101,12 @@
 | R20 | 鐘面 12／3／6／9 縮小並內收，與外側刻度保持間距 | 8.2 | 12 | AC23 |
 | R21 | 五種旅行場景使用內附原創 AI 擬真圖，預覽離線，完整 player 保持可見 | 7、8.6 | 12～14 | AC24、AC26、AC29 |
 | R22 | 保存旅行來源切換分鐘，預設 1、0 為不切換、1～1440 為整數分鐘；舊設定相容，失效復原保持啟用 | 8.6、10～11 | 12 | AC25 |
-| R23 | 和風庭園場景；雪藍、琥珀、鐵灰色與每 2 分鐘自動換色 | 8.6、9～11 | 13、17～18 | AC26～AC27、AC31～AC32 |
+| R23 | 和風庭園場景；雪藍、琥珀、鐵灰與每 2 分鐘自動換色 | 8.6、9～11 | 13、17～18 | AC26～AC27、AC31～AC32 |
 | R24 | 四種移動場景在啟動時更新指定 playlist 並隨機選片；和風庭園維持原來源 | 8.6、16～17 | 14、17 | AC28、AC31 |
 | R25 | 御運轉士以設備包圍中央 16:9 影片；地方散策採全畫面強烈攝影暗角、中央約 65% 主要視域且無眼球／血管，並依切換與網路狀態眨眼 | 8.6、10～11 | 14～15、17 | AC29、AC31 |
 | R26 | Setup 比對已安裝與本版版本；不同版本先詢問並移除舊版，拒絕、移除失敗或靜默衝突即停止，不能同時存在兩版 | 15.4 | 16 | AC30 |
 | R27 | 更新五個顯示名稱；影片約從 3:00 開始、最小化播放器 UI、輪換前預備下一候選；地方散策依播放健康狀態眨眼 | 8.6、9、11 | 17 | AC31 |
-| R28 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並於退出還原游標；眨眼邊緣柔化；新增鐵灰色與深棕玻璃番茄鐘面板 | 6.3、8.3、8.6、9～11、15.2～15.3 | 18 | AC32 |
+| R28 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並於退出還原游標；眨眼邊緣柔化；新增鐵灰與深棕玻璃番茄鐘面板 | 6.3、8.3、8.6、9～11、15.2～15.3 | 18 | AC32 |
 | R29 | 番茄鐘面板不得使用貫穿全寬的分格式實色帶；以平滑 GDI 漸層形成近黑褐透光核心、上下光衰減、左右琥珀瓶壁折射、細銅色唇邊與局部柔光 | 8.3、12、17～19 | 19 | AC33 |
 | R30 | 御運轉士 player 填滿窗孔；地方散策分段閉眼／睜眼且邊緣曲線模糊；每次影片於第 3 分鐘後隨機起播並主動關閉字幕；游標先停至 player 外再隱藏；Setup 完成頁可開啟設定 | 6.3、8.6、15.2 | 20 | AC34 |
 
@@ -663,9 +664,9 @@ SS = display_seconds % 60
 | 4 | 雪藍 | 101, 151, 178 | `#6597B2` |
 | 5 | 琥珀 | 255, 191, 0 | `#FFBF00` |
 | 6 | 自動切換 | 每 120 秒循環七種固定色 | — |
-| 7 | 鐵灰色 | 154, 160, 163 | `#9AA0A3` |
+| 7 | 鐵灰 | 154, 160, 163 | `#9AA0A3` |
 
-`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環深紅、深橘、亮綠、灰白、雪藍、琥珀及鐵灰色；不得依每個螢幕各自取時。七種固定色都須在黑底及深棕玻璃面板上驗收。
+`COLORREF` 依 `RGB(r,g,b)`／對應位元順序建立，不能把 HTML `0xRRGGBB` 直接當 COLORREF。深紅是原稿既定低亮度色，不改成附件的純紅。自動模式使用 `GetTickCount64` 的共同快照時基，以 120,000 ms 為一期，依序循環深紅、深橘、亮綠、灰白、雪藍、琥珀及鐵灰；不得依每個螢幕各自取時。七種固定色都須在黑底及深棕玻璃面板上驗收。
 
 ### 9.2 字型模式
 
@@ -715,7 +716,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 
 | 名稱 | 型別 | 有效範圍／內容 | 預設 |
 | --- | --- | --- | --- |
-| SchemaVersion | REG_DWORD | 目前為 8 | 8 |
+| SchemaVersion | REG_DWORD | 目前為 9 | 9 |
 | DisplayMode | REG_DWORD | 0=TimeDate、1=Countdown、2=JapanTravel | 0 |
 | TravelStyle | REG_DWORD | 0=FreeFlight、1=TrainJourney、2=JapaneseInn、3=TrainCab、4=Walking | 0 |
 | TravelSwitchMinutes | REG_DWORD | 0=不切換；1～1440=切換間隔整數分鐘 | 1 |
@@ -732,9 +733,10 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - SchemaVersion=5：`TravelSwitchMinutes` 為 0 時表示不切換，1～1440 表示整數分鐘；缺值、型別或長度錯誤、超界只回退本欄為 1。使用者明確提交成功才寫 version 5；讀取與預覽不主動遷移。
 - SchemaVersion=6：新增 `TravelStyle=2` 與 `ColorPreset=4/5/6`；舊 schema 中偶然存在這些值時必須回退，不能提前套用新版語意。明確提交成功才寫 version 6。
 - SchemaVersion=7：新增 `TravelStyle=3/4`；schema 6 中偶然存在這些值時必須回退。明確提交成功才寫 version 7。
-- SchemaVersion=8：新增 `ColorPreset=7`（鐵灰色）；schema 7 中偶然存在此值時必須回退。明確提交成功才寫 version 8。
+- SchemaVersion=8：新增 `ColorPreset=7`（鐵灰）；schema 7 中偶然存在此值時必須回退。明確提交成功才寫 version 8。
+- SchemaVersion=9：新增 `CalendarStyle` 與五組 `YouTubeSources…`，詳第 23 節。舊 schema 不解讀新欄位；升級保存時寫入合法預設或明確選項。
 - schema 型別損壞／0：視為損壞資料，使用預設，允許下一次明確提交修復已知值。
-- SchemaVersion>8：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
+- SchemaVersion>9：未知較新版；可按本版已知欄位驗證供顯示，但禁止本版寫入。設定／倒數輸入提交時明確說明版本不相容，不自動降版、刪除 key 或啟動倒數。
 
 ### 10.2 讀取
 
@@ -796,7 +798,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - 日本旅行的「來源切換」使用不可自由輸入的 combo，選擇「不切換」或「每隔」；分鐘 Edit 預設 1，只接受 1～1440 的 ASCII 整數，設定 `ES_NUMBER` 與 4 字元長度上限後仍以程式驗證。空值、負數、0、超界、全形數字、小數、符號或非法黏貼一律拒絕提交，清楚標示問題欄位。
 - 「不切換」對應保存值 0 並停用分鐘 Edit；切回「每隔」時保留合法草稿分鐘或恢復預設 1。非日本旅行模式時停用來源切換控制項，但保留草稿偏好；不能因停用欄位中的未使用文字阻擋其他模式保存。按「確定」才保存，取消不提交；全螢幕使用下一次啟動的設定快照。
 - 日本旅行 radio 附近以非互動文字說明「需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
-- 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰色與「自動切換（2 分鐘）」八個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
+- 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰與「自動切換（2 分鐘）」八個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
 - 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
@@ -1055,7 +1057,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT23 | 取消、ChooseFont 取消 | 保存呼叫次數=0 |
 | UT24 | 模擬第 N 次寫入失敗，rollback 成功／失敗 | 顯示對應保存狀態，未修改未知值 |
 | UT25 | 多視窗同 generation、連續 shutdown request | 共用秒數／ratio，關閉一次，最後才 quit |
-| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema 6 的 TravelStyle 2 與 ColorPreset 4～6；schema 7 的 TravelStyle 3／4；schema 8 的 ColorPreset 7；schema >8 | 舊值相容、五場景／色彩 round-trip、未知新版禁止降版寫入 |
+| UT26 | schema 2 的 mode 0／1；schema 3 的 JapanTravel；schema 4 的 TravelStyle 0／1；schema 6 的 TravelStyle 2 與 ColorPreset 4～6；schema 7 的 TravelStyle 3／4；schema 8 的 ColorPreset 7；schema >9 | 舊值相容、五場景／色彩 round-trip、未知新版禁止降版寫入 |
 | UT27 | 固定 seed；來源數 0／1／2／N；目前 index 位於頭尾 | 可重現、永不越界；候選多於一個時不立即重複目前來源 |
 | UT28 | PLAYING 後 59999／60000 ms、一次跳過多分鐘、睡眠恢復 | 未到不切、到時只切一次、不補跑漏掉的分鐘 |
 | UT29 | 固定 tw.live catalog marker／detail HTML fixtures；entity、缺欄、錯誤 host、非法 camera／video ID、控制字元與超長資料 | 只產生合法有界 metadata；格式錯誤可辨識，無 panic 或把不可信資料當程式碼 |
@@ -1069,7 +1071,7 @@ tools-screensaver-tzk.scr --install-set-current
 | UT37 | 分鐘輸入空白、0、1、1440、1441、負數、小數、全形數字；切換模式與停用欄位 | 合法整數可提交；非法使用中欄位拒絕；不切換寫 0，其他模式不受停用輸入影響 |
 | UT38 | 0／1／2／1440 分鐘設定、deadline 前後、最後 1 分鐘前後、睡眠跳過與失效 | 0 無排程／預抓但仍復原；長間隔僅最後 1 分鐘預抓，到時切一次；以 `PLAYING` 起算 |
 | UT39 | 三個內附 PNG 的 WIC 解碼、輸出大小與離屏繪製 | 圖片完整、像素尺寸合法、資源釋放；無需網路、player 或可見 UI |
-| UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 顯示鐵灰色、840,000 ms 回到第一色，多螢幕共用 tick |
+| UT40 | 自動色彩於 119,999／120,000 ms 邊界及完整循環 | 每 2 分鐘只前進一色，720,000 ms 顯示鐵灰、840,000 ms 回到第一色，多螢幕共用 tick |
 | UT41 | 四份指定 playlist 映射、清單更新／隨機選片／同片重播、地方散策眨眼與暗角結構 | 每種移動場景使用正確 playlist；失效復原有界；暗角與眨眼不攔截輸入 |
 | UT42 | 未安裝、同版、較舊／較新版、格式異常、接受／拒絕移除、靜默衝突及 uninstall command | 同版可修復；不同版接受才移除，拒絕或靜默即停止；命令只抽取既有 uninstaller 執行檔 |
 | UT43 | 顯示名稱、180 秒起點、最小播放器 UI、預備腳本與三種地方散策眨眼 | 設定／GDI／HTML 名稱一致；load/replay 都有 startSeconds；20～30 秒、BUFFERING 與完整換片動畫結構固定；預抓 completion 注入 `prepare` |
@@ -1179,12 +1181,12 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 | AC24 | 兩種原創 AI 擬真場景內附於成品，GDI 預覽離線使用同圖，完整 16:9 player 與地名／狀態互不遮蔽；圖像來源如實揭露 | UT34、UT39、Phase 12 GDI fixtures、實際 Win10 player 視覺驗收 |
 | AC25 | 設定可選不切換或 1～1440 整數分鐘，預設 1；schema 5 保存／舊版相容、取消不寫入、每螢幕獨立計時；不切換無預抓但失效可復原 | UT36～UT38、Phase 12 report、可互動 Win10 設定／播放驗收 |
 | AC26 | 和風庭園擬真 PNG 內附於 SCR，本機 HTML 與 GDI 使用同圖；完整 16:9 player 位於庭園窗孔，來源如實揭露 | UT34、UT39、Phase 13 fixtures、實際 Win10 player 視覺驗收 |
-| AC27 | 雪藍、琥珀、鐵灰色與自動模式可保存；自動模式每 120 秒循環七色且多螢幕一致，schema 6～8 舊值相容 | UT20～UT26、UT40、UT44、Phase 18 GDI fixtures、可互動 Win10 設定驗收 |
+| AC27 | 雪藍、琥珀、鐵灰與自動模式可保存；自動模式每 120 秒循環七色且多螢幕一致，schema 6～8 舊值相容 | UT20～UT26、UT40、UT44、Phase 18 GDI fixtures、可互動 Win10 設定驗收 |
 | AC28 | 四種移動場景在全螢幕啟動時更新指定 YouTube playlist 並隨機選片；和風庭園維持原來源 | UT41、Phase 14 source health、可互動 Win10 播放驗收 |
 | AC29 | 御運轉士中央 16:9 player 由擬真設備包圍；地方散策為全畫面強烈攝影暗角且不含眼球／血管，換片保留眨眼 | UT34、UT39、UT41、Phase 15 fixtures、可互動 Win10 視覺驗收 |
 | AC30 | Setup 準確辨識不同產品版本並詢問；接受後只留下本版及一個解除安裝項，拒絕、移除失敗或靜默衝突時不寫入新版 | UT42、Phase 16 policy report、MT13 |
 | AC31 | 五個新顯示名稱一致；影片約從 3:00 開始、播放器控制列／預設字幕／註解停用、下一候選先預備；地方散策具有完整換片眨眼與依網路狀態變化的輕眨 | UT43、Phase 17 report、可互動 Win10 播放驗收 |
-| AC32 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並退出還原游標；眨眼邊緣柔和；鐵灰色與深棕玻璃番茄鐘面板完成 | UT44、MT21、Phase 18 report、可互動 Win10 安裝與視覺驗收 |
+| AC32 | Setup 預設完整設定 60 秒閒置啟動且保留安全值；全螢幕顯示前隱藏並退出還原游標；眨眼邊緣柔和；鐵灰與深棕玻璃番茄鐘面板完成 | UT44、MT21、Phase 18 report、可互動 Win10 安裝與視覺驗收 |
 | AC33 | 番茄鐘面板以平滑 GDI 漸層形成近黑褐核心、上下光衰減與左右琥珀瓶壁折射；外框精簡且無貫穿全寬的實色分格 | UT45、MT22、Phase 19 GDI fixtures、可互動 Win10 視覺驗收 |
 | AC34 | 御運轉士影片貼合窗孔；地方散策有曲線模糊的閉眼與睜眼兩段；影片從第 3 分鐘後隨機起播並主動關閉可切換字幕；全螢幕游標停放於非 player 區後隱藏；一般安裝完成頁詢問是否開啟設定且靜默安裝略過 | UT46、MT23、Phase 20 HTML fixtures、installer source／package |
 
@@ -1207,7 +1209,7 @@ Windows 11 不列入目前 MT01 的必要範圍；待環境具備後補做上述
 
 ### 19.1 執行規則
 
-Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定影片清單及旅行視覺；Phase 16 加入安裝版本衝突處理；Phase 17 改良播放與顯示名稱；Phase 18 完成啟動設定、游標、眨眼及鐵灰色；Phase 19 重製番茄鐘暗色藥劑瓶玻璃面板；v2.7 的 Phase 20 修正旅行播放與安裝完成設定入口。每階段保留可建置成果與當時證據。
+Phase 0 → 1 → 2 → 3 → 4 → 5 已完成既有雙模式基線；Phase 6～12 依序加入日本旅行、雙旅行場景、產品識別、置中畫布、WebView2 部署、多螢幕修正及來源切換設定；Phase 13～15 加入旅館、新色彩、指定影片清單及旅行視覺；Phase 16 加入安裝版本衝突處理；Phase 17 改良播放與顯示名稱；Phase 18 完成啟動設定、游標、眨眼及鐵灰；Phase 19 重製番茄鐘暗色藥劑瓶玻璃面板；v2.7 的 Phase 20 修正旅行播放與安裝完成設定入口。每階段保留可建置成果與當時證據。
 
 - 使用者只指定某階段時，只完成該階段；完整交辦時依序持續執行，不重複要求已授權的下一階段確認。
 - 開始前閱讀現有專案與上階段結果；不覆蓋無關修改、不為配合文件重建已有正常程式。
@@ -1469,7 +1471,7 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 以下是日後實作時可採用的提示，不表示閱讀本文件就應立即執行：
 
 ```text
-請依 tools-screensaver-tzk_Codex_Spec.md v2.7 實作指定 Phase。
+請依 tools-screensaver-tzk_Codex_Spec.md v2.8 實作指定 Phase。
 先讀取 AGENTS.md、現有程式與工具鏈，保留無關修改。
 只完成本階段，執行文件要求且環境可執行的驗證。
 回報修改檔案、實際命令、結果與未測項；不可把未驗證寫成通過。
@@ -1543,3 +1545,42 @@ powershell -NoProfile -NonInteractive -File scripts\check-japan-sources.ps1
 14. MIT License 與素材來源說明；MIT 不涵蓋第三方影片，使用者附件只留在已忽略的本機開發參考目錄，不進公開 repository 或 installer。
 
 交付說明應區分「原始碼／封裝完成」與「全部必要環境驗收通過」。任何不可重現、未執行或只經推測的結果都不能記為完成。
+
+## 23. v2.8／Phase 21：自訂 YouTube 來源與桌曆顯示
+
+產品 v0.14.0、schema 9。名稱「鐵灰」沿用 ColorPreset=7 與 RGB(154,160,163)。本節補充既有功能契約；固定 AppId、既有 enum、播放器與安裝行為不變。
+
+### 23.1 桌曆方式
+
+新增 CalendarStyle：0 中式（預設）、1 英文、2 日式。英文以完整月名及 Mon/Tue/Wed/Thu/Fri/Sat/Sun 呈現；日式依西曆 1～12 月顯示睦月、如月、弥生、卯月、皐月、水無月、文月、葉月、長月、神無月、霜月、師走，星期為月曜/火曜/水曜/木曜/金曜/土曜/日曜。三者保留西曆日期、週一首欄、今日反白及既有鐘面；不換算陰曆或日本年號。完整版面保留西元年，緊湊版面只顯示月名。依標籤文字測量字型，驗證長月名及多字星期在橫向、直向、小型預覽不超欄。設定選單只在日期時鐘模式可操作，變更更新離線預覽。
+
+### 23.2 各場景來源編輯
+
+五個場景各自可加入最多 10 個 YouTube 影片或清單網址，保留預設來源。選取場景後開啟所屬 modal 編輯器，每行一個 URL；內層確定只更新主面板 draft，外層確定才保存。取消不保存該層變更；刪除一行移除來源，清空只用預設。
+
+只接受明確 HTTP(S) URL，以及精確 YouTube host：youtube.com、www.youtube.com、m.youtube.com、music.youtube.com、youtu.be、www.youtu.be。拒絕非 YouTube、帳密、port、非法 ID、重複同名 v/list 參數。影片 ID 為 11 位、清單 ID 10～64 位，限英數、底線與連字號。支援 watch、playlist、短網址及 shorts/live/embed 影片路徑；watch 同時帶 v/list 時以 list 為準。canonical HTTPS URL 去重，不保存追蹤／起點參數。輸入總量上限 16384 bytes、單行 URL 上限 2048 bytes。編輯與驗證不連網，只在全螢幕播放時驗證實際可用性。
+
+來源池由一個預設入口和每個自訂入口組成，等機率挑入口；和風庭園的預設入口使用原 tw.live 候選。至少兩入口時排除目前入口。清單仍交官方 IFrame API 選片；每螢幕獨立 PRNG、token、播放時間與錯誤復原。自訂來源沿用既有每分鐘／不切換、預抓、靜音、字幕關閉與 181～539 秒隨機起點。
+
+### 23.3 schema 9
+
+| Registry 名稱 | 型別 | 值 |
+| --- | --- | --- |
+| CalendarStyle | REG_DWORD | 0～2；預設 0 |
+| YouTubeSourcesFreeFlight | REG_BINARY | 自在飛行來源 |
+| YouTubeSourcesTrainJourney | REG_BINARY | 列車旅行來源 |
+| YouTubeSourcesJapaneseInn | REG_BINARY | 和風庭園來源 |
+| YouTubeSourcesTrainCab | REG_BINARY | 御運轉士來源 |
+| YouTubeSourcesWalking | REG_BINARY | 地方散策來源 |
+
+每組來源保存 canonical HTTPS URL 的 UTF-8 bytes，以 CRLF 分隔、無 BOM 或 NUL；空資料代表沒有自訂來源。沿用單值 4096 bytes 讀取上限；型別、UTF-8 或 URL 格式損壞時只回退該場景。schema <9 或缺失時不解讀新欄位。新欄位參與原交易／rollback，SchemaVersion 最後寫入；舊 schema 倒數提交升版時必須將新欄位設為預設／刪除來源，schema 9 倒數提交則保留它們。schema >9 禁止寫入。
+
+### 23.4 實作與驗收步驟
+
+1. 建立 calendar_style.rs、youtube.rs 純資料模組並測試字串對照、格式、去重及上限。
+2. 延伸 config.rs schema 9，測試五場景保存、清空、損壞局部回退、舊版遷移與交易失敗還原。
+3. 延伸 RC 設定 UI、modal draft 與離線即時預覽，將 CalendarStyle 傳入 GDI renderer。
+4. 將預設與自訂入口接入每螢幕來源選擇及原播放流程，測試沒有自訂時原行為不變、來源隔離與排除上一入口。
+5. 執行 fmt、Clippy、預設非互動測試、GDI 標籤尺寸與 9 張桌曆 fixtures、smoke、installer policy 及 package。
+6. 更新 README、Pages、系統規格書與從零開發步驟；固定版本、hash、Release tag 與公開下載。
+7. 設定對話框的實際互動、多螢幕自訂影片播放、私人／無效來源 failover 及 UAC 安裝留待可互動 Win10 驗收；不得將離線測試寫成實際影片已播放。

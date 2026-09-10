@@ -48,3 +48,9 @@ MIT License 只涵蓋 repository 的程式碼與自製圖形，不涵蓋第三�
 2. 驗證自訂分鐘、不切換、斷網、空清單、影片禁止嵌入及 Runtime 缺失 fallback。
 3. 驗證多螢幕各自選片、失敗隔離、混合 DPI、退出後 controller 與 WebView2 子程序清理。
 4. 核對每個影片清單與 tw.live 原始提供者的最新嵌入及使用條款。
+
+## v0.14.0 各場景自訂 YouTube 來源
+
+五種場景各可在設定中加入最多 10 個 YouTube 影片或清單網址。預設來源保留，自訂項目與預設入口一起隨機選取；設定預覽與 URL 格式驗證不連網，正式全螢幕播放才送至既有 YouTube IFrame player。只接受 YouTube／youtu.be 明確網址並抽取合法 ID，不直接瀏覽使用者輸入網址，不增加任意站台導覽權限。
+
+來源按場景保存在 HKCU schema 9，沒有上傳設定至本專案服務。影片、清單及其 metadata 仍受原作者與 YouTube 的提供狀態、嵌入限制及相關條款影響。私人或失效連結不因格式通過而保證可播放；本次沒有替使用者指定新的公開影片。操作與格式見 [README](../README.md#自訂-youtube-來源)，實作契約見 [系統開發規格](tools-screensaver-tzk-system-development-spec.md#56-桌曆顯示與自訂來源)。

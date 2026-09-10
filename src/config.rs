@@ -3,10 +3,12 @@ use std::fmt;
 
 use windows_sys::Win32::System::Registry::{REG_BINARY, REG_DWORD};
 
+use crate::calendar_style::CalendarStyle;
 pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
+use crate::youtube::SourceList;
 
-pub const SCHEMA_VERSION: u32 = 8;
+pub const SCHEMA_VERSION: u32 = 9;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
 pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
@@ -55,6 +57,14 @@ impl ColorPreset {
 }
 
 const SCHEMA: &str = "SchemaVersion";
+const CALENDAR_STYLE: &str = "CalendarStyle";
+const CUSTOM_SOURCES: [&str; 5] = [
+    "YouTubeSourcesFreeFlight",
+    "YouTubeSourcesTrainJourney",
+    "YouTubeSourcesJapaneseInn",
+    "YouTubeSourcesTrainCab",
+    "YouTubeSourcesWalking",
+];
 const DISPLAY_MODE: &str = "DisplayMode";
 const TRAVEL_STYLE: &str = "TravelStyle";
 const TRAVEL_SWITCH_MINUTES: &str = "TravelSwitchMinutes";
@@ -102,6 +112,8 @@ pub trait SettingsStore {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AppConfig {
+    pub calendar_style: CalendarStyle,
+    pub youtube_sources: [SourceList; 5],
     pub display_mode: DisplayMode,
     pub travel_style: TravelStyle,
     /// Zero disables scheduled source changes; errors still trigger recovery.
@@ -117,6 +129,8 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            calendar_style: CalendarStyle::Chinese,
+            youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::TimeDate,
             travel_style: TravelStyle::FreeFlight,
             travel_switch_minutes: DEFAULT_TRAVEL_SWITCH_MINUTES,
@@ -142,6 +156,8 @@ impl AppConfig {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConfigDraft {
+    pub calendar_style: CalendarStyle,
+    pub youtube_sources: [SourceList; 5],
     pub display_mode: DisplayMode,
     pub travel_style: TravelStyle,
     pub travel_switch_minutes: u32,
@@ -153,6 +169,8 @@ pub struct ConfigDraft {
 impl From<AppConfig> for ConfigDraft {
     fn from(value: AppConfig) -> Self {
         Self {
+            calendar_style: value.calendar_style,
+            youtube_sources: value.youtube_sources,
             display_mode: value.display_mode,
             travel_style: value.travel_style,
             travel_switch_minutes: value.travel_switch_minutes,
@@ -253,6 +271,23 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .filter(|&value| (1..=359999).contains(&value))
         .unwrap_or(DEFAULT_COUNTDOWN_SECONDS);
     AppConfig {
+        calendar_style: if schema.is_some_and(|s| s >= 9) {
+            dword(get(store, CALENDAR_STYLE))
+                .and_then(CalendarStyle::from_registry)
+                .unwrap_or_default()
+        } else {
+            CalendarStyle::Chinese
+        },
+        youtube_sources: std::array::from_fn(|i| {
+            if !schema.is_some_and(|s| s >= 9) {
+                return SourceList::default();
+            }
+            get(store, CUSTOM_SOURCES[i])
+                .filter(|v| v.kind == REG_BINARY_KIND)
+                .and_then(|v| String::from_utf8(v.bytes).ok())
+                .and_then(|text| SourceList::parse(&text).ok())
+                .unwrap_or_default()
+        }),
         display_mode,
         travel_style,
         travel_switch_minutes,
@@ -374,6 +409,19 @@ pub fn save_draft(store: &mut impl SettingsStore, draft: ConfigDraft) -> Result<
             Some(RawValue::dword(font.point_size_tenth())),
         ));
     }
+    updates.push((
+        CALENDAR_STYLE,
+        Some(RawValue::dword(draft.calendar_style.registry_value())),
+    ));
+    for (key, sources) in CUSTOM_SOURCES.into_iter().zip(draft.youtube_sources) {
+        updates.push((
+            key,
+            Some(RawValue {
+                kind: REG_BINARY_KIND,
+                bytes: sources.text().into_bytes(),
+            }),
+        ));
+    }
     updates.push((SCHEMA, Some(RawValue::dword(SCHEMA_VERSION))));
     transaction(store, updates)
 }
@@ -383,6 +431,12 @@ pub fn save_countdown(store: &mut impl SettingsStore, seconds: u32) -> Result<()
         return Err(SaveError::InvalidDraft);
     }
     let mut updates = vec![(LAST_COUNTDOWN, Some(RawValue::dword(seconds)))];
+    if current_schema(store)?.is_none_or(|version| version < 9) {
+        updates.push((CALENDAR_STYLE, Some(RawValue::dword(0))));
+        for key in CUSTOM_SOURCES {
+            updates.push((key, None));
+        }
+    }
     if current_schema(store)?.is_none_or(|version| version < 5) {
         // A countdown-only save also advances the schema. Preserve the legacy
         // one-minute behavior instead of activating an old unrecognized value.
@@ -620,7 +674,9 @@ mod tests {
         legacy.values.insert(SCHEMA.into(), RawValue::dword(8));
         assert_eq!(load(&legacy).color_preset, ColorPreset::IronGray);
         let mut future = MemoryStore::default();
-        future.values.insert(SCHEMA.into(), RawValue::dword(9));
+        future
+            .values
+            .insert(SCHEMA.into(), RawValue::dword(SCHEMA_VERSION + 1));
         future
             .values
             .insert(COLOR_PRESET.into(), RawValue::dword(1));
@@ -628,9 +684,12 @@ mod tests {
         assert_eq!(load(&future).color_preset, ColorPreset::DarkOrange);
         assert_eq!(
             save_countdown(&mut future, 5),
-            Err(SaveError::FutureSchema(9))
+            Err(SaveError::FutureSchema(SCHEMA_VERSION + 1))
         );
-        assert_eq!(dword(future.values.get(SCHEMA).cloned()), Some(9));
+        assert_eq!(
+            dword(future.values.get(SCHEMA).cloned()),
+            Some(SCHEMA_VERSION + 1)
+        );
 
         for broken_schema in [
             RawValue::dword(0),
@@ -806,6 +865,8 @@ mod tests {
         let before = store.values.clone();
         store.fail_at = Some(3);
         let draft = ConfigDraft {
+            calendar_style: CalendarStyle::Chinese,
+            youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::Countdown,
             travel_style: TravelStyle::TrainJourney,
             travel_switch_minutes: 15,
@@ -840,6 +901,8 @@ mod tests {
         let error = save_draft(
             &mut failing,
             ConfigDraft {
+                calendar_style: CalendarStyle::Chinese,
+                youtube_sources: [SourceList::default(); 5],
                 display_mode: DisplayMode::Countdown,
                 travel_style: TravelStyle::FreeFlight,
                 travel_switch_minutes: 1,
@@ -856,6 +919,8 @@ mod tests {
     fn invalid_or_cancelled_drafts_do_not_write() {
         let mut store = MemoryStore::default();
         let invalid = ConfigDraft {
+            calendar_style: CalendarStyle::Chinese,
+            youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::TimeDate,
             travel_style: TravelStyle::FreeFlight,
             travel_switch_minutes: 1,
@@ -885,6 +950,8 @@ mod tests {
             let cleanup = RegistryTestKey::new(path.clone());
             let mut store = RegistryStore::at(&cleanup.path);
             let draft = ConfigDraft {
+                calendar_style: CalendarStyle::Chinese,
+                youtube_sources: [SourceList::default(); 5],
                 display_mode: DisplayMode::Countdown,
                 travel_style: TravelStyle::TrainJourney,
                 travel_switch_minutes: 30,
@@ -903,5 +970,61 @@ mod tests {
             assert_eq!(loaded.last_countdown_seconds, 359999);
         }
         assert!(RegistryStore::at(&path).get(SCHEMA).unwrap().is_none());
+    }
+
+    #[test]
+    fn calendar_and_per_scene_sources_round_trip_clear_and_rollback() {
+        let mut store = MemoryStore::default();
+        let mut draft = ConfigDraft::from(AppConfig::default());
+        draft.calendar_style = CalendarStyle::Japanese;
+        for (i, list) in draft.youtube_sources.iter_mut().enumerate() {
+            *list = SourceList::parse(&format!(
+                "https://youtu.be/{i:011}\nhttps://youtube.com/playlist?list=PLdsqwBj2O1Nw"
+            ))
+            .unwrap();
+        }
+        save_draft(&mut store, draft).unwrap();
+        assert_eq!(ConfigDraft::from(load(&store)), draft);
+        save_countdown(&mut store, 100).unwrap();
+        assert_eq!(ConfigDraft::from(load(&store)), draft);
+        let before = store.values.clone();
+        store.calls = 0;
+        store.fail_at = Some(9);
+        assert!(save_draft(&mut store, AppConfig::default().into()).is_err());
+        assert_eq!(store.values, before);
+        store.fail_at = None;
+        save_draft(&mut store, AppConfig::default().into()).unwrap();
+        assert_eq!(load(&store).youtube_sources, [SourceList::default(); 5]);
+    }
+
+    #[test]
+    fn old_schema_and_malformed_sources_cannot_activate_after_countdown_save() {
+        let mut store = MemoryStore::default();
+        store.values.insert(SCHEMA.into(), RawValue::dword(8));
+        store
+            .values
+            .insert(CALENDAR_STYLE.into(), RawValue::dword(2));
+        store.values.insert(
+            CUSTOM_SOURCES[0].into(),
+            RawValue {
+                kind: REG_BINARY_KIND,
+                bytes: b"https://youtu.be/Ee27soLzJ5c".to_vec(),
+            },
+        );
+        assert_eq!(load(&store).calendar_style, CalendarStyle::Chinese);
+        assert_eq!(load(&store).youtube_sources[0], SourceList::default());
+        save_countdown(&mut store, 30).unwrap();
+        assert_eq!(load(&store).calendar_style, CalendarStyle::Chinese);
+        assert_eq!(load(&store).youtube_sources[0], SourceList::default());
+        for invalid in [b"https://evil.test/".to_vec(), vec![255]] {
+            store.values.insert(
+                CUSTOM_SOURCES[1].into(),
+                RawValue {
+                    kind: REG_BINARY_KIND,
+                    bytes: invalid,
+                },
+            );
+            assert_eq!(load(&store).youtube_sources[1], SourceList::default());
+        }
     }
 }

@@ -4,6 +4,7 @@
 compile_error!("This project requires the x86_64-pc-windows-msvc target.");
 
 pub mod app;
+pub mod calendar_style;
 pub mod cli;
 pub mod config;
 mod dialog;
@@ -23,6 +24,7 @@ pub(crate) mod travel_art;
 mod travel_webview;
 pub mod utf16;
 mod window;
+pub mod youtube;
 
 mod resource_ids {
     include!(concat!(env!("OUT_DIR"), "/resource_ids.rs"));

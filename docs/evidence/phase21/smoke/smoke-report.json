@@ -1,0 +1,173 @@
+﻿{
+    "capturedAt":  "2026-09-10T15:38:51.4486323+08:00",
+    "artifact":  "C:\\Users\\Adolf\\OneDrive\\桌面\\WorkSpace\\tools-screensaver-tzk\\dist\\tools-screensaver-tzk.scr",
+    "temporaryScr":  "C:\\Users\\Adolf\\AppData\\Local\\Temp\\tools-screensaver-tzk-smoke-79cb80da072943f488d9333c77aca6a4\\tools-screensaver-tzk.scr",
+    "sha256":  "4d69ac312483376a622fe912a9d9bc2d70b6e6440fe61faced2ef38fd177551c",
+    "bytes":  9570304,
+    "machine":  "0x8664 (x64)",
+    "optionalHeader":  "PE32+",
+    "subsystem":  "Windows GUI",
+    "version":  "0.14.0",
+    "fileDescription":  "tools-screensaver-tzk 螢幕保護程式",
+    "resources":  [
+                      {
+                          "type":  14,
+                          "id":  101,
+                          "name":  "group icon",
+                          "bytes":  62
+                      },
+                      {
+                          "type":  5,
+                          "id":  2003,
+                          "name":  "configuration dialog",
+                          "bytes":  1996
+                      },
+                      {
+                          "type":  5,
+                          "id":  2004,
+                          "name":  "countdown dialog",
+                          "bytes":  480
+                      },
+                      {
+                          "type":  5,
+                          "id":  2005,
+                          "name":  "YouTube sources dialog",
+                          "bytes":  428
+                      },
+                      {
+                          "type":  6,
+                          "id":  1,
+                          "name":  "string table block",
+                          "bytes":  74
+                      },
+                      {
+                          "type":  16,
+                          "id":  1,
+                          "name":  "version",
+                          "bytes":  808
+                      },
+                      {
+                          "type":  24,
+                          "id":  1,
+                          "name":  "manifest",
+                          "bytes":  1309
+                      }
+                  ],
+    "configurationLabels":  [
+                                "tools-screensaver-tzk",
+                                "標準桌曆暨時鐘模式(\u0026T)",
+                                "離機作業番茄鐘模式(\u0026C)",
+                                "日本旅行模式(\u0026J)",
+                                "自在飛行(\u0026A)",
+                                "列車旅行(\u0026N)",
+                                "和風庭園(\u0026Y)",
+                                "御運轉士(\u0026D)",
+                                "地方散策(\u0026K)",
+                                "雪藍(\u0026B)",
+                                "琥珀(\u0026M)",
+                                "鐵灰(\u0026I)",
+                                "桌曆顯示方式",
+                                "編輯本場景 YouTube 來源…",
+                                "自動切換（2 分鐘）(\u0026U)",
+                                "日本旅行場景與來源",
+                                "來源切換(\u0026I)：",
+                                "分鐘（1～1440）",
+                                "需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音。",
+                                "KOMSMOS TOOLKIT",
+                                "探真拓知酷"
+                            ],
+    "manifestChecks":  "PASS",
+    "imports":  [
+                    "advapi32.dll",
+                    "api-ms-win-core-synch-l1-2-0.dll",
+                    "combase.dll",
+                    "comdlg32.dll",
+                    "gdi32.dll",
+                    "kernel32.dll",
+                    "msimg32.dll",
+                    "ntdll.dll",
+                    "ole32.dll",
+                    "oleaut32.dll",
+                    "shell32.dll",
+                    "user32.dll",
+                    "winhttp.dll"
+                ],
+    "staticCrtCheck":  "PASS (no dynamic VC/UCRT import)",
+    "signatureStatus":  "NotSigned",
+    "invalidArgumentCases":  [
+                                 {
+                                     "arguments":  "/p",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/p:0",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "/s /c",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 },
+                                 {
+                                     "arguments":  "--dev-render=time-date",
+                                     "exitCode":  2,
+                                     "uiExpected":  false
+                                 }
+                             ],
+    "installHelperRefusal":  {
+                                 "arguments":  "--install-set-current",
+                                 "exitCode":  4,
+                                 "uiExpected":  false
+                             },
+    "protectedRegistryBefore":  {
+                                    "SCRNSAVE.EXE":  {
+                                                         "exists":  true,
+                                                         "kind":  "String",
+                                                         "value":  "C:\\WINDOWS\\system32\\tools-screensaver-tzk.scr"
+                                                     },
+                                    "ScreenSaveTimeOut":  {
+                                                              "exists":  true,
+                                                              "kind":  "String",
+                                                              "value":  "60"
+                                                          },
+                                    "ScreenSaverIsSecure":  {
+                                                                "exists":  true,
+                                                                "kind":  "String",
+                                                                "value":  "0"
+                                                            },
+                                    "ScreenSaveActive":  {
+                                                             "exists":  true,
+                                                             "kind":  "String",
+                                                             "value":  "1"
+                                                         }
+                                },
+    "protectedRegistryAfter":  {
+                                   "SCRNSAVE.EXE":  {
+                                                        "exists":  true,
+                                                        "kind":  "String",
+                                                        "value":  "C:\\WINDOWS\\system32\\tools-screensaver-tzk.scr"
+                                                    },
+                                   "ScreenSaveTimeOut":  {
+                                                             "exists":  true,
+                                                             "kind":  "String",
+                                                             "value":  "60"
+                                                         },
+                                   "ScreenSaverIsSecure":  {
+                                                               "exists":  true,
+                                                               "kind":  "String",
+                                                               "value":  "0"
+                                                           },
+                                   "ScreenSaveActive":  {
+                                                            "exists":  true,
+                                                            "kind":  "String",
+                                                            "value":  "1"
+                                                        }
+                               },
+    "interactive":  false,
+    "interactiveCases":  [
+
+                         ],
+    "result":  "PASS"
+}

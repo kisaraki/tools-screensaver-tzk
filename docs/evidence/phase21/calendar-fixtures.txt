@@ -1,0 +1,75 @@
+   Compiling tools-screensaver-tzk v0.14.0 (C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.18s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-8a90bf960a90b038.exe)
+
+running 1 test
+00-TimeDate-800x369-dpi96-p0-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+01-TimeDate-800x369-dpi96-p1-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+02-TimeDate-800x369-dpi96-p2-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+03-TimeDate-800x369-dpi96-p3-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+04-TimeDate-800x369-dpi96-p4-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+05-TimeDate-800x369-dpi96-p5-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+06-TimeDate-800x369-dpi96-p6-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+07-TimeDate-800x369-dpi96-p7-SevenSegment-palette.bmp: 4191 nonblack pixels; generation 1
+08-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.bmp: 29771 nonblack pixels; generation 1
+09-TimeDate-3840x2160-dpi144-p2-SevenSegment-size.bmp: 114112 nonblack pixels; generation 1
+10-TimeDate-1080x1920-dpi192-p2-SevenSegment-size.bmp: 24555 nonblack pixels; generation 1
+11-TimeDate-320x180-dpi144-p2-SevenSegment-size.bmp: 2061 nonblack pixels; generation 1
+12-TimeDate-120x80-dpi288-p2-SevenSegment-size.bmp: 300 nonblack pixels; generation 1
+13-TimeDate-800x369-dpi96-p2-Consolas-font.bmp: 3891 nonblack pixels; generation 1
+14-TimeDate-800x369-dpi96-p2-MingLiu-font.bmp: 3270 nonblack pixels; generation 1
+15-Countdown-800x369-dpi96-p0-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+16-Countdown-800x369-dpi96-p1-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+17-Countdown-800x369-dpi96-p2-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+18-Countdown-800x369-dpi96-p3-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+19-Countdown-800x369-dpi96-p4-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+20-Countdown-800x369-dpi96-p5-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+21-Countdown-800x369-dpi96-p6-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+22-Countdown-800x369-dpi96-p7-SevenSegment-palette.bmp: 68661 nonblack pixels; generation 1
+23-Countdown-1920x1080-dpi96-p2-SevenSegment-size.bmp: 416553 nonblack pixels; generation 1
+24-Countdown-3840x2160-dpi144-p2-SevenSegment-size.bmp: 1668315 nonblack pixels; generation 1
+25-Countdown-1080x1920-dpi192-p2-SevenSegment-size.bmp: 139722 nonblack pixels; generation 1
+26-Countdown-320x180-dpi144-p2-SevenSegment-size.bmp: 21634 nonblack pixels; generation 1
+27-Countdown-120x80-dpi288-p2-SevenSegment-size.bmp: 3012 nonblack pixels; generation 1
+28-Countdown-800x369-dpi96-p2-Consolas-font.bmp: 68661 nonblack pixels; generation 1
+29-Countdown-800x369-dpi96-p2-MingLiu-font.bmp: 68661 nonblack pixels; generation 1
+30-JapanTravel-800x369-dpi96-p0-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+31-JapanTravel-800x369-dpi96-p1-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+32-JapanTravel-800x369-dpi96-p2-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+33-JapanTravel-800x369-dpi96-p3-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+34-JapanTravel-800x369-dpi96-p4-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+35-JapanTravel-800x369-dpi96-p5-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+36-JapanTravel-800x369-dpi96-p6-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+37-JapanTravel-800x369-dpi96-p7-SevenSegment-palette.bmp: 110376 nonblack pixels; generation 1
+38-JapanTravel-1920x1080-dpi96-p2-SevenSegment-size.bmp: 937660 nonblack pixels; generation 1
+39-JapanTravel-3840x2160-dpi144-p2-SevenSegment-size.bmp: 3750457 nonblack pixels; generation 1
+40-JapanTravel-1080x1920-dpi192-p2-SevenSegment-size.bmp: 592427 nonblack pixels; generation 1
+41-JapanTravel-320x180-dpi144-p2-SevenSegment-size.bmp: 26440 nonblack pixels; generation 1
+42-JapanTravel-120x80-dpi288-p2-SevenSegment-size.bmp: 5356 nonblack pixels; generation 1
+43-JapanTravel-800x369-dpi96-p2-Consolas-font.bmp: 110376 nonblack pixels; generation 1
+44-JapanTravel-800x369-dpi96-p2-MingLiu-font.bmp: 110376 nonblack pixels; generation 1
+45-Countdown-800x369-dpi96-p2-SevenSegment-last-ten.bmp: 68639 nonblack pixels; generation 1
+46-Countdown-800x369-dpi96-p2-SevenSegment-dim.bmp: 68637 nonblack pixels; generation 1
+47-Countdown-800x369-dpi96-p2-SevenSegment-complete.bmp: 68637 nonblack pixels; generation 1
+48-JapanTravel-800x450-dpi96-p2-SevenSegment-train-journey.bmp: 159088 nonblack pixels; generation 1
+49-JapanTravel-800x450-dpi96-p2-SevenSegment-japanese-inn.bmp: 164034 nonblack pixels; generation 1
+50-JapanTravel-800x450-dpi96-p2-SevenSegment-train-cab.bmp: 140064 nonblack pixels; generation 1
+51-JapanTravel-800x450-dpi96-p2-SevenSegment-walking.bmp: 116708 nonblack pixels; generation 1
+52-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-checking.bmp: 935762 nonblack pixels; generation 1
+53-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-playing.bmp: 934632 nonblack pixels; generation 1
+54-JapanTravel-1920x1080-dpi96-p2-SevenSegment-travel-unavailable.bmp: 938194 nonblack pixels; generation 1
+55-TimeDate-1920x1080-dpi96-p2-SevenSegment-calendar-chinese.bmp: 29771 nonblack pixels; generation 1
+56-TimeDate-1080x1920-dpi96-p2-SevenSegment-calendar-chinese.bmp: 24555 nonblack pixels; generation 1
+57-TimeDate-320x180-dpi96-p2-SevenSegment-calendar-chinese.bmp: 2061 nonblack pixels; generation 1
+58-TimeDate-1920x1080-dpi96-p2-SevenSegment-calendar-english.bmp: 33442 nonblack pixels; generation 1
+59-TimeDate-1080x1920-dpi96-p2-SevenSegment-calendar-english.bmp: 27396 nonblack pixels; generation 1
+60-TimeDate-320x180-dpi96-p2-SevenSegment-calendar-english.bmp: 2230 nonblack pixels; generation 1
+61-TimeDate-1920x1080-dpi96-p2-SevenSegment-calendar-japanese.bmp: 32869 nonblack pixels; generation 1
+62-TimeDate-1080x1920-dpi96-p2-SevenSegment-calendar-japanese.bmp: 28232 nonblack pixels; generation 1
+63-TimeDate-320x180-dpi96-p2-SevenSegment-calendar-japanese.bmp: 2377 nonblack pixels; generation 1
+test render::tests::export_visual_fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 50 filtered out; finished in 40.33s
+
+PNG fixtures: C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk\target\phase21-calendar-fixtures
+Uncompressed GDI output: C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk\target\phase2-fixtures-513d86ccdea44b119c80061a109eef16

@@ -117,6 +117,50 @@ pub(crate) fn playlist_source(style: TravelStyle) -> Option<TravelSource> {
     })
 }
 
+/// None is the scene's default tw.live pool. Explicit IDs always use the local player.
+pub(crate) fn configured_source(
+    style: TravelStyle,
+    custom: crate::youtube::SourceList,
+    current: Option<&str>,
+    random: u32,
+) -> Option<TravelSource> {
+    let mut pool = vec![playlist_source(style)];
+    for item in custom.iter() {
+        let id = item.id();
+        if pool.iter().flatten().any(|s| s.camera_id == id) {
+            continue;
+        }
+        pool.push(Some(TravelSource {
+            camera_id: id.into(),
+            place: format!(
+                "{}・自訂 YouTube {}",
+                ["自在飛行", "列車旅行", "和風庭園", "御運轉士", "地方散策"]
+                    [style.registry_value() as usize],
+                if item.is_playlist() {
+                    "清單"
+                } else {
+                    "影片"
+                }
+            ),
+            youtube_id: if item.is_playlist() {
+                String::new()
+            } else {
+                id.into()
+            },
+            playlist_id: item.is_playlist().then(|| id.into()),
+        }));
+    }
+    if pool.len() > 1 {
+        pool.retain(|source| {
+            source
+                .as_ref()
+                .is_none_or(|s| Some(s.camera_id.as_str()) != current)
+        });
+    }
+    let index = random as usize % pool.len();
+    pool.swap_remove(index)
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum TravelError {
     InvalidCameraId,
@@ -749,9 +793,9 @@ impl NetworkState {
     pub fn label(self) -> &'static str {
         match self {
             Self::Checking => "正在檢查來源網路…",
-            Self::LoadingPlayer => "正在載入日本即時影像…",
+            Self::LoadingPlayer => "正在載入影像…",
             Self::PlayerReady => "影像來源已連線",
-            Self::Playing => "日本即時影像播放中",
+            Self::Playing => "影片播放中",
             Self::Offline => "來源網路暫時無法連線，稍後重試",
             Self::SourceFailed => "目前影像來源無法播放，正在準備切換",
             Self::Stalled => "影像已停滯，正在準備切換",
@@ -996,7 +1040,7 @@ body{display:grid;place-items:center}
     currentHasPlaylist = hasPlaylist;
     playerPlaying = false;
     place.textContent = String(source.place || '日本').slice(0, 96);
-    updateStatus(hasPlaylist ? '正在讀取並隨機排列 YouTube 影片清單…' : '正在載入日本即時影像…');
+    updateStatus(hasPlaylist ? '正在讀取並隨機排列 YouTube 影片清單…' : '正在載入影像…');
     lastTime = -1; unchanged = 0; stalled = false;
     const startLoad = () => {
       if (currentToken !== source.token) return;
@@ -1038,7 +1082,7 @@ body{display:grid;place-items:center}
             enforceCaptionsOff(event.target);
             playerPlaying = true;
             scheduleGentleBlink();
-            updateStatus(currentHasPlaylist ? '隨機影片播放中' : '日本即時影像播放中');
+            updateStatus(currentHasPlaylist ? '隨機影片播放中' : '影片播放中');
             send('playing',currentToken);
           } else if (event.data === YT.PlayerState.BUFFERING) {
             playerPlaying = false;
@@ -1421,6 +1465,31 @@ mod tests {
         }
         assert!(!shell.contains(&["播放", "清單"].concat()));
         assert!(!shell.contains("VIDEO_START_SECONDS"));
+    }
+
+    #[test]
+    fn custom_video_and_playlist_join_default_pool_and_avoid_current_source() {
+        let custom = crate::youtube::SourceList::parse(
+            "https://youtu.be/Ee27soLzJ5c\nhttps://youtube.com/playlist?list=PLBH60D9AGfu0",
+        )
+        .unwrap();
+        for style in [
+            TravelStyle::FreeFlight,
+            TravelStyle::TrainJourney,
+            TravelStyle::JapaneseInn,
+            TravelStyle::TrainCab,
+            TravelStyle::Walking,
+        ] {
+            let default = configured_source(style, crate::youtube::SourceList::default(), None, 0);
+            assert_eq!(default, playlist_source(style));
+            let video = configured_source(style, custom, None, 1).unwrap();
+            assert_eq!(video.youtube_id, "Ee27soLzJ5c");
+            assert!(video.playlist_id.is_none());
+            for seed in 0..20 {
+                let next = configured_source(style, custom, Some("Ee27soLzJ5c"), seed);
+                assert!(next.is_none_or(|s| s.youtube_id != "Ee27soLzJ5c"));
+            }
+        }
     }
 
     #[test]

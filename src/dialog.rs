@@ -13,6 +13,7 @@ use windows_sys::Win32::UI::HiDpi::GetDpiForWindow;
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
 use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
+use crate::calendar_style::CalendarStyle;
 use crate::config::{self, ColorPreset, ConfigDraft};
 use crate::error::{last_error, AppError};
 use crate::font::FontSpec;
@@ -23,6 +24,7 @@ use crate::model::{
 use crate::native::{set_pointer, WindowIdentity};
 use crate::registry::{load_registry, RegistryStore};
 use crate::render::{Renderer, Style};
+use crate::youtube::SourceList;
 use crate::{monitor, resource_ids};
 
 // DWLP_USER follows the pointer-sized message result and dialog procedure slots.
@@ -234,9 +236,137 @@ fn show_error(hwnd: HWND, text: &str) {
     }
 }
 
+struct SourceDialogState {
+    sources: Cell<SourceList>,
+    title: String,
+}
+
+fn edit_sources(hwnd: HWND, state: &ConfigDialogState) {
+    let draft = state.draft.get();
+    let index = draft.travel_style.registry_value() as usize;
+    let label = ["自在飛行", "列車旅行", "和風庭園", "御運轉士", "地方散策"][index];
+    let source_state = SourceDialogState {
+        sources: Cell::new(draft.youtube_sources[index]),
+        title: format!("{label} — 自訂 YouTube 來源"),
+    };
+    // SAFETY: The state remains live for this owned modal child dialog.
+    let result = unsafe {
+        DialogBoxParamW(
+            GetWindowLongPtrW(hwnd, GWLP_HINSTANCE) as HINSTANCE,
+            resource_ids::IDD_YOUTUBE_SOURCES as usize as *const u16,
+            hwnd,
+            Some(sources_proc),
+            &source_state as *const SourceDialogState as isize,
+        )
+    };
+    if result == IDOK as isize {
+        let mut updated = state.draft.get();
+        updated.youtube_sources[index] = source_state.sources.get();
+        state.draft.set(updated);
+    } else if result == -1 {
+        show_error(hwnd, "無法開啟自訂來源編輯器。");
+    }
+}
+
+unsafe extern "system" fn sources_proc(
+    hwnd: HWND,
+    message: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> isize {
+    if message == WM_INITDIALOG {
+        if lparam == 0 {
+            return 0;
+        }
+        // SAFETY: Borrowed state comes from edit_sources and outlives the modal call.
+        let state = unsafe { &*(lparam as *const SourceDialogState) };
+        if set_pointer(hwnd, DIALOG_USER, lparam).is_err() {
+            unsafe { EndDialog(hwnd, IDCANCEL as isize) };
+            return 1;
+        }
+        unsafe {
+            SetWindowTextW(hwnd, wide(&state.title).as_ptr());
+            SendDlgItemMessageW(
+                hwnd,
+                i32::from(resource_ids::IDC_SOURCES_TEXT),
+                EM_SETLIMITTEXT,
+                crate::youtube::MAX_INPUT_BYTES,
+                0,
+            );
+            SetDlgItemTextW(
+                hwnd,
+                i32::from(resource_ids::IDC_SOURCES_TEXT),
+                wide(&state.sources.get().text()).as_ptr(),
+            );
+        }
+        let _ = center(hwnd, unsafe { GetParent(hwnd) });
+        return 1;
+    }
+    // SAFETY: The dialog user slot is initialized once above and borrowed until EndDialog.
+    let raw = unsafe { GetWindowLongPtrW(hwnd, DIALOG_USER) };
+    if raw == 0 {
+        return 0;
+    }
+    let state = unsafe { &*(raw as *const SourceDialogState) };
+    match message {
+        WM_COMMAND if (wparam & 0xffff) == IDOK as usize => {
+            let mut buffer = vec![0u16; crate::youtube::MAX_INPUT_BYTES + 2];
+            let count = unsafe {
+                GetDlgItemTextW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_SOURCES_TEXT),
+                    buffer.as_mut_ptr(),
+                    buffer.len() as i32,
+                )
+            };
+            match SourceList::parse(&String::from_utf16_lossy(&buffer[..count as usize])) {
+                Ok(sources) => {
+                    state.sources.set(sources);
+                    unsafe { EndDialog(hwnd, IDOK as isize) };
+                }
+                Err(error) => show_error(hwnd, &error),
+            }
+            1
+        }
+        WM_CLOSE => {
+            unsafe { EndDialog(hwnd, IDCANCEL as isize) };
+            1
+        }
+        WM_COMMAND if (wparam & 0xffff) == IDCANCEL as usize => {
+            unsafe { EndDialog(hwnd, IDCANCEL as isize) };
+            1
+        }
+        WM_NCDESTROY => {
+            unsafe { SetWindowLongPtrW(hwnd, DIALOG_USER, 0) };
+            0
+        }
+        _ => 0,
+    }
+}
+
 fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppError> {
     // SAFETY: All IDs name controls in the loaded configuration resource.
     unsafe {
+        for label in ["中式（預設）", "英文", "日式（和風月名）"] {
+            SendDlgItemMessageW(
+                hwnd,
+                i32::from(resource_ids::IDC_CALENDAR_STYLE),
+                CB_ADDSTRING,
+                0,
+                wide(label).as_ptr() as isize,
+            );
+        }
+        SendDlgItemMessageW(
+            hwnd,
+            i32::from(resource_ids::IDC_CALENDAR_STYLE),
+            CB_SETCURSEL,
+            draft.calendar_style.registry_value() as usize,
+            0,
+        );
+        EnableWindow(
+            GetDlgItem(hwnd, i32::from(resource_ids::IDC_CALENDAR_STYLE)),
+            i32::from(draft.display_mode == DisplayMode::TimeDate),
+        );
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_MODE_TIME_DATE),
@@ -389,6 +519,7 @@ fn set_travel_controls_enabled(hwnd: HWND, enabled: bool) {
     // SAFETY: IDs are fixed child controls of the live configuration dialog.
     unsafe {
         for id in [
+            resource_ids::IDC_EDIT_SOURCES,
             resource_ids::IDC_TRAVEL_FREE_FLIGHT,
             resource_ids::IDC_TRAVEL_TRAIN_JOURNEY,
             resource_ids::IDC_TRAVEL_JAPANESE_INN,
@@ -635,6 +766,21 @@ unsafe extern "system" fn config_proc(
             unsafe { EndDialog(hwnd, IDCANCEL as isize) };
             1
         }
+        WM_COMMAND if id == resource_ids::IDC_EDIT_SOURCES && notification == BN_CLICKED as u16 => {
+            edit_sources(hwnd, state);
+            1
+        }
+        WM_COMMAND
+            if id == resource_ids::IDC_CALENDAR_STYLE && notification == CBN_SELCHANGE as u16 =>
+        {
+            let selected = unsafe { SendDlgItemMessageW(hwnd, i32::from(id), CB_GETCURSEL, 0, 0) };
+            let mut draft = state.draft.get();
+            draft.calendar_style =
+                CalendarStyle::from_registry(selected as u32).unwrap_or_default();
+            state.draft.set(draft);
+            invalidate_preview(hwnd);
+            1
+        }
         WM_COMMAND if id == resource_ids::IDC_CHOOSE_FONT && notification == BN_CLICKED as u16 => {
             choose_font(hwnd, state);
             1
@@ -650,6 +796,12 @@ unsafe extern "system" fn config_proc(
                         .contains(&id)) =>
         {
             update_draft_from_command(state, id);
+            unsafe {
+                EnableWindow(
+                    GetDlgItem(hwnd, i32::from(resource_ids::IDC_CALENDAR_STYLE)),
+                    i32::from(state.draft.get().display_mode == DisplayMode::TimeDate),
+                );
+            }
             set_travel_controls_enabled(
                 hwnd,
                 state.draft.get().display_mode == DisplayMode::JapanTravel,

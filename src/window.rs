@@ -84,6 +84,7 @@ enum FetchPurpose {
 }
 
 struct TravelSession {
+    source_random: crate::model::Xorshift32,
     rotation: TravelRotation,
     sender: mpsc::Sender<TravelFetchCompletion>,
     receiver: mpsc::Receiver<TravelFetchCompletion>,
@@ -110,6 +111,7 @@ impl TravelSession {
         let (sender, receiver) = mpsc::channel();
         Self {
             rotation: TravelRotation::new(seed, switch_minutes),
+            source_random: crate::model::Xorshift32::new(seed ^ 0xa7e5b131),
             sender,
             receiver,
             generation: 0,
@@ -235,11 +237,10 @@ impl TravelHost {
         if coordinator.is_null() || self.stopping() {
             return;
         }
-        let playlist_source = self
-            .owner
-            .upgrade()
-            .and_then(|owner| travel::playlist_source(owner.config.get().travel_style));
-        let (generation, purpose, candidates, sender, check_catalog) = {
+        let Some(config) = self.owner.upgrade().map(|owner| owner.config.get()) else {
+            return;
+        };
+        let (generation, purpose, candidates, sender, check_catalog, playlist_source) = {
             let mut travel_slot = self.travel.borrow_mut();
             let Some(travel) = travel_slot.as_mut() else {
                 return;
@@ -257,6 +258,12 @@ impl TravelHost {
             if purpose == FetchPurpose::Current {
                 travel.state = travel.state.transition(NetworkEvent::FetchStarted);
             }
+            let playlist_source = travel::configured_source(
+                config.travel_style,
+                config.youtube_sources[config.travel_style.registry_value() as usize],
+                travel.source.as_ref().map(|s| s.camera_id.as_str()),
+                travel.source_random.next_value(),
+            );
             let candidates = if playlist_source.is_some() {
                 Vec::new()
             } else {
@@ -275,6 +282,7 @@ impl TravelHost {
                 candidates,
                 travel.sender.clone(),
                 playlist_source.is_none() && !travel.catalog_healthy,
+                playlist_source,
             )
         };
         if purpose == FetchPurpose::Current {

@@ -1,10 +1,10 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.0
+文件版本：1.1
 
-實作基準：產品 v0.13.0、設定 schema 8、Git commit `868c5aca9c1e39bb8be57d0535728e75996df841`
+實作基準：產品 v0.14.0、設定 schema 9、Git tag `v0.14.0`
 
-基準日期：2026-09-09
+基準日期：2026-09-10
 
 用途：保存目前已實作系統的可重建規格；未來重寫時應以本文件描述的外部行為、資料格式與驗收條件為相容基準。
 
@@ -123,7 +123,7 @@
 | 4 | 雪藍 | `(101, 151, 178)` |
 | 5 | 琥珀 | `(255, 191, 0)` |
 | 6 | 自動切換（2 分鐘） | 每 120 秒依表列固定色循環 |
-| 7 | 鐵灰色 | `(154, 160, 163)` |
+| 7 | 鐵灰 | `(154, 160, 163)` |
 
 自動模式的循環順序為深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰。
 
@@ -138,13 +138,29 @@
 - 遇到高於本程式理解範圍的 schema，只能讀取可理解值，不得覆寫未來版本設定。
 - 設定預覽不得存檔、啟動全螢幕、建立 WebView2 或連網。
 
+### 5.6 桌曆顯示與自訂來源
+
+`CalendarStyle` 分別為中式 0（預設）、英文 1、日式 2。週一為首欄，西曆日期不變；英文使用完整月名與 Mon～Sun，日式依序使用睦月、如月、弥生、卯月、皐月、水無月、文月、葉月、長月、神無月、霜月、師走，星期為月曜～日曜。一般版面保留西元年，緊湊版面只顯示月名。字型必須測量完整月名與多字星期，確保長字串不超出欄寬。
+
+每個旅行場景可加入最多 10 個 YouTube 影片或清單連結。主設定選定場景後，開啟所屬 modal 多行編輯器，每行一個網址；內層確定只更新外層 draft，外層確定才交易保存。刪除行即移除，清空只保留預設來源；取消不保存該層變更。編輯、驗證與預覽不得連網。
+
+解析只接受 HTTP(S) 的 youtube.com、www.youtube.com、m.youtube.com、music.youtube.com、youtu.be、www.youtu.be 精確 host，不接受帳密、port 或其他網站；影片 ID 為 11 位，清單 ID 為 10～64 位，皆限 ASCII 英數、底線及連字號。輸入總長最多 16384 bytes、單行 URL 最多 2048 bytes，忽略空行、合併重複，保存 canonical HTTPS URL。watch 同時帶 v/list 時以清單優先；其他分享參數不保存。格式驗證不保證存在或可嵌入。
+
+來源池為「一個預設入口＋各自訂入口」，等機率挑選入口；和風庭園的預設入口再使用既有 tw.live 候選輪換。不是把全部清單展平後對每支影片等機率選擇。至少兩個入口時排除目前入口；清單內選片仍由既有 IFrame API 完成。每個螢幕保存獨立 PRNG 與播放生命週期；自訂來源同樣套用隨機起點、預抓、切換／不切換、靜音、字幕關閉與失敗復原。
+
 ## 6. 設定資料格式
 
-位置：`HKCU\Software\tools-screensaver-tzk`；目前 `SchemaVersion=8`。
+位置：`HKCU\Software\tools-screensaver-tzk`；目前 `SchemaVersion=9`。
 
 | 名稱 | Registry type | 規則／預設 |
 | --- | --- | --- |
-| `SchemaVersion` | `REG_DWORD` | 8；缺失視為目前 schema，0 或型別錯誤時整組回預設 |
+| `SchemaVersion` | `REG_DWORD` | 9；缺失視為目前 schema，0 或型別錯誤時整組回預設 |
+| `CalendarStyle` | `REG_DWORD` | 0～2；預設 0，schema 9 起有效 |
+| `YouTubeSourcesFreeFlight` | `REG_BINARY` | UTF-8 canonical URL，CRLF 分隔、無 BOM／NUL；最多 10 個，預設空 |
+| `YouTubeSourcesTrainJourney` | `REG_BINARY` | 同上，列車旅行 |
+| `YouTubeSourcesJapaneseInn` | `REG_BINARY` | 同上，和風庭園 |
+| `YouTubeSourcesTrainCab` | `REG_BINARY` | 同上，御運轉士 |
+| `YouTubeSourcesWalking` | `REG_BINARY` | 同上，地方散策 |
 | `DisplayMode` | `REG_DWORD` | 0～2；預設 0 |
 | `TravelStyle` | `REG_DWORD` | 0～4；預設 0 |
 | `TravelSwitchMinutes` | `REG_DWORD` | 0 或 1～1440；預設 1 |
@@ -154,7 +170,7 @@
 | `CustomPointSizeTenth` | `REG_DWORD` | 與 `CustomLogFont` 成對有效 |
 | `LastCountdownDurationSeconds` | `REG_DWORD` | 1～359999；預設 300 |
 
-讀取單一值最多 4096 bytes。未知值、錯誤型別、超界資料或讀取錯誤應局部回退，不得造成啟動失敗。schema 遷移門檻需保留：旅行主模式自 schema 3、基本旅行場景自 4、切換分鐘自 5、和風庭園與新增色彩自 6、御運轉士與地方散策自 7、鐵灰自 8 起有效。
+讀取單一值最多 4096 bytes。未知值、錯誤型別、超界資料或讀取錯誤應局部回退，不得造成啟動失敗。schema 遷移門檻需保留：旅行主模式自 schema 3、基本旅行場景自 4、切換分鐘自 5、和風庭園與新增色彩自 6、御運轉士與地方散策自 7、鐵灰自 8 起有效。桌曆方式與自訂來源自 9 起有效；舊版倒數提交若升版，須先把這些新欄位設回預設，不能啟用舊 schema 的同名未知值。schema 9 倒數提交不改變新欄位。
 
 ## 7. 顯示與動畫規格
 
@@ -309,6 +325,10 @@ flowchart LR
 
 任何重寫版本都應維持或提升上述覆蓋；不得以降低測試數量掩蓋功能缺失。
 
+### 13.4 v0.14.0 增量結果
+
+68 個預設 Rust 測試通過、9 ignored；19 個 WebView2 與 15 個產品版本 policy checks 通過；新增 9 張三種桌曆橫向／直向／小尺寸 GDI fixture，PE smoke 包含新的來源 editor resource。schema 9、五場景來源、惡意網址拒絕、舊 schema 遷移、清空與 rollback 已非互動驗證。實際 UI 互動、自訂影片播放與 UAC 安裝尚未測試。完整證據見 [Phase 21](phase21-report.md)。
+
 ## 14. 驗收條件
 
 ### 14.1 可在遠端／CI 執行
@@ -340,10 +360,10 @@ flowchart LR
 
 ## 16. 完成定義
 
-未來重新開發只有在以下條件全部成立時，才可宣告與 v0.13.0 功能相容：
+未來重新開發只有在以下條件全部成立時，才可宣告與 v0.14.0 功能相容：
 
 - 外部名稱、CLI、registry schema、AppId 與 System32 檔名相容。
-- 三個主模式、五個旅行場景、八種色彩、四種字型來源均可保存並重新載入。
+- 三個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式及五組自訂來源均可保存並重新載入。
 - 多螢幕、DPI、輸入退出、游標與資源清理符合本文件。
 - 旅行來源、隨機起點、切換預備、眨眼、caption 與 WebView2 hardening 符合本文件。
 - 安裝器版本互斥、WebView2 prerequisite、set-current helper 與完成頁設定選項符合本文件。
