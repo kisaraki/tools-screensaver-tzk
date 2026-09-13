@@ -1,12 +1,29 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.2
+文件版本：1.3
 
 實作基準：產品 v0.14.1、設定 schema 9、Git tag `v0.14.1`
 
 基準日期：2026-09-13
 
 用途：保存目前已實作系統的可重建規格；未來重寫時應以本文件描述的外部行為、資料格式與驗收條件為相容基準。
+
+## 0. 實作快照與文件邊界
+
+本文件記錄已發布的 `v0.14.1`，不是未來需求清單。重建時先以 tag 與 commit 固定參考原始碼，再依本文件驗證相容性：
+
+| 項目 | v0.14.1 快照 |
+| --- | --- |
+| Git tag | `v0.14.1` |
+| Git commit | `48bac499d8cc20ae57f0e79f5d575f48d4c90c7c` |
+| Cargo／SCR／Setup 版本 | `0.14.1` |
+| Registry schema | `9` |
+| Rust toolchain | `1.97.1-x86_64-pc-windows-msvc` |
+| WebView2 Bootstrapper lock | `1.3.265.7`，1,783,000 bytes，SHA-256 `17debf797a6c737959bc588236e897936ffac1af5f7e515e674ab32f9edfe719` |
+| SCR | 9,570,816 bytes，SHA-256 `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
+| Setup | 12,614,509 bytes，SHA-256 `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
+
+產品程式碼、安裝器、網站與公開下載是同一個版本集合；規格文件本身可在不變更產品版本的後續文件提交中修訂。若程式行為與本文件衝突，先以該 tag 的實際外部行為及自動測試為證據，修正文件後再進行重寫。
 
 ## 1. 產品定位
 
@@ -144,6 +161,8 @@
 
 每個旅行場景可加入最多 10 個 YouTube 影片或清單連結。主設定選定場景後，開啟所屬 modal 多行編輯器，每行一個網址；內層確定只更新外層 draft，外層確定才交易保存。刪除行即移除，清空只保留預設來源；取消不保存該層變更。編輯、驗證與預覽不得連網。
 
+自訂來源不是暫存的播放器狀態。外層確定後，五組清單與其他設定一併寫入 HKCU；關閉程式、重新登入、重新開機或再次啟動時，新的 `RegistryStore` 會重新讀取並還原。WebView2 profile 不是設定來源，也不能取代 registry。
+
 解析只接受 HTTP(S) 的 youtube.com、www.youtube.com、m.youtube.com、music.youtube.com、youtu.be、www.youtu.be 精確 host，不接受帳密、port 或其他網站；影片 ID 為 11 位，清單 ID 為 10～64 位，皆限 ASCII 英數、底線及連字號。輸入總長最多 16384 bytes、單行 URL 最多 2048 bytes，忽略空行、合併重複，保存 canonical HTTPS URL。watch 同時帶 v/list 時以清單優先；其他分享參數不保存。格式驗證不保證存在或可嵌入。
 
 來源池為「一個預設入口＋各自訂入口」，等機率挑選入口；和風庭園的預設入口再使用既有 tw.live 候選輪換。不是把全部清單展平後對每支影片等機率選擇。至少兩個入口時排除目前入口；清單內選片仍由既有 IFrame API 完成。每個螢幕保存獨立 PRNG 與播放生命週期；自訂來源同樣套用隨機起點、預抓、切換／不切換、靜音、字幕關閉與失敗復原。
@@ -171,6 +190,14 @@
 | `LastCountdownDurationSeconds` | `REG_DWORD` | 1～359999；預設 300 |
 
 讀取單一值最多 4096 bytes。未知值、錯誤型別、超界資料或讀取錯誤應局部回退，不得造成啟動失敗。schema 遷移門檻需保留：旅行主模式自 schema 3、基本旅行場景自 4、切換分鐘自 5、和風庭園與新增色彩自 6、御運轉士與地方散策自 7、鐵灰自 8 起有效。桌曆方式與自訂來源自 9 起有效；舊版倒數提交若升版，須先把這些新欄位設回預設，不能啟用舊 schema 的同名未知值。schema 9 倒數提交不改變新欄位。
+
+### 6.1 寫入、重啟與回復契約
+
+- 五組來源以各自獨立的 `REG_BINARY` 值保存，不得合併成程序內快取或依賴 WebView2 user data。
+- 正常設定提交以 schema 最後寫入；任一欄位寫入失敗時，已寫欄位必須依反向順序還原。
+- 正式讀取在每次程序啟動建立新的 store；重新載入不得依賴上次程序留下的 Rust 物件。
+- 專用 registry adapter 測試應寫入隔離的 HKCU test key，關閉第一個 store，再用新 adapter 讀回五組來源，最後刪除 test key。
+- 測試不得存取或改寫正式的 `HKCU\Software\tools-screensaver-tzk` 使用者設定。
 
 ## 7. 顯示與動畫規格
 
@@ -267,6 +294,8 @@ flowchart LR
 | `config.rs` | schema、預設值、驗證、設定交易與 migration gate |
 | `registry.rs` | 有界 HKCU Registry adapter |
 | `dialog.rs` | 設定與倒數輸入 dialog、即時離線預覽 |
+| `calendar_style.rs` | 中式、英文、日式月名與星期標籤 |
+| `youtube.rs` | YouTube URL 白名單、canonicalization 與有界來源清單 |
 | `model.rs` | 日期、月曆、倒數、timeline、PRNG 等純邏輯 |
 | `layout.rs` | 響應式布局、detail level、防烙印位移 |
 | `render.rs` | GDI 繪圖、字型、鐘面、月曆、沙漏、玻璃面板、caption |
@@ -332,6 +361,8 @@ flowchart LR
 ### 13.5 v0.14.1 增量結果
 
 69 個預設 Rust 測試通過、9 ignored；實際專用 registry test key 在關閉 store 後由全新 adapter 讀回五組來源；每次來源啟用的 181～539 秒起點由原生 PRNG 產生並明確傳給 player shell。19 個 WebView2、15 個產品版本 policy checks、Release build、JavaScript 語法、PE smoke 及 Inno Setup package 均通過。實際 UI 與 YouTube seek 仍為 `NOT TESTED`。完整證據見 [Phase 22](phase22-report.md)。
+
+`v0.14.1` 的 69 個預設測試分布為 library 49、CLI 8、native noninteractive 2、layout 10；另有 9 個需互動環境的 ignored tests。這些數量是參考快照，重寫時應以行為覆蓋為主，不可只追求相同數量。
 
 ## 14. 驗收條件
 

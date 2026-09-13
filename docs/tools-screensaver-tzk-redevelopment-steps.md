@@ -1,12 +1,31 @@
 # tools-screensaver-tzk 從零重新開發步驟
 
-文件版本：1.1
+文件版本：1.2
 
 目標基準：重建與 v0.14.1（schema 9）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 
 本文件提供從乾淨工作目錄開始，到建置、驗證、封裝與公開發布的實作順序。每一階段都先完成可自動驗證的產物，再進入需要 Windows UI 或 UAC 的實機驗收。
+
+## 0. 固定重建基準
+
+開始重寫前先保存目前公開版本的可核對資訊：
+
+```powershell
+git fetch --tags origin
+git rev-parse v0.14.1^{commit}
+git show --no-patch --format=fuller v0.14.1
+```
+
+`v0.14.1` 應解析到 `48bac499d8cc20ae57f0e79f5d575f48d4c90c7c`。參考成品為：
+
+| 成品 | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `tools-screensaver-tzk.scr` | 9,570,816 | `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
+| `tools-screensaver-tzk-Setup.exe` | 12,614,509 | `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
+
+重寫可使用新分支與新內部結構，但對外名稱、CLI、AppId、registry schema 與資料格式必須依規格書保持相容。不要把 `docs/phase*.md` 的歷史需求或中途方案當成最終契約；它們只用於追查設計原因。
 
 ## 1. 準備開發環境
 
@@ -122,6 +141,8 @@ tools-screensaver-tzk/
 
 另建立 `calendar_style.rs` 的三種月名／星期與 `youtube.rs` 的離線 URL 驗證、正規化、去重及數量限制。schema 9 才讀取新欄位；舊版預設中式及空自訂來源。倒數保存若推進 schema，必須清除舊 schema 的同名未知來源 key，不能意外啟用它們；schema 9 的倒數保存則保留來源與桌曆設定。所有新欄位納入原有 rollback，schema 最後寫入。
 
+五組來源持久化要以真正的 registry adapter 補一個隔離測試：寫入 HKCU 專用 test key，銷毀第一個 store，建立全新 store 後讀回五組清單，再清除 test key。這個測試用來證明下次登入、開機或再次啟動能恢復設定；只對同一個 memory store 讀寫不足以驗證此需求。
+
 完成條件：設定資料完全不依賴 UI 即可測試，且符合規格書第 6 節的 registry contract。涵蓋五場景 round-trip、清空、無效 host／ID、10 個上限、單欄損壞回退、schema 8 遷移與新欄位中途寫入失敗。
 
 ## 5. 階段 C：完成 GDI renderer
@@ -190,7 +211,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\export-travel-shell-fixtur
 
 1. 以固定 local HTTPS virtual host 載入 shell，建立 YouTube IFrame Player。
 2. playlist 啟動時 `loadPlaylist`、shuffle、讀回 ID、隨機選片。
-3. 每次 load/replay 使用新的 181～539 秒起點。
+3. 原生 `TravelSession` 為每個螢幕保留獨立於來源選擇的播放起點 PRNG。每次啟用來源先抽取 181～539 秒，再把必填 `startSeconds` 放進 load command；直接影片、清單初載、清單選片與預備候選切換都使用該次值。player shell 必須拒絕缺值、非整數或超界值；片尾同片重播再抽一個新值。
 4. 固定 mute、隱藏 controls、停用 keyboard/fullscreen/annotations，並在 lifecycle events 重申字幕關閉。
 5. 下一候選只預選 ID 與預熱 thumbnail/CDN，不建立第二播放器。
 6. 事件只送 `shell-ready` 或 `ready|playing|error|stalled:<token>` 類型的有界訊息。
@@ -205,6 +226,8 @@ powershell -NoProfile -NonInteractive -File .\scripts\export-travel-shell-fixtur
 5. runtime 缺失或 renderer failure 時顯示原生 fallback，且仍可用輸入退出。
 
 完成條件：純 Rust/JS source tests、離線 shell geometry 與 WebView2 ignored environment tests 均具備；實際影片另在互動驗收執行。
+
+另加一個原生狀態測試，連續啟用來源時確認 playback token 單調推進、起點始終落在 181～539，且實際產生的 load script 含相同值。再用 JavaScript source test 覆蓋 playlist、direct video、prepared candidate 及片尾重播四條路徑。離線測試只能證明命令與範圍，不能宣稱 YouTube 對短片、直播或 keyframe 實際 seek 到精確秒數。
 
 ## 10. 階段 H：建立安裝器
 
@@ -246,11 +269,14 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1 `
 
 `check-japan-sources.ps1` 會連網，其餘標準驗證不得顯示產品 UI、建立 player、安裝程式、觸發 UAC 或更動目前 saver registry。
 
+以 v0.14.1 為參考時，完整 package 預期通過 69 個預設 Rust 測試（library 49、CLI 8、native noninteractive 2、layout 10）、9 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
+
 提交前至少執行：
 
 ```powershell
 git diff --check
-rg -n -i "MyDateTimeScreenSaver|MyDateTimeScreensaver|MyDateTime" `
+$legacyNamePattern = 'MyDate' + 'Time(ScreenSaver|Screensaver)?'
+rg -n -i $legacyNamePattern `
   --glob '!target/**' --glob '!docs/evidence/**' .
 git status --short
 ```
