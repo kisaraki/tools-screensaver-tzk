@@ -2,7 +2,7 @@
 
 文件版本：1.1
 
-目標基準：重建與 v0.14.0（schema 9）相容的 Windows 10 x64 版本
+目標基準：重建與 v0.14.1（schema 9）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 

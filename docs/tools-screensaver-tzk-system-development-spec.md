@@ -1,10 +1,10 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.1
+文件版本：1.2
 
-實作基準：產品 v0.14.0、設定 schema 9、Git tag `v0.14.0`
+實作基準：產品 v0.14.1、設定 schema 9、Git tag `v0.14.1`
 
-基準日期：2026-09-10
+基準日期：2026-09-13
 
 用途：保存目前已實作系統的可重建規格；未來重寫時應以本文件描述的外部行為、資料格式與驗收條件為相容基準。
 
@@ -229,7 +229,7 @@ flowchart LR
 
 - player 固定靜音，`controls=0`、`cc_load_policy=0`、`disablekb=1`、`fs=0`、`iv_load_policy=3`。
 - ready、load、playing、片尾重播與 `onApiChange` 都要重新要求清除字幕 track 並卸載 captions module。影片畫面中已燒錄文字無法移除。
-- 每次初始載入、隨機選片、預備候選與片尾重播都獨立產生 181～539 秒的播放起點，即 3:01～8:59。
+- 每個螢幕以獨立 PRNG 在每次來源啟用時產生 181～539 秒的播放起點，即 3:01～8:59；原生 load command 必須攜帶該值，player shell 拒絕缺值、非整數或超界值。直接影片、清單初載、清單隨機選片及預備候選切換使用該次來源值；片尾同片重播再次產生新隨機起點。
 - 影片太短、直播或來源不支援 seek 時，允許播放器忽略或調整起點。
 - 切換時間從收到 `PLAYING` 才開始計算，每個螢幕各自計時。
 - 切換前最後一分鐘由 worker 預先解析下一來源，shell 預選不同影片並預熱縮圖/CDN。不得建立第二個隱藏 player，也不得在背景播放影音。
@@ -329,6 +329,10 @@ flowchart LR
 
 68 個預設 Rust 測試通過、9 ignored；19 個 WebView2 與 15 個產品版本 policy checks 通過；新增 9 張三種桌曆橫向／直向／小尺寸 GDI fixture，PE smoke 包含新的來源 editor resource。schema 9、五場景來源、惡意網址拒絕、舊 schema 遷移、清空與 rollback 已非互動驗證。實際 UI 互動、自訂影片播放與 UAC 安裝尚未測試。完整證據見 [Phase 21](phase21-report.md)。
 
+### 13.5 v0.14.1 增量結果
+
+69 個預設 Rust 測試通過、9 ignored；實際專用 registry test key 在關閉 store 後由全新 adapter 讀回五組來源；每次來源啟用的 181～539 秒起點由原生 PRNG 產生並明確傳給 player shell。19 個 WebView2、15 個產品版本 policy checks、Release build、JavaScript 語法、PE smoke 及 Inno Setup package 均通過。實際 UI 與 YouTube seek 仍為 `NOT TESTED`。完整證據見 [Phase 22](phase22-report.md)。
+
 ## 14. 驗收條件
 
 ### 14.1 可在遠端／CI 執行
@@ -360,7 +364,7 @@ flowchart LR
 
 ## 16. 完成定義
 
-未來重新開發只有在以下條件全部成立時，才可宣告與 v0.14.0 功能相容：
+未來重新開發只有在以下條件全部成立時，才可宣告與 v0.14.1 功能相容：
 
 - 外部名稱、CLI、registry schema、AppId 與 System32 檔名相容。
 - 三個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式及五組自訂來源均可保存並重新載入。

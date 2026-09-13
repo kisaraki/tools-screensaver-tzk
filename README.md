@@ -7,24 +7,24 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.14.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.14.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.14.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.14.1) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase13/fixtures/07-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.14.0 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
+> **v0.14.1 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 9,570,304 | `4d69ac312483376a622fe912a9d9bc2d70b6e6440fe61faced2ef38fd177551c` |
-| `tools-screensaver-tzk-Setup.exe` | 12,614,321 | `987d0f2612d83b187bef29b5788824ce90767333c6c5786387bf1d66711350fb` |
+| `tools-screensaver-tzk.scr` | 9,570,816 | `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
+| `tools-screensaver-tzk-Setup.exe` | 12,614,509 | `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
 
 ## 安裝與使用
 
@@ -54,7 +54,9 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 
 新增來源與該場景的預設來源一起隨機選取，再依既有切換時間播放；不會替換預設來源。刪掉一行可移除該來源，清空則只用預設來源。重複連結自動合併。
 
-支援 `youtube.com/watch?v=…`、`youtube.com/playlist?list=…`、`youtu.be/…`，以及 YouTube 的 Shorts、live、embed 影片連結。一般觀看連結同時含 `v` 與 `list` 時，視為整份清單。只接受 YouTube 的 HTTP(S) 連結，保存時統一為 HTTPS 並移除分享追蹤與起始時間參數；影片仍沿用第 3 分鐘之後的隨機起點。頻道網址與其他網站會顯示錯誤。
+主設定按「確定」後，五個場景的自訂來源會分別保存於目前 Windows 使用者的登錄設定。登出、重新開機或下次啟動螢幕保護程式時會自動恢復；不需要重新貼上，也不依賴瀏覽器快取。使用不同 Windows 帳號時，各帳號有自己的來源設定。
+
+支援 `youtube.com/watch?v=…`、`youtube.com/playlist?list=…`、`youtu.be/…`，以及 YouTube 的 Shorts、live、embed 影片連結。一般觀看連結同時含 `v` 與 `list` 時，視為整份清單。只接受 YouTube 的 HTTP(S) 連結，保存時統一為 HTTPS 並移除分享追蹤與起始時間參數。每次首次載入或變更來源時，都會重新隨機選擇 3:01～8:59 的播放起點；同片播完重播也會重新抽選。頻道網址與其他網站會顯示錯誤。
 
 編輯器檢查網址格式；實際可播放性在播放階段判定。私人、已刪除、地區限制或禁止嵌入的影片可能無法播放，將走既有錯誤復原流程。
 
@@ -201,7 +203,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.14.0 的 68 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.14.1 的 69 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -223,10 +225,11 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [截至 v0.14.0 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
+- [截至 v0.14.1 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
 - [從零重新開發、驗證、封裝與發布步驟](docs/tools-screensaver-tzk-redevelopment-steps.md)
 - [Phase 21：自訂 YouTube 來源與桌曆顯示](docs/phase21-report.md)
-- [Codex 開發規格 v2.8](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 22：來源持久化與隨機起播保證](docs/phase22-report.md)
+- [Codex 開發規格 v2.9](tools-screensaver-tzk_Codex_Spec.md)
 - [Phase 20 旅行播放與安裝完成設定報告](docs/phase20-report.md)
 - [Phase 19 暗色藥劑瓶玻璃面板報告](docs/phase19-report.md)
 - [Phase 18 啟動設定、游標、眨眼與色彩報告](docs/phase18-report.md)
@@ -248,7 +251,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～21 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.14.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～22 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.14.1 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 

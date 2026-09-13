@@ -32,6 +32,12 @@ const USER_AGENT: &str = "tools-screensaver-tzk/0.4 (Windows 10; Japan travel mo
 const MAX_RESPONSE_BYTES: usize = 512 * 1024;
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(15);
 const IO_TIMEOUT_MS: i32 = 4_000;
+pub(crate) const VIDEO_START_MIN_SECONDS: u32 = 181;
+pub(crate) const VIDEO_START_MAX_SECONDS: u32 = 539;
+
+pub(crate) fn random_video_start(random: u32) -> u32 {
+    VIDEO_START_MIN_SECONDS + random % (VIDEO_START_MAX_SECONDS - VIDEO_START_MIN_SECONDS + 1)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct CameraSeed {
@@ -904,7 +910,9 @@ body{display:grid;place-items:center}
   let lastNetworkBlink = 0;
   let preloadImage = null;
   const VIDEO_START_MIN_SECONDS = 181;
+  const VIDEO_START_MAX_SECONDS = 539;
   const VIDEO_START_RANDOM_SECONDS = 359;
+  let currentStartSeconds = VIDEO_START_MIN_SECONDS;
   const cabin = document.querySelector('.cabin');
   const place = document.getElementById('place');
   const status = document.getElementById('status');
@@ -916,6 +924,8 @@ body{display:grid;place-items:center}
     return Math.floor(Math.random() * length);
   };
   const randomStartSeconds = () => VIDEO_START_MIN_SECONDS + randomIndex(VIDEO_START_RANDOM_SECONDS);
+  const validStartSeconds = value => Number.isInteger(value)
+    && value >= VIDEO_START_MIN_SECONDS && value <= VIDEO_START_MAX_SECONDS;
   const disableCaptions = target => {
     if (!target) return;
     try {
@@ -1007,7 +1017,7 @@ body{display:grid;place-items:center}
     if (!validVideoId(selected)) return false;
     playlistNeedsShuffle = false;
     selectedVideoId = selected;
-    target.loadVideoById({videoId:selected,startSeconds:randomStartSeconds()});
+    target.loadVideoById({videoId:selected,startSeconds:currentStartSeconds});
     enforceCaptionsOff(target);
     return true;
   };
@@ -1024,7 +1034,8 @@ body{display:grid;place-items:center}
     playlistProbe = setTimeout(() => waitForPlaylist(target, token, attempt + 1), 250);
   };
   const apply = source => {
-    if (!source || !Number.isInteger(source.token) || source.token <= 0) return;
+    if (!source || !Number.isInteger(source.token) || source.token <= 0
+        || !validStartSeconds(source.startSeconds)) return;
     const hasVideo = validVideoId(source.videoId);
     const hasPlaylist = validPlaylistId(source.playlistId);
     if (hasVideo === hasPlaylist) return;
@@ -1036,6 +1047,7 @@ body{display:grid;place-items:center}
     clearTimeout(playlistProbe);
     clearBlinkSchedule();
     currentToken = source.token;
+    currentStartSeconds = source.startSeconds;
     acceptPlayerEvents = false;
     currentHasPlaylist = hasPlaylist;
     playerPlaying = false;
@@ -1050,14 +1062,14 @@ body{display:grid;place-items:center}
       if (!window.YT || !window.YT.Player) { pending = source; return; }
       if (player) {
         if (preparedVideoId && typeof player.loadVideoById === 'function') {
-          player.loadVideoById({videoId:preparedVideoId,startSeconds:randomStartSeconds()});
+          player.loadVideoById({videoId:preparedVideoId,startSeconds:currentStartSeconds});
         } else if (hasPlaylist && typeof player.loadPlaylist === 'function') {
           activePlaylistId = source.playlistId;
           playlistCache = [];
-          player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:randomStartSeconds()});
+          player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:currentStartSeconds});
           waitForPlaylist(player, source.token, 0);
         } else if (hasVideo && typeof player.loadVideoById === 'function') {
-          player.loadVideoById({videoId:source.videoId,startSeconds:randomStartSeconds()});
+          player.loadVideoById({videoId:source.videoId,startSeconds:currentStartSeconds});
         }
         if (typeof player.mute === 'function') player.mute();
         enforceCaptionsOff(player);
@@ -1065,7 +1077,7 @@ body{display:grid;place-items:center}
       }
       const options = {
       host:'https://www.youtube-nocookie.com',
-      playerVars:{autoplay:1,mute:1,playsinline:1,rel:0,controls:0,cc_load_policy:0,disablekb:1,fs:0,iv_load_policy:3,start:randomStartSeconds(),origin:'https://travel.screensaver.local'},
+      playerVars:{autoplay:1,mute:1,playsinline:1,rel:0,controls:0,cc_load_policy:0,disablekb:1,fs:0,iv_load_policy:3,start:currentStartSeconds,origin:'https://travel.screensaver.local'},
       events:{
         onReady:event => {
           event.target.mute();
@@ -1145,9 +1157,10 @@ pub(crate) fn travel_html_shell(style: TravelStyle) -> String {
         .replace("__TRAVEL_SCENE_LABEL__", label)
 }
 
-pub(crate) fn load_source_script(source: &TravelSource, token: u32) -> String {
+pub(crate) fn load_source_script(source: &TravelSource, token: u32, start_seconds: u32) -> String {
+    let start_seconds = start_seconds.clamp(VIDEO_START_MIN_SECONDS, VIDEO_START_MAX_SECONDS);
     format!(
-        "window.travel.load({{videoId:{},playlistId:{},place:{},token:{token}}});",
+        "window.travel.load({{videoId:{},playlistId:{},place:{},token:{token},startSeconds:{start_seconds}}});",
         json_string(&source.youtube_id),
         source
             .playlist_id
@@ -1392,7 +1405,7 @@ mod tests {
             playlist_id: None,
             place: "東京 </script> & \"測試\"\n下一行".into(),
         };
-        let script = load_source_script(&source, 7);
+        let script = load_source_script(&source, 7, 321);
         assert!(script
             .starts_with("window.travel.load({videoId:\"Ee27soLzJ5c\",playlistId:null,place:"));
         assert!(!script.contains("</script>"));
@@ -1400,6 +1413,7 @@ mod tests {
         assert!(script.contains("\\u0026"));
         assert!(script.contains("\\n"));
         assert!(script.contains("token:7"));
+        assert!(script.contains("startSeconds:321"));
         let prepare = prepare_source_script(&source);
         assert!(prepare
             .starts_with("window.travel.prepare({videoId:\"Ee27soLzJ5c\",playlistId:null,place:"));
@@ -1424,9 +1438,10 @@ mod tests {
             assert_eq!(source.place, place);
             assert!(source.youtube_id.is_empty());
             assert!(source.embed_url().contains("/embed/videoseries?list="));
-            let script = load_source_script(&source, 9);
+            let script = load_source_script(&source, 9, 181);
             assert!(script.contains(&format!("playlistId:\"{expected}\"")));
             assert!(script.contains("token:9"));
+            assert!(script.contains("startSeconds:181"));
         }
         assert!(playlist_source(TravelStyle::JapaneseInn).is_none());
         let shell = travel_html_shell(TravelStyle::Walking);
@@ -1434,7 +1449,10 @@ mod tests {
             "loadPlaylist({listType:'playlist'",
             "setShuffle(true)",
             "getPlaylist()",
-            "target.loadVideoById({videoId:selected,startSeconds:randomStartSeconds()})",
+            "target.loadVideoById({videoId:selected,startSeconds:currentStartSeconds})",
+            "player.loadVideoById({videoId:preparedVideoId,startSeconds:currentStartSeconds})",
+            "player.loadPlaylist({listType:'playlist',list:source.playlistId,index:0,startSeconds:currentStartSeconds})",
+            "player.loadVideoById({videoId:source.videoId,startSeconds:currentStartSeconds})",
             "window.travel = {load: apply, prepare, setStatus:updateStatus}",
             "controls:0",
             "cc_load_policy:0",
@@ -1443,8 +1461,10 @@ mod tests {
             "onApiChange:event => enforceCaptionsOff(event.target)",
             "iv_load_policy:3",
             "VIDEO_START_MIN_SECONDS = 181",
+            "VIDEO_START_MAX_SECONDS = 539",
             "VIDEO_START_RANDOM_SECONDS = 359",
-            "start:randomStartSeconds()",
+            "validStartSeconds(source.startSeconds)",
+            "start:currentStartSeconds",
             "@keyframes sourceCloseTop",
             "@keyframes sourceOpenTop",
             "@keyframes gentleBlinkTop",
@@ -1465,6 +1485,25 @@ mod tests {
         }
         assert!(!shell.contains(&["播放", "清單"].concat()));
         assert!(!shell.contains("VIDEO_START_SECONDS"));
+    }
+
+    #[test]
+    fn native_video_start_is_strictly_after_three_minutes_and_bounded() {
+        assert_eq!(random_video_start(0), 181);
+        assert_eq!(random_video_start(358), 539);
+        assert_eq!(random_video_start(359), 181);
+        for random in [1, 357, 359, u32::MAX] {
+            assert!((VIDEO_START_MIN_SECONDS..=VIDEO_START_MAX_SECONDS)
+                .contains(&random_video_start(random)));
+        }
+        let source = TravelSource {
+            camera_id: "safe".into(),
+            youtube_id: "Ee27soLzJ5c".into(),
+            playlist_id: None,
+            place: "日本".into(),
+        };
+        assert!(load_source_script(&source, 1, 0).contains("startSeconds:181"));
+        assert!(load_source_script(&source, 2, u32::MAX).contains("startSeconds:539"));
     }
 
     #[test]

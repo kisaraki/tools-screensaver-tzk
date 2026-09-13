@@ -949,9 +949,13 @@ mod tests {
         {
             let cleanup = RegistryTestKey::new(path.clone());
             let mut store = RegistryStore::at(&cleanup.path);
+            let persisted_source = SourceList::parse(
+                "https://youtu.be/Ee27soLzJ5c\nhttps://youtube.com/playlist?list=PLdsqwBj2O1Nw",
+            )
+            .unwrap();
             let draft = ConfigDraft {
-                calendar_style: CalendarStyle::Chinese,
-                youtube_sources: [SourceList::default(); 5],
+                calendar_style: CalendarStyle::Japanese,
+                youtube_sources: [persisted_source; 5],
                 display_mode: DisplayMode::Countdown,
                 travel_style: TravelStyle::TrainJourney,
                 travel_switch_minutes: 30,
@@ -961,7 +965,12 @@ mod tests {
             };
             save_draft(&mut store, draft).unwrap();
             save_countdown(&mut store, 359999).unwrap();
-            let loaded = load(&store);
+            drop(store);
+            // A fresh adapter models a later process start after logout or reboot.
+            let reopened = RegistryStore::at(&cleanup.path);
+            let loaded = load(&reopened);
+            assert_eq!(loaded.calendar_style, CalendarStyle::Japanese);
+            assert_eq!(loaded.youtube_sources, [persisted_source; 5]);
             assert_eq!(loaded.display_mode, DisplayMode::Countdown);
             assert_eq!(loaded.travel_style, TravelStyle::TrainJourney);
             assert_eq!(loaded.travel_switch_minutes, 30);

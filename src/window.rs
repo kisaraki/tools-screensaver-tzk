@@ -85,6 +85,7 @@ enum FetchPurpose {
 
 struct TravelSession {
     source_random: crate::model::Xorshift32,
+    playback_random: crate::model::Xorshift32,
     rotation: TravelRotation,
     sender: mpsc::Sender<TravelFetchCompletion>,
     receiver: mpsc::Receiver<TravelFetchCompletion>,
@@ -97,6 +98,7 @@ struct TravelSession {
     shell_ready: bool,
     awaiting_playback: bool,
     playback_token: u32,
+    playback_start_seconds: u32,
     load_started: u64,
     last_playing: u64,
     retry_at: u64,
@@ -112,6 +114,7 @@ impl TravelSession {
         Self {
             rotation: TravelRotation::new(seed, switch_minutes),
             source_random: crate::model::Xorshift32::new(seed ^ 0xa7e5b131),
+            playback_random: crate::model::Xorshift32::new(seed ^ 0xc2b2ae35),
             sender,
             receiver,
             generation: 0,
@@ -123,6 +126,7 @@ impl TravelSession {
             shell_ready: false,
             awaiting_playback: false,
             playback_token: 0,
+            playback_start_seconds: travel::VIDEO_START_MIN_SECONDS,
             load_started: 0,
             last_playing: 0,
             retry_at: 0,
@@ -135,6 +139,7 @@ impl TravelSession {
 
     fn activate_source(&mut self, source: TravelSource, now: u64) {
         self.playback_token = self.playback_token.wrapping_add(1).max(1);
+        self.playback_start_seconds = travel::random_video_start(self.playback_random.next_value());
         self.source = Some(source);
         self.awaiting_playback = true;
         self.load_started = now;
@@ -443,10 +448,13 @@ impl TravelHost {
 
     fn load_current_travel_source(&self, now: u64) {
         let script = self.travel.borrow().as_ref().and_then(|travel| {
-            travel
-                .source
-                .as_ref()
-                .map(|source| travel::load_source_script(source, travel.playback_token))
+            travel.source.as_ref().map(|source| {
+                travel::load_source_script(
+                    source,
+                    travel.playback_token,
+                    travel.playback_start_seconds,
+                )
+            })
         });
         let Some(script) = script else {
             return;
@@ -1990,6 +1998,7 @@ mod tests {
     #[test]
     fn activating_a_source_advances_a_nonzero_playback_token() {
         let mut travel = TravelSession::new(1, 1);
+        let mut starts = std::collections::BTreeSet::new();
         let source = |camera: &str| TravelSource {
             camera_id: camera.into(),
             place: "日本".into(),
@@ -1999,12 +2008,28 @@ mod tests {
         travel.activate_source(source("first"), 100);
         assert_eq!(travel.playback_token, 1);
         assert!(travel.awaiting_playback);
+        assert!(
+            (travel::VIDEO_START_MIN_SECONDS..=travel::VIDEO_START_MAX_SECONDS)
+                .contains(&travel.playback_start_seconds)
+        );
+        starts.insert(travel.playback_start_seconds);
         travel.activate_source(source("second"), 200);
         assert_eq!(travel.playback_token, 2);
         assert_eq!(travel.load_started, 200);
+        starts.insert(travel.playback_start_seconds);
         travel.playback_token = u32::MAX;
         travel.activate_source(source("wrapped"), 300);
         assert_eq!(travel.playback_token, 1);
+        starts.insert(travel.playback_start_seconds);
+        for index in 0..64 {
+            travel.activate_source(source(&format!("source-{index}")), 400 + index);
+            assert!(
+                (travel::VIDEO_START_MIN_SECONDS..=travel::VIDEO_START_MAX_SECONDS)
+                    .contains(&travel.playback_start_seconds)
+            );
+            starts.insert(travel.playback_start_seconds);
+        }
+        assert!(starts.len() > 1, "the per-activation PRNG did not advance");
     }
 
     #[test]
