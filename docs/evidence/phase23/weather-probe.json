@@ -1,0 +1,36 @@
+[
+  {
+    "condition": "晴",
+    "location": "控制臺城市",
+    "observed": "09/15 21:20",
+    "place": "Taipei, TW",
+    "rain_hour": 0.0,
+    "source": "中央氣象署 · 臺北測站觀測",
+    "temperature": 26.7,
+    "wind": 3.1
+  },
+  {
+    "condition": "雨",
+    "location": "控制臺城市",
+    "observed": "2026-09-15T22:30",
+    "place": "Tokyo, JP",
+    "rain_hour": 0.4,
+    "source": "Open-Meteo · CC BY 4.0 · 目前天氣模型",
+    "temperature": 23.1,
+    "wind": 1.17
+  },
+  {
+    "condition": "曇",
+    "location": "自訂英文城市／GeoNames",
+    "observed": "2026-09-15T22:30",
+    "place": "Yokohama, JP",
+    "rain_hour": 0.0,
+    "source": "Open-Meteo · CC BY 4.0 · 目前天氣模型",
+    "temperature": 24.8,
+    "wind": 0.91
+  },
+  {
+    "country": "JP",
+    "ip_location_probe": "PASS"
+  }
+]

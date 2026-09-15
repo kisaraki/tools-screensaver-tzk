@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#070a08">
     <meta
       name="description"
-      content="tools-screensaver-tzk：Windows 10 x64 的桌曆時鐘、離機作業番茄鐘與五種日本旅行場景。下載 v0.14.1 開發候選版。"
+      content="tools-screensaver-tzk：Windows 10 x64 的桌曆時鐘、番茄鐘、日本旅行、即時氣象與自動更新。下載 v0.15.0 開發候選版。"
     >
-    <title>tools-screensaver-tzk — 桌曆時鐘、離機作業番茄鐘與日本旅行</title>
+    <title>tools-screensaver-tzk — 桌曆、番茄鐘、日本旅行與即時氣象</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -34,14 +34,14 @@
     <main id="top">
       <section class="hero section">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span> Windows 10 x64 · v0.14.1</p>
+          <p class="eyebrow"><span></span> Windows 10 x64 · v0.15.0</p>
           <h1>讓時間在黑色畫布上<br><em>安靜地運行。</em></h1>
           <p class="lead">
-            Windows 螢幕保護程式，提供標準桌曆暨時鐘、離機作業番茄鐘與日本旅行三種模式。
+            Windows 螢幕保護程式，提供標準桌曆暨時鐘、離機作業番茄鐘、日本旅行與即時氣象四種模式。
             日本旅行提供五種擬真場景；御運轉士以設備與控制台包圍中央影片，地方散策使用全畫面強烈攝影暗角與自適應眨眼。
           </p>
           <div class="actions">
-            <a class="button primary" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk-Setup.exe" download>
+            <a class="button primary" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk-Setup.exe" download>
               下載安裝程式
             </a>
             <a class="button secondary" href="#download">
@@ -49,9 +49,9 @@
             </a>
           </div>
           <ul class="facts" aria-label="版本摘要">
-            <li><strong>3</strong><span>顯示模式</span></li>
+            <li><strong>4</strong><span>顯示模式</span></li>
             <li><strong>8</strong><span>主色選擇</span></li>
-            <li><strong>103</strong><span>非互動測試</span></li>
+            <li><strong>113</strong><span>非互動測試</span></li>
           </ul>
         </div>
         <figure class="hero-visual">
@@ -68,7 +68,7 @@
         <div>
           <h2>開發候選版，成品尚未簽章</h2>
           <p>
-            Windows 10 x64 的建置、69 個程式測試、9 張新桌曆版面、19 個 WebView2 與 15 個產品版本安裝判斷測試、非互動 smoke 已通過；實際雙螢幕影片播放與長時間觀察尚未在遠端工作階段執行。
+            Windows 10 x64 的建置、79 個程式測試、24 張氣象版面、19 個 WebView2 與 15 個產品版本安裝判斷測試、非互動 smoke 已通過；實際雙螢幕影片播放、氣象每小時刷新與更新安裝尚未在遠端工作階段執行。
             需要 UAC 的完整安裝矩陣未在遠端工作階段執行，Windows 11 也尚未驗證。
             下載後請先核對 SHA-256；Windows 可能顯示未驗證發行者或 SmartScreen 提示。
           </p>
@@ -78,7 +78,7 @@
       <section class="section" id="features">
         <div class="section-heading">
           <p class="eyebrow"><span></span> DISPLAY MODES</p>
-          <h2>三種畫面，依情境切換</h2>
+          <h2>四種畫面，依情境切換</h2>
         </div>
         <div class="mode-grid">
           <article class="mode-card">
@@ -134,6 +134,15 @@
             </div>
           </article>
         </div>
+        <article class="mode-card">
+          <div class="mode-image"><img src="assets/weather.png" alt="即時氣象模式的中央玻璃資訊卡（離線示意資料）"></div>
+          <div class="mode-copy">
+            <p class="index">04</p><h3>即時氣象模式</h3>
+            <p>八張像素風氣象背景與中央玻璃資訊卡，顯示城市、攝氏氣溫、天氣、日期時間、濕度與風速。臺灣使用中央氣象署最近的已支援測站；其他地區使用 Open-Meteo 目前天氣模型資料。每次啟動抓取，持續顯示每小時更新。</p>
+            <p>城市設定涵蓋九個國家／地區、43 個主要城市，預設臺北；可輸入正式英文城市名。預設 IP 約略定位，失敗回退設定城市；可取消定位固定城市。定位連線至 ipwho.is，城市搜尋與座標送至 Open-Meteo／GeoNames；資料 CC BY 4.0，免費端點供非商業使用。</p>
+            <p>晴、曇、強風、雨、土砂降り、嵐、雪、吹雪依雨量與風速映射；嵐、吹雪是程式分類，不能代替官方警報。資料失效會明示錯誤，不捏造數值。</p>
+          </div>
+        </article>
         <div class="feature-grid">
           <article>
             <span class="feature-mark">A</span>
@@ -143,7 +152,7 @@
           <article>
             <span class="feature-mark">B</span>
             <h3>離線與連線分流</h3>
-            <p>桌曆時鐘與番茄鐘不連網；只有全螢幕日本旅行模式會連線至 YouTube，和風庭園另連線至 tw.live。</p>
+            <p>系統與設定預覽不連網。正式旅行模式使用 YouTube／tw.live，氣象使用氣象服務；啟用自動更新才會發出每日檢查。</p>
           </article>
           <article>
             <span class="feature-mark">C</span>
@@ -153,28 +162,34 @@
         </div>
       </section>
 
+      <section class="notice section" aria-label="版本更新">
+        <div><h2>自動更新與手動更新</h2>
+          <p>設定面板可勾選「自動更新」（預設關閉），每天第一次於一般未鎖定桌面啟動正式螢幕保護時背景檢查。「手動更新」立即檢查。若有新版，先關閉螢幕保護與恢復游標，再詢問是否下載；核對 SHA-256 後啟動一般 Setup，保留異版移除詢問與 UAC。下載不需 GitHub 帳號，不會無人覆蓋安裝。</p>
+        </div>
+      </section>
+
       <section class="download-section section" id="download">
         <div class="section-heading">
           <p class="eyebrow"><span></span> DOWNLOAD</p>
-          <h2>下載 v0.14.1</h2>
+          <h2>下載 v0.15.0</h2>
           <p>選擇安裝程式，或直接取得獨立 <code>.scr</code> 與校驗清單。</p>
           <p class="download-access-note">檔案由本站直接提供，無需 GitHub 帳號、登入或雙因素驗證。</p>
         </div>
         <div class="download-grid">
-          <a class="download-card recommended" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk-Setup.exe" download>
+          <a class="download-card recommended" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk-Setup.exe" download>
             <span class="tag">建議</span>
             <span class="file-type">EXE</span>
             <strong>Windows 安裝程式</strong>
-            <span>tools-screensaver-tzk-Setup.exe · 12,614,509 bytes</span>
+            <span>tools-screensaver-tzk-Setup.exe · 23,310,022 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk.scr" download>
+          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk.scr" download>
             <span class="file-type">SCR</span>
             <strong>獨立程式檔</strong>
-            <span>tools-screensaver-tzk.scr · 9,570,816 bytes</span>
+            <span>tools-screensaver-tzk.scr · 20,509,184 bytes</span>
             <b>下載 <span aria-hidden="true">↓</span></b>
           </a>
-          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/SHA256SUMS.txt" download>
+          <a class="download-card" href="https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/SHA256SUMS.txt" download>
             <span class="file-type">SHA</span>
             <strong>SHA-256 清單</strong>
             <span>SHA256SUMS.txt</span>
@@ -182,10 +197,10 @@
           </a>
         </div>
         <div class="hashes">
-          <h3>v0.14.1 SHA-256</h3>
+          <h3>v0.15.0 SHA-256</h3>
           <dl>
-            <div><dt>SCR</dt><dd>49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab</dd></div>
-            <div><dt>SETUP</dt><dd>bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642</dd></div>
+            <div><dt>SCR</dt><dd>060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b</dd></div>
+            <div><dt>SETUP</dt><dd>8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3</dd></div>
           </dl>
         </div>
       </section>
@@ -295,7 +310,7 @@
           <h2>驗證範圍透明可查</h2>
         </div>
         <div class="compat-grid">
-          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、69 個程式測試、9 張新桌曆版面及 34 個安裝判斷測試通過；影片播放與實際安裝、升級仍待可互動實機驗證。</p></div>
+          <div><span class="status pass">PASS</span><strong>Windows 10 x64</strong><p>22H2 build 19045 的建置、79 個程式測試、9 張新桌曆版面及 34 個安裝判斷測試通過；影片播放與實際安裝、升級仍待可互動實機驗證。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>UAC 安裝矩陣</strong><p>遠端測試刻意不顯示 UAC，也不寫入 System32。</p></div>
           <div><span class="status pending">NOT TESTED</span><strong>Windows 11</strong><p>目前沒有 Windows 11 開發環境，保留為後續相容性驗證。</p></div>
         </div>
@@ -312,7 +327,7 @@
         </div>
         <div class="source-actions">
           <a class="button primary" href="https://github.com/kisaraki/tools-screensaver-tzk">檢視原始碼</a>
-          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/tools-screensaver-tzk_Codex_Spec.md">開發規格 v2.9</a>
+          <a class="button secondary" href="https://github.com/kisaraki/tools-screensaver-tzk/blob/main/tools-screensaver-tzk_Codex_Spec.md">開發規格 v2.10</a>
         </div>
       </section>
     </main>

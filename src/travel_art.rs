@@ -86,10 +86,10 @@ impl Drop for ComApartment {
     }
 }
 
-struct Pixels {
-    width: i32,
-    height: i32,
-    bytes: Vec<u8>,
+pub(crate) struct Pixels {
+    pub(crate) width: i32,
+    pub(crate) height: i32,
+    pub(crate) bytes: Vec<u8>,
 }
 
 static FLIGHT_PIXELS: OnceLock<Result<Pixels, AppError>> = OnceLock::new();
@@ -112,7 +112,7 @@ fn cached_pixels(style: TravelStyle) -> Result<&'static Pixels, AppError> {
         .map_err(|error| *error)
 }
 
-fn decode(encoded: &[u8]) -> Result<Pixels, AppError> {
+pub(crate) fn decode(encoded: &[u8]) -> Result<Pixels, AppError> {
     if !encoded.starts_with(PNG_SIGNATURE) || encoded.len() > MAX_ENCODED_BYTES {
         return Err(AppError::InvalidResource("travel artwork PNG"));
     }
@@ -193,6 +193,10 @@ fn decode(encoded: &[u8]) -> Result<Pixels, AppError> {
 }
 
 pub fn draw(dc: HDC, rect: Rect, style: TravelStyle) -> Result<(), AppError> {
+    draw_pixels(dc, rect, cached_pixels(style)?)
+}
+
+pub(crate) fn draw_pixels(dc: HDC, rect: Rect, pixels: &Pixels) -> Result<(), AppError> {
     if rect.w <= 0.0 || rect.h <= 0.0 {
         return Ok(());
     }
@@ -215,7 +219,6 @@ pub fn draw(dc: HDC, rect: Rect, style: TravelStyle) -> Result<(), AppError> {
     if width == 0 || height == 0 {
         return Ok(());
     }
-    let pixels = cached_pixels(style)?;
     let mut info = BITMAPINFO::default();
     info.bmiHeader.biSize = size_of::<BITMAPINFOHEADER>() as u32;
     info.bmiHeader.biWidth = pixels.width;

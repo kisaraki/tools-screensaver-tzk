@@ -232,6 +232,8 @@ try {
         [ordered]@{ type = 5; id = 2003; name = 'configuration dialog' },
         [ordered]@{ type = 5; id = 2004; name = 'countdown dialog' },
         [ordered]@{ type = 5; id = 2005; name = 'YouTube sources dialog' },
+        [ordered]@{ type = 5; id = 2006; name = 'update dialog' },
+        [ordered]@{ type = 5; id = 2007; name = 'weather settings dialog' },
         [ordered]@{ type = 6; id = 1; name = 'string table block' },
         [ordered]@{ type = 16; id = 1; name = 'version' },
         [ordered]@{ type = 24; id = 1; name = 'manifest' }
@@ -246,6 +248,10 @@ try {
         '標準桌曆暨時鐘模式(&T)',
         '離機作業番茄鐘模式(&C)',
         '日本旅行模式(&J)',
+        '即時氣象模式(&E)',
+        '自動更新（每天首次啟動檢查）',
+        '手動更新',
+        '氣象城市設定…',
         '自在飛行(&A)',
         '列車旅行(&N)',
         '和風庭園(&Y)',
@@ -260,7 +266,7 @@ try {
         '日本旅行場景與來源',
         '來源切換(&I)：',
         '分鐘（1～1440）',
-        '需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音。',
+        '旅行會連線 YouTube／tw.live；影片靜音。',
         'KOMSMOS TOOLKIT',
         '探真拓知酷'
     )
@@ -268,6 +274,10 @@ try {
         if (-not $configDialogText.Contains($label)) {
             throw "Configuration dialog is missing the expected label: $label"
         }
+    }
+    $weatherDialogText = [Text.Encoding]::Unicode.GetString([Phase5ResourceReader]::GetResource($smokeCopy, 2007, 5))
+    foreach ($label in @('自訂正式英文城市（留空使用上方城市）：', '依 IP 約略定位；失敗時使用上述城市', '定位會連線 ipwho.is；城市搜尋使用 Open-Meteo／GeoNames。')) {
+        if (-not $weatherDialogText.Contains($label)) { throw "Weather dialog is missing: $label" }
     }
     $manifestBytes = [Phase5ResourceReader]::GetResource($smokeCopy, 1, 24)
     $manifest = [Text.Encoding]::UTF8.GetString($manifestBytes).TrimStart([char]0xfeff)

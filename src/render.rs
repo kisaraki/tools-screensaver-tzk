@@ -203,6 +203,8 @@ pub(crate) struct Renderer {
     key: Option<(i32, i32, u32, DisplayMode, Style)>,
     direct_fallback: bool,
     travel_caption: TravelCaption,
+    weather: crate::weather::Snapshot,
+    weather_scene: Option<crate::weather_render::Scene>,
 }
 
 struct Paint {
@@ -228,6 +230,9 @@ impl Drop for Paint {
 }
 
 impl Renderer {
+    pub(crate) fn set_weather(&mut self, snapshot: crate::weather::Snapshot) {
+        self.weather = snapshot;
+    }
     pub(crate) fn set_travel_caption(&mut self, caption: TravelCaption) {
         self.travel_caption = caption;
     }
@@ -260,7 +265,9 @@ impl Renderer {
             Err(_) => self.direct_fallback = true,
         }
         if let Some(layout) = Layout::new(width, height, mode) {
-            if layout.detail != Detail::Tiny {
+            if layout.detail != Detail::Tiny
+                && !matches!(mode, DisplayMode::JapanTravel | DisplayMode::Weather)
+            {
                 let font_dc = self.buffer.as_ref().map_or(dc.1, |buffer| buffer.dc);
                 self.fonts = Some(Fonts::new(font_dc, layout, style)?);
             }
@@ -281,6 +288,7 @@ impl Renderer {
         )?;
         let key = (width, height, dpi, mode, style);
         if self.key != Some(key) {
+            self.weather_scene = None;
             self.buffer = None;
             self.fonts = None;
             self.pens = Pens::default();
@@ -429,7 +437,24 @@ impl Renderer {
                 "SetViewportOrgEx(origin)",
             )?;
         }
-        if self.fonts.is_none() && layout.detail != Detail::Tiny && mode != DisplayMode::JapanTravel
+        if mode == DisplayMode::Weather {
+            let mut canvas = Canvas {
+                dc,
+                pens: &mut self.pens,
+            };
+            return crate::weather_render::draw(
+                &mut canvas,
+                width,
+                height,
+                frame,
+                &self.weather,
+                &mut self.weather_scene,
+            );
+        }
+        if self.fonts.is_none()
+            && layout.detail != Detail::Tiny
+            && mode != DisplayMode::JapanTravel
+            && mode != DisplayMode::Weather
         {
             self.fonts = Some(Fonts::new(dc, layout, style)?);
         }
@@ -465,6 +490,7 @@ impl Renderer {
             )?;
         }
         match mode {
+            DisplayMode::Weather => unreachable!("weather renders before layout clip"),
             DisplayMode::TimeDate => {
                 time_date(&mut canvas, layout, self.fonts.as_ref(), frame, style)
             }
@@ -1223,6 +1249,7 @@ mod tests {
             DisplayMode::TimeDate,
             DisplayMode::Countdown,
             DisplayMode::JapanTravel,
+            DisplayMode::Weather,
         ];
         for mode in modes {
             for (w, h) in [(1, 1), (120, 80), (320, 180)] {
@@ -1537,5 +1564,44 @@ mod tests {
                 .display_seconds,
             0
         );
+    }
+    #[test]
+    #[ignore = "writes offline weather GDI fixtures; no windows or network"]
+    fn export_weather_fixtures() {
+        let root = env::var_os("PHASE2_FIXTURES").expect("set PHASE2_FIXTURES");
+        let directory = Path::new(&root);
+        fs::create_dir_all(directory).unwrap();
+        let screen = Screen::new();
+        for condition in crate::weather::Condition::ALL {
+            for (w, h) in [(1600, 900), (900, 1600), (320, 180)] {
+                let mut renderer = Renderer::default();
+                renderer.set_weather(crate::weather::Snapshot {
+                    condition,
+                    place: "Taipei, TW".into(),
+                    temperature: Some(28.0),
+                    humidity: Some(78.0),
+                    wind: Some(2.9),
+                    source: "示意資料 · 非即時觀測".into(),
+                    status: "離線驗證示意".into(),
+                    ..crate::weather::Snapshot::default()
+                });
+                let buffer = draw(
+                    &mut renderer,
+                    screen.0,
+                    w,
+                    h,
+                    96,
+                    DisplayMode::Weather,
+                    Style::default(),
+                    frame(300000),
+                );
+                write_bmp(
+                    &directory.join(format!("weather-{}-{w}x{h}.bmp", condition.label())),
+                    w,
+                    h,
+                    &buffer.pixels(screen.0).unwrap(),
+                );
+            }
+        }
     }
 }

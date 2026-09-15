@@ -17,12 +17,16 @@ mod lifecycle;
 pub mod model;
 mod monitor;
 mod native;
+mod net;
 pub mod registry;
 mod render;
 pub mod travel;
 pub(crate) mod travel_art;
 mod travel_webview;
+mod update;
 pub mod utf16;
+pub mod weather;
+mod weather_render;
 mod window;
 pub mod youtube;
 

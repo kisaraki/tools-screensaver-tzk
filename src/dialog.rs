@@ -7,7 +7,8 @@ use windows_sys::Win32::UI::Controls::Dialogs::{
     CF_SCREENFONTS, CHOOSEFONTW,
 };
 use windows_sys::Win32::UI::Controls::{
-    CheckRadioButton, DRAWITEMSTRUCT, EM_SETLIMITTEXT, EM_SETSEL,
+    CheckDlgButton, CheckRadioButton, IsDlgButtonChecked, DRAWITEMSTRUCT, EM_SETLIMITTEXT,
+    EM_SETSEL,
 };
 use windows_sys::Win32::UI::HiDpi::GetDpiForWindow;
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{EnableWindow, SetFocus};
@@ -344,9 +345,166 @@ unsafe extern "system" fn sources_proc(
     }
 }
 
+struct WeatherDialogState {
+    settings: Cell<crate::weather::WeatherSettings>,
+    accepted: Cell<bool>,
+}
+fn edit_weather(hwnd: HWND, state: &ConfigDialogState) {
+    let weather = WeatherDialogState {
+        settings: Cell::new(state.draft.get().weather),
+        accepted: Cell::new(false),
+    };
+    let instance = unsafe { GetWindowLongPtrW(hwnd, GWLP_HINSTANCE) } as HINSTANCE;
+    let result = unsafe {
+        DialogBoxParamW(
+            instance,
+            resource_ids::IDD_WEATHER_SETTINGS as usize as *const u16,
+            hwnd,
+            Some(weather_proc),
+            std::ptr::from_ref(&weather) as isize,
+        )
+    };
+    if result == -1 {
+        show_error(hwnd, "無法開啟氣象城市設定。");
+    }
+    if weather.accepted.get() {
+        let mut draft = state.draft.get();
+        draft.weather = weather.settings.get();
+        state.draft.set(draft);
+    }
+}
+unsafe extern "system" fn weather_proc(
+    hwnd: HWND,
+    message: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> isize {
+    if message == WM_INITDIALOG {
+        if lparam == 0 {
+            return 0;
+        }
+        let state = unsafe { &*(lparam as *const WeatherDialogState) };
+        if set_pointer(hwnd, DIALOG_USER, lparam)
+            .and_then(|()| center(hwnd, unsafe { GetParent(hwnd) }))
+            .is_err()
+        {
+            unsafe {
+                EndDialog(hwnd, 0);
+            }
+            return 1;
+        }
+        unsafe {
+            for city in crate::weather::CITIES {
+                SendDlgItemMessageW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_WEATHER_CITY),
+                    CB_ADDSTRING,
+                    0,
+                    wide(city.label).as_ptr() as isize,
+                );
+            }
+            let settings = state.settings.get();
+            SendDlgItemMessageW(
+                hwnd,
+                i32::from(resource_ids::IDC_WEATHER_CITY),
+                CB_SETCURSEL,
+                settings.city_index as usize,
+                0,
+            );
+            SetDlgItemTextW(
+                hwnd,
+                i32::from(resource_ids::IDC_WEATHER_CUSTOM_CITY),
+                wide(settings.custom_city.text()).as_ptr(),
+            );
+            SendDlgItemMessageW(
+                hwnd,
+                i32::from(resource_ids::IDC_WEATHER_CUSTOM_CITY),
+                EM_SETLIMITTEXT,
+                80,
+                0,
+            );
+            CheckDlgButton(
+                hwnd,
+                i32::from(resource_ids::IDC_WEATHER_AUTO_LOCATION),
+                u32::from(settings.auto_location),
+            );
+        }
+        return 1;
+    }
+    let Some(state) =
+        (unsafe { (GetWindowLongPtrW(hwnd, DIALOG_USER) as *const WeatherDialogState).as_ref() })
+    else {
+        return 0;
+    };
+    match message {
+        WM_COMMAND if wparam & 0xffff == IDOK as usize => {
+            let mut text = [0u16; 82];
+            let count = unsafe {
+                GetDlgItemTextW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_WEATHER_CUSTOM_CITY),
+                    text.as_mut_ptr(),
+                    text.len() as i32,
+                )
+            };
+            let city = unsafe {
+                SendDlgItemMessageW(
+                    hwnd,
+                    i32::from(resource_ids::IDC_WEATHER_CITY),
+                    CB_GETCURSEL,
+                    0,
+                    0,
+                )
+            };
+            let custom =
+                crate::weather::CityName::parse(&String::from_utf16_lossy(&text[..count as usize]));
+            if let Some(custom_city) =
+                custom.filter(|_| city >= 0 && (city as usize) < crate::weather::CITIES.len())
+            {
+                state.settings.set(crate::weather::WeatherSettings {
+                    city_index: city as u32,
+                    custom_city,
+                    auto_location: unsafe {
+                        IsDlgButtonChecked(hwnd, i32::from(resource_ids::IDC_WEATHER_AUTO_LOCATION))
+                    } == 1,
+                });
+                state.accepted.set(true);
+                unsafe {
+                    EndDialog(hwnd, IDOK as isize);
+                }
+            } else {
+                show_error(hwnd, &config::SaveError::InvalidWeatherCity.to_string());
+            }
+            1
+        }
+        WM_COMMAND if wparam & 0xffff == IDCANCEL as usize => {
+            unsafe {
+                EndDialog(hwnd, 0);
+            }
+            1
+        }
+        WM_CLOSE => {
+            unsafe {
+                EndDialog(hwnd, 0);
+            }
+            1
+        }
+        WM_NCDESTROY => {
+            let _ = set_pointer(hwnd, DIALOG_USER, 0);
+            0
+        }
+        _ => 0,
+    }
+}
+
 fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppError> {
     // SAFETY: All IDs name controls in the loaded configuration resource.
     unsafe {
+        CheckDlgButton(
+            hwnd,
+            i32::from(resource_ids::IDC_AUTO_UPDATE),
+            u32::from(draft.auto_update),
+        );
         for label in ["中式（預設）", "英文", "日式（和風月名）"] {
             SendDlgItemMessageW(
                 hwnd,
@@ -370,11 +528,12 @@ fn initialize_config_controls(hwnd: HWND, draft: ConfigDraft) -> Result<(), AppE
         if CheckRadioButton(
             hwnd,
             i32::from(resource_ids::IDC_MODE_TIME_DATE),
-            i32::from(resource_ids::IDC_MODE_JAPAN_TRAVEL),
+            i32::from(resource_ids::IDC_MODE_WEATHER),
             i32::from(match draft.display_mode {
                 DisplayMode::TimeDate => resource_ids::IDC_MODE_TIME_DATE,
                 DisplayMode::Countdown => resource_ids::IDC_MODE_COUNTDOWN,
                 DisplayMode::JapanTravel => resource_ids::IDC_MODE_JAPAN_TRAVEL,
+                DisplayMode::Weather => resource_ids::IDC_MODE_WEATHER,
             }),
         ) == 0
         {
@@ -490,6 +649,7 @@ fn update_draft_from_command(state: &ConfigDialogState, id: u16) {
         value if value == resource_ids::IDC_MODE_TIME_DATE => DisplayMode::TimeDate,
         value if value == resource_ids::IDC_MODE_COUNTDOWN => DisplayMode::Countdown,
         value if value == resource_ids::IDC_MODE_JAPAN_TRAVEL => DisplayMode::JapanTravel,
+        value if value == resource_ids::IDC_MODE_WEATHER => DisplayMode::Weather,
         _ => draft.display_mode,
     };
     draft.travel_style = match id {
@@ -628,6 +788,8 @@ fn choose_font(hwnd: HWND, state: &ConfigDialogState) {
 fn save_config(hwnd: HWND, state: &ConfigDialogState) -> bool {
     update_font_combo(hwnd, state);
     let mut draft = state.draft.get();
+    draft.auto_update =
+        unsafe { IsDlgButtonChecked(hwnd, i32::from(resource_ids::IDC_AUTO_UPDATE)) } == 1;
     match read_travel_switch_minutes(hwnd) {
         Some(minutes) => draft.travel_switch_minutes = minutes,
         None if draft.display_mode == DisplayMode::JapanTravel => {
@@ -771,6 +933,23 @@ unsafe extern "system" fn config_proc(
             1
         }
         WM_COMMAND
+            if id == resource_ids::IDC_MANUAL_UPDATE && notification == BN_CLICKED as u16 =>
+        {
+            let instance = unsafe { GetWindowLongPtrW(hwnd, GWLP_HINSTANCE) } as HINSTANCE;
+            if crate::update::manual(instance, hwnd) {
+                unsafe {
+                    EndDialog(hwnd, IDCANCEL as isize);
+                }
+            }
+            1
+        }
+        WM_COMMAND
+            if id == resource_ids::IDC_WEATHER_SETTINGS && notification == BN_CLICKED as u16 =>
+        {
+            edit_weather(hwnd, state);
+            1
+        }
+        WM_COMMAND
             if id == resource_ids::IDC_CALENDAR_STYLE && notification == CBN_SELCHANGE as u16 =>
         {
             let selected = unsafe { SendDlgItemMessageW(hwnd, i32::from(id), CB_GETCURSEL, 0, 0) };
@@ -787,8 +966,10 @@ unsafe extern "system" fn config_proc(
         }
         WM_COMMAND
             if notification == BN_CLICKED as u16
-                && ((resource_ids::IDC_MODE_TIME_DATE..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
-                    .contains(&id)
+                && (id == resource_ids::IDC_MODE_WEATHER
+                    || (resource_ids::IDC_MODE_TIME_DATE
+                        ..=resource_ids::IDC_MODE_JAPAN_TRAVEL)
+                        .contains(&id)
                     || (resource_ids::IDC_TRAVEL_FREE_FLIGHT
                         ..=resource_ids::IDC_TRAVEL_WALKING)
                         .contains(&id)
@@ -839,6 +1020,7 @@ unsafe extern "system" fn config_proc(
             let draft = state.draft.get();
             let renderer = { state.renderer.borrow_mut().take() };
             if let Some(mut renderer) = renderer {
+                renderer.set_weather(crate::weather::preview(draft.weather));
                 let result = preview_frame(draft.display_mode, generation).and_then(|frame| {
                     renderer.draw_borrowed(
                         item.hDC,

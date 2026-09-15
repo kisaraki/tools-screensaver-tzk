@@ -1,39 +1,40 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.3
+文件版本：1.4
 
-實作基準：產品 v0.14.1、設定 schema 9、Git tag `v0.14.1`
+實作基準：產品 v0.15.0、設定 schema 10、Git tag `v0.15.0`
 
-基準日期：2026-09-13
+基準日期：2026-09-15
 
 用途：保存目前已實作系統的可重建規格；未來重寫時應以本文件描述的外部行為、資料格式與驗收條件為相容基準。
 
 ## 0. 實作快照與文件邊界
 
-本文件記錄已發布的 `v0.14.1`，不是未來需求清單。重建時先以 tag 與 commit 固定參考原始碼，再依本文件驗證相容性：
+本文件記錄 `v0.15.0` 的實作。重建時先以 tag 固定參考原始碼，再依本文件驗證相容性：
 
-| 項目 | v0.14.1 快照 |
+| 項目 | v0.15.0 快照 |
 | --- | --- |
-| Git tag | `v0.14.1` |
-| Git commit | `48bac499d8cc20ae57f0e79f5d575f48d4c90c7c` |
-| Cargo／SCR／Setup 版本 | `0.14.1` |
-| Registry schema | `9` |
+| Git tag | `v0.15.0` |
+| Git commit | 以 `git rev-parse 'v0.15.0^{commit}'` 取得，避免文件提交的自我參照 |
+| Cargo／SCR／Setup 版本 | `0.15.0` |
+| Registry schema | `10` |
 | Rust toolchain | `1.97.1-x86_64-pc-windows-msvc` |
 | WebView2 Bootstrapper lock | `1.3.265.7`，1,783,000 bytes，SHA-256 `17debf797a6c737959bc588236e897936ffac1af5f7e515e674ab32f9edfe719` |
-| SCR | 9,570,816 bytes，SHA-256 `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
-| Setup | 12,614,509 bytes，SHA-256 `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
+| SCR | 20,509,184 bytes，SHA-256 `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` |
+| Setup | 23,310,022 bytes，SHA-256 `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` |
 
 產品程式碼、安裝器、網站與公開下載是同一個版本集合；規格文件本身可在不變更產品版本的後續文件提交中修訂。若程式行為與本文件衝突，先以該 tag 的實際外部行為及自動測試為證據，修正文件後再進行重寫。
 
 ## 1. 產品定位
 
-`tools-screensaver-tzk` 是 Windows x64 原生螢幕保護程式，使用 Rust、Win32/GDI 與 Microsoft Edge WebView2 實作。產品提供三種主模式：
+`tools-screensaver-tzk` 是 Windows x64 原生螢幕保護程式，使用 Rust、Win32/GDI 與 Microsoft Edge WebView2 實作。產品提供四種主模式：
 
 1. **標準桌曆暨時鐘模式**：顯示類比指針鐘及週一為首日的月曆。
 2. **離機作業番茄鐘模式**：啟動前輸入倒數時間，顯示沙漏、數字與深色藥劑瓶玻璃進度面板。
 3. **日本旅行模式**：以五種擬真框景播放日本地區的 YouTube 影片或 tw.live 即時影像。
+4. **即時氣象模式**：依 IP 約略位置或保存城市取得天氣，以八張背景與中央玻璃卡顯示。
 
-日期時鐘、番茄鐘、設定面板與 Windows 預覽必須能離線使用。只有正式全螢幕的日本旅行模式可以建立 WebView2 並連線外部來源。
+日期時鐘、番茄鐘、設定面板與 Windows 預覽必須能離線使用。只有正式全螢幕日本旅行建立 WebView2；氣象及選用的自動更新使用原生 WinHTTP 背景請求。設定／系統預覽保持離線，手動更新按鈕是明確啟動網路工作的例外。
 
 ## 2. 支援範圍
 
@@ -116,6 +117,7 @@
 | 0 | 標準桌曆暨時鐘模式 | `TimeDate` |
 | 1 | 離機作業番茄鐘模式 | `Countdown` |
 | 2 | 日本旅行模式 | `JapanTravel` |
+| 3 | 即時氣象模式 | `Weather` |
 
 ### 5.2 日本旅行場景
 
@@ -169,18 +171,23 @@
 
 ## 6. 設定資料格式
 
-位置：`HKCU\Software\tools-screensaver-tzk`；目前 `SchemaVersion=9`。
+位置：`HKCU\Software\tools-screensaver-tzk`；目前 `SchemaVersion=10`。
 
 | 名稱 | Registry type | 規則／預設 |
 | --- | --- | --- |
-| `SchemaVersion` | `REG_DWORD` | 9；缺失視為目前 schema，0 或型別錯誤時整組回預設 |
+| `SchemaVersion` | `REG_DWORD` | 10；缺失視為目前 schema，0 或型別錯誤時整組回預設 |
+| `AutoUpdate` | `REG_DWORD` | 0／1，預設 0，schema 10 起讀取 |
+| `WeatherAutoLocation` | `REG_DWORD` | 0／1，預設 1，schema 10 起讀取 |
+| `WeatherCityIndex` | `REG_DWORD` | 0～42，預設 0（臺北），城市表只能附加不可重排 |
+| `WeatherCustomCity` | `REG_BINARY` | 有界英文城市 UTF-8，最多 80 bytes，預設空 |
+| `LastUpdateCheckDay` | `REG_DWORD` | 每使用者的本機 YYYYMMDD；更新器操作狀態，不屬於設定 draft |
 | `CalendarStyle` | `REG_DWORD` | 0～2；預設 0，schema 9 起有效 |
 | `YouTubeSourcesFreeFlight` | `REG_BINARY` | UTF-8 canonical URL，CRLF 分隔、無 BOM／NUL；最多 10 個，預設空 |
 | `YouTubeSourcesTrainJourney` | `REG_BINARY` | 同上，列車旅行 |
 | `YouTubeSourcesJapaneseInn` | `REG_BINARY` | 同上，和風庭園 |
 | `YouTubeSourcesTrainCab` | `REG_BINARY` | 同上，御運轉士 |
 | `YouTubeSourcesWalking` | `REG_BINARY` | 同上，地方散策 |
-| `DisplayMode` | `REG_DWORD` | 0～2；預設 0 |
+| `DisplayMode` | `REG_DWORD` | 0～3；預設 0；Weather 需 schema 10 |
 | `TravelStyle` | `REG_DWORD` | 0～4；預設 0 |
 | `TravelSwitchMinutes` | `REG_DWORD` | 0 或 1～1440；預設 1 |
 | `ColorPreset` | `REG_DWORD` | 0～7；預設 2 |
@@ -189,7 +196,7 @@
 | `CustomPointSizeTenth` | `REG_DWORD` | 與 `CustomLogFont` 成對有效 |
 | `LastCountdownDurationSeconds` | `REG_DWORD` | 1～359999；預設 300 |
 
-讀取單一值最多 4096 bytes。未知值、錯誤型別、超界資料或讀取錯誤應局部回退，不得造成啟動失敗。schema 遷移門檻需保留：旅行主模式自 schema 3、基本旅行場景自 4、切換分鐘自 5、和風庭園與新增色彩自 6、御運轉士與地方散策自 7、鐵灰自 8 起有效。桌曆方式與自訂來源自 9 起有效；舊版倒數提交若升版，須先把這些新欄位設回預設，不能啟用舊 schema 的同名未知值。schema 9 倒數提交不改變新欄位。
+讀取單一值最多 4096 bytes。未知值、錯誤型別、超界資料或讀取錯誤應局部回退，不得造成啟動失敗。schema 遷移門檻需保留：旅行主模式自 schema 3、基本旅行場景自 4、切換分鐘自 5、和風庭園與新增色彩自 6、御運轉士與地方散策自 7、鐵灰自 8 起有效。桌曆方式與自訂來源自 9 起有效；氣象與更新偏好自 10 起有效。倒數提交升版須把尚未達到 gate 的欄位設回預設，不得啟用舊 schema 同名未知值；schema 10 倒數提交保留全部其他偏好。
 
 ### 6.1 寫入、重啟與回復契約
 
@@ -280,7 +287,7 @@ flowchart LR
 ## 10. Win32 資源與程序模型
 
 - `src/main.rs` 使用 `#![windows_subsystem = "windows"]`，入口錯誤由原生錯誤處理呈現或送 debugger。
-- `resources/resources.rc` 是 icon、manifest、字串、兩個 dialog template 與 VERSIONINFO 的唯一 RC 入口。
+- `resources/resources.rc` 是 icon、manifest、字串、五個 dialog template（設定、倒數、來源、更新、氣象設定）與 VERSIONINFO 的唯一 RC 入口。
 - `resources/resource.h` 是 Rust 與 RC 共用數字 ID 的唯一來源；`build.rs` 產生 Rust constants。
 - manifest 必須保持 `asInvoker`、`uiAccess=false`、Windows 10 compatibility、PerMonitorV2 與 Common Controls 6。
 - 應用程式本身不要求提升權限；只有 Setup 因寫入 System32 使用 admin 權限。
@@ -311,6 +318,10 @@ flowchart LR
 | `native.rs` | HWND identity、DPI scope、client rect、安全 pointer 設定 |
 | `utf16.rs` | NUL 檢查與 UTF-16 helper |
 | `error.rs` | 應用程式與 Win32 錯誤模型 |
+| `net.rs` | 固定 host、有界、禁止 redirect 的 HTTPS WinHTTP GET |
+| `weather.rs` | 43 城市、IP／GeoNames 定位、CWA／Open-Meteo 解析、資料時效與八類映射 |
+| `weather_render.rs` | 八張背景 PNG、center-cover 與像素合成玻璃卡，離線顯示 |
+| `update.rs` | 每日 gate、正式版本比較、背景檢查、確認、SHA-256 下載與 Setup 啟動 |
 
 ## 12. 安裝器規格
 
@@ -364,6 +375,10 @@ flowchart LR
 
 `v0.14.1` 的 69 個預設測試分布為 library 49、CLI 8、native noninteractive 2、layout 10；另有 9 個需互動環境的 ignored tests。這些數量是參考快照，重寫時應以行為覆蓋為主，不可只追求相同數量。
 
+### 13.6 v0.15.0 增量結果
+
+新增即時氣象模式、八種背景、43 個城市與英文自訂城市、IP 約略定位、臺灣 CWA／全球 Open-Meteo 資料，以及可選每日自動更新與立即手動更新。設定 schema 10；自動更新預設關閉。79 個預設 Rust tests（lib 59、CLI 8、native 2、layout 10）、19＋15 個 installer policy checks、24 張氣象 GDI fixtures 與非互動 smoke 通過。12 個 tests 預設 ignored，包含顯式網路及離線輸出測試。詳細證據、實際公開來源探測與未測限制見 [Phase 23](phase23-report.md)。
+
 ## 14. 驗收條件
 
 ### 14.1 可在遠端／CI 執行
@@ -381,7 +396,7 @@ flowchart LR
 - 完成頁是否開啟設定，以及靜默模式確實不開啟。
 - Windows 控制台 `/p` 預覽與真正 `/s` 全螢幕。
 - 單螢幕、延伸雙螢幕、負座標、不同 DPI、睡眠喚醒與 display change。
-- 三種主模式各至少 30 分鐘資源觀察；旅行五場景要測真實播放、字幕、seek、buffer、切換、斷線與 fallback。
+- 四種主模式各至少 30 分鐘資源觀察；旅行五場景要測真實播放、字幕、seek、buffer、切換、斷線與 fallback。氣象另測一小時刷新與錯誤復原，版本更新另測提示及安裝重啟。
 - 游標移出 player、隱藏、任何退出方式後恢復。
 
 ## 15. 已知限制與不可變假設
@@ -395,12 +410,22 @@ flowchart LR
 
 ## 16. 完成定義
 
-未來重新開發只有在以下條件全部成立時，才可宣告與 v0.14.1 功能相容：
+未來重新開發只有在以下條件全部成立時，才可宣告與 v0.15.0 功能相容：
 
 - 外部名稱、CLI、registry schema、AppId 與 System32 檔名相容。
-- 三個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式及五組自訂來源均可保存並重新載入。
+- 四個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式、五組自訂來源、氣象城市與自動更新選項均可保存並重新載入。
 - 多螢幕、DPI、輸入退出、游標與資源清理符合本文件。
 - 旅行來源、隨機起點、切換預備、眨眼、caption 與 WebView2 hardening 符合本文件。
 - 安裝器版本互斥、WebView2 prerequisite、set-current helper 與完成頁設定選項符合本文件。
 - 非互動品質閘門全部通過，互動項目有實機證據或明確標記 `NOT TESTED`。
 - README、系統規格、重建步驟、網站、release notes、公開下載與 SHA-256 同步更新。
+
+## 17. 即時氣象與版本更新契約
+
+完整來源、網路邊界、畫面分類與例外條件見 [即時氣象模式](weather-mode.md)；每日 gate、確認與下載安裝生命週期見 [自動及手動更新](automatic-updates.md)。這兩份文件是本規格的一部分。
+
+- schema 10 加入 Weather=3、自動更新與氣象欄位；schema 9 以下一律使用新欄位預設，倒數單欄提交升版時不得啟用舊 schema 的未知 Weather 值。schema 10 倒數保存保留全部新設定，設定提交仍包含 rollback 及 future schema 保護。
+- 每個正式氣象 session 只建立一個網路工作與快照，分享給所有螢幕；啟動重新抓取，完成後每小時更新。預覽不連網，首次無資料不能顯示假氣溫；兩小時以上資料失效。
+- 氣象八類映射必須保留門檻、優先序與「嵐／吹雪不是官方警報」邊界；臺灣使用最近已支援 CWA 測站，其他地區使用有 attribution 的 Open-Meteo 模型。
+- 自動更新預設關閉，僅每天第一個一般未鎖定桌面的正式 `/s` 檢查；手動立即檢查。發現新版先清理 saver，再詢問；唯有確認、固定公開來源下載、完整 SHA-256 與 PE 檢查成功才啟動 Setup。
+- 微型氣象預覽僅顯示背景；一般畫面資訊卡居中，長字串需 fit，不能因網路、DPI、尺寸或失敗狀態破壞輸入退出與游標恢復。

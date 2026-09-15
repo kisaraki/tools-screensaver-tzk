@@ -5,6 +5,7 @@ pub enum DisplayMode {
     TimeDate,
     Countdown,
     JapanTravel,
+    Weather,
 }
 
 impl DisplayMode {
@@ -13,6 +14,7 @@ impl DisplayMode {
             0 => Some(Self::TimeDate),
             1 => Some(Self::Countdown),
             2 => Some(Self::JapanTravel),
+            3 => Some(Self::Weather),
             _ => None,
         }
     }
@@ -22,6 +24,7 @@ impl DisplayMode {
             Self::TimeDate => 0,
             Self::Countdown => 1,
             Self::JapanTravel => 2,
+            Self::Weather => 3,
         }
     }
 }

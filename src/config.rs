@@ -8,7 +8,7 @@ pub use crate::font::{FontSpec, DEFAULT_POINT_SIZE_TENTH};
 use crate::model::{DisplayMode, FontMode, TravelStyle};
 use crate::youtube::SourceList;
 
-pub const SCHEMA_VERSION: u32 = 9;
+pub const SCHEMA_VERSION: u32 = 10;
 pub const DEFAULT_COUNTDOWN_SECONDS: u32 = 300;
 pub const DEFAULT_TRAVEL_SWITCH_MINUTES: u32 = 1;
 pub const MAX_TRAVEL_SWITCH_MINUTES: u32 = 1440;
@@ -57,6 +57,10 @@ impl ColorPreset {
 }
 
 const SCHEMA: &str = "SchemaVersion";
+const AUTO_UPDATE: &str = "AutoUpdate";
+const WEATHER_AUTO_LOCATION: &str = "WeatherAutoLocation";
+const WEATHER_CITY: &str = "WeatherCityIndex";
+const WEATHER_CUSTOM_CITY: &str = "WeatherCustomCity";
 const CALENDAR_STYLE: &str = "CalendarStyle";
 const CUSTOM_SOURCES: [&str; 5] = [
     "YouTubeSourcesFreeFlight",
@@ -112,6 +116,8 @@ pub trait SettingsStore {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AppConfig {
+    pub auto_update: bool,
+    pub weather: crate::weather::WeatherSettings,
     pub calendar_style: CalendarStyle,
     pub youtube_sources: [SourceList; 5],
     pub display_mode: DisplayMode,
@@ -129,6 +135,8 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            auto_update: false,
+            weather: crate::weather::WeatherSettings::default(),
             calendar_style: CalendarStyle::Chinese,
             youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::TimeDate,
@@ -156,6 +164,8 @@ impl AppConfig {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConfigDraft {
+    pub auto_update: bool,
+    pub weather: crate::weather::WeatherSettings,
     pub calendar_style: CalendarStyle,
     pub youtube_sources: [SourceList; 5],
     pub display_mode: DisplayMode,
@@ -169,6 +179,8 @@ pub struct ConfigDraft {
 impl From<AppConfig> for ConfigDraft {
     fn from(value: AppConfig) -> Self {
         Self {
+            auto_update: value.auto_update,
+            weather: value.weather,
             calendar_style: value.calendar_style,
             youtube_sources: value.youtube_sources,
             display_mode: value.display_mode,
@@ -183,7 +195,9 @@ impl From<AppConfig> for ConfigDraft {
 
 impl ConfigDraft {
     pub fn validate(self) -> Result<Self, SaveError> {
-        if self.travel_switch_minutes > MAX_TRAVEL_SWITCH_MINUTES {
+        if self.weather.city_index as usize >= crate::weather::CITIES.len() {
+            Err(SaveError::InvalidWeatherCity)
+        } else if self.travel_switch_minutes > MAX_TRAVEL_SWITCH_MINUTES {
             Err(SaveError::InvalidTravelSwitchMinutes)
         } else if self.font_mode == FontMode::Custom && self.custom_font.is_none() {
             Err(SaveError::InvalidDraft)
@@ -227,7 +241,8 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
     let display_mode = dword(get(store, DISPLAY_MODE))
         .and_then(DisplayMode::from_registry)
         .filter(|mode| {
-            *mode != DisplayMode::JapanTravel || schema.is_some_and(|version| version >= 3)
+            (*mode != DisplayMode::JapanTravel || schema.is_some_and(|version| version >= 3))
+                && (*mode != DisplayMode::Weather || schema.is_some_and(|version| version >= 10))
         })
         .unwrap_or(DisplayMode::TimeDate);
     let travel_style = dword(get(store, TRAVEL_STYLE))
@@ -271,6 +286,25 @@ pub fn load(store: &impl SettingsStore) -> AppConfig {
         .filter(|&value| (1..=359999).contains(&value))
         .unwrap_or(DEFAULT_COUNTDOWN_SECONDS);
     AppConfig {
+        auto_update: schema.is_some_and(|s| s >= 10) && dword(get(store, AUTO_UPDATE)) == Some(1),
+        weather: if schema.is_some_and(|s| s >= 10) {
+            crate::weather::WeatherSettings {
+                auto_location: dword(get(store, WEATHER_AUTO_LOCATION))
+                    .filter(|v| *v <= 1)
+                    .unwrap_or(1)
+                    == 1,
+                city_index: dword(get(store, WEATHER_CITY))
+                    .filter(|v| (*v as usize) < crate::weather::CITIES.len())
+                    .unwrap_or(0),
+                custom_city: get(store, WEATHER_CUSTOM_CITY)
+                    .filter(|v| v.kind == REG_BINARY_KIND)
+                    .and_then(|v| String::from_utf8(v.bytes).ok())
+                    .and_then(|s| crate::weather::CityName::parse(&s))
+                    .unwrap_or_default(),
+            }
+        } else {
+            crate::weather::WeatherSettings::default()
+        },
         calendar_style: if schema.is_some_and(|s| s >= 9) {
             dword(get(store, CALENDAR_STYLE))
                 .and_then(CalendarStyle::from_registry)
@@ -305,6 +339,7 @@ pub enum SaveError {
     FutureSchema(u32),
     InvalidDraft,
     InvalidTravelSwitchMinutes,
+    InvalidWeatherCity,
     Store(StoreError),
     Rollback {
         write: StoreError,
@@ -317,6 +352,9 @@ impl fmt::Display for SaveError {
         match self {
             Self::FutureSchema(version) => write!(f, "設定版本 {version} 較新，本版不能覆寫。"),
             Self::InvalidDraft => f.write_str("請先選擇有效的自訂系統字型。"),
+            Self::InvalidWeatherCity => {
+                f.write_str("請選擇有效城市，或輸入正式英文城市名稱（最多 80 字元）。")
+            }
             Self::InvalidTravelSwitchMinutes => {
                 f.write_str("來源切換時間請選擇不切換，或輸入 1～1440 的整數分鐘。")
             }
@@ -376,6 +414,25 @@ pub fn save_draft(store: &mut impl SettingsStore, draft: ConfigDraft) -> Result<
     let draft = draft.validate()?;
     let mut updates = vec![
         (
+            AUTO_UPDATE,
+            Some(RawValue::dword(u32::from(draft.auto_update))),
+        ),
+        (
+            WEATHER_AUTO_LOCATION,
+            Some(RawValue::dword(u32::from(draft.weather.auto_location))),
+        ),
+        (
+            WEATHER_CITY,
+            Some(RawValue::dword(draft.weather.city_index)),
+        ),
+        (
+            WEATHER_CUSTOM_CITY,
+            Some(RawValue {
+                kind: REG_BINARY_KIND,
+                bytes: draft.weather.custom_city.text().as_bytes().to_vec(),
+            }),
+        ),
+        (
             DISPLAY_MODE,
             Some(RawValue::dword(draft.display_mode.registry_value())),
         ),
@@ -431,6 +488,16 @@ pub fn save_countdown(store: &mut impl SettingsStore, seconds: u32) -> Result<()
         return Err(SaveError::InvalidDraft);
     }
     let mut updates = vec![(LAST_COUNTDOWN, Some(RawValue::dword(seconds)))];
+    if current_schema(store)?.is_none_or(|version| version < 10) {
+        updates.push((AUTO_UPDATE, Some(RawValue::dword(0))));
+        updates.push((WEATHER_AUTO_LOCATION, Some(RawValue::dword(1))));
+        updates.push((WEATHER_CITY, Some(RawValue::dword(0))));
+        updates.push((WEATHER_CUSTOM_CITY, None));
+        // Do not activate an unrecognized mode while advancing legacy schema.
+        if dword(get(store, DISPLAY_MODE)) == Some(3) {
+            updates.push((DISPLAY_MODE, Some(RawValue::dword(0))));
+        }
+    }
     if current_schema(store)?.is_none_or(|version| version < 9) {
         updates.push((CALENDAR_STYLE, Some(RawValue::dword(0))));
         for key in CUSTOM_SOURCES {
@@ -535,7 +602,8 @@ mod tests {
             assert_eq!(DisplayMode::from_registry(raw), Some(expected));
             assert_eq!(expected.registry_value(), raw);
         }
-        assert_eq!(DisplayMode::from_registry(3), None);
+        assert_eq!(DisplayMode::from_registry(3), Some(DisplayMode::Weather));
+        assert_eq!(DisplayMode::from_registry(4), None);
 
         for (raw, expected) in [
             (0, TravelStyle::FreeFlight),
@@ -865,6 +933,8 @@ mod tests {
         let before = store.values.clone();
         store.fail_at = Some(3);
         let draft = ConfigDraft {
+            auto_update: false,
+            weather: crate::weather::WeatherSettings::default(),
             calendar_style: CalendarStyle::Chinese,
             youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::Countdown,
@@ -901,6 +971,12 @@ mod tests {
         let error = save_draft(
             &mut failing,
             ConfigDraft {
+                auto_update: true,
+                weather: crate::weather::WeatherSettings {
+                    auto_location: false,
+                    city_index: 14,
+                    custom_city: crate::weather::CityName::parse("Yokohama").unwrap(),
+                },
                 calendar_style: CalendarStyle::Chinese,
                 youtube_sources: [SourceList::default(); 5],
                 display_mode: DisplayMode::Countdown,
@@ -919,6 +995,8 @@ mod tests {
     fn invalid_or_cancelled_drafts_do_not_write() {
         let mut store = MemoryStore::default();
         let invalid = ConfigDraft {
+            auto_update: false,
+            weather: crate::weather::WeatherSettings::default(),
             calendar_style: CalendarStyle::Chinese,
             youtube_sources: [SourceList::default(); 5],
             display_mode: DisplayMode::TimeDate,
@@ -954,6 +1032,12 @@ mod tests {
             )
             .unwrap();
             let draft = ConfigDraft {
+                auto_update: true,
+                weather: crate::weather::WeatherSettings {
+                    auto_location: false,
+                    city_index: 14,
+                    custom_city: crate::weather::CityName::parse("Yokohama").unwrap(),
+                },
                 calendar_style: CalendarStyle::Japanese,
                 youtube_sources: [persisted_source; 5],
                 display_mode: DisplayMode::Countdown,
@@ -969,6 +1053,8 @@ mod tests {
             // A fresh adapter models a later process start after logout or reboot.
             let reopened = RegistryStore::at(&cleanup.path);
             let loaded = load(&reopened);
+            assert_eq!(loaded.auto_update, draft.auto_update);
+            assert_eq!(loaded.weather, draft.weather);
             assert_eq!(loaded.calendar_style, CalendarStyle::Japanese);
             assert_eq!(loaded.youtube_sources, [persisted_source; 5]);
             assert_eq!(loaded.display_mode, DisplayMode::Countdown);
@@ -1004,6 +1090,55 @@ mod tests {
         store.fail_at = None;
         save_draft(&mut store, AppConfig::default().into()).unwrap();
         assert_eq!(load(&store).youtube_sources, [SourceList::default(); 5]);
+    }
+    #[test]
+    fn update_weather_settings_migrate_round_trip_and_rollback_each_new_field() {
+        let mut store = MemoryStore::default();
+        store.values.insert(SCHEMA.into(), RawValue::dword(9));
+        store.values.insert(AUTO_UPDATE.into(), RawValue::dword(1));
+        store.values.insert(DISPLAY_MODE.into(), RawValue::dword(3));
+        store
+            .values
+            .insert(WEATHER_CITY.into(), RawValue::dword(14));
+        assert!(!load(&store).auto_update);
+        assert_eq!(load(&store).display_mode, DisplayMode::TimeDate);
+        assert_eq!(load(&store).weather.city_index, 0);
+        save_countdown(&mut store, 300).unwrap();
+        assert!(!load(&store).auto_update);
+        assert_eq!(load(&store).display_mode, DisplayMode::TimeDate);
+        let mut draft = ConfigDraft::from(load(&store));
+        draft.auto_update = true;
+        draft.display_mode = DisplayMode::Weather;
+        draft.weather = crate::weather::WeatherSettings {
+            auto_location: false,
+            city_index: 14,
+            custom_city: crate::weather::CityName::parse("Yokohama").unwrap(),
+        };
+        save_draft(&mut store, draft).unwrap();
+        assert_eq!(ConfigDraft::from(load(&store)), draft);
+        save_countdown(&mut store, 100).unwrap();
+        assert_eq!(ConfigDraft::from(load(&store)), draft);
+        let before = store.values.clone();
+        for fail in 1..=5 {
+            store.calls = 0;
+            store.rolling_back = false;
+            store.fail_at = Some(fail);
+            assert!(save_draft(&mut store, AppConfig::default().into()).is_err());
+            assert_eq!(store.values, before);
+        }
+        store.fail_at = None;
+        store.values.insert(
+            WEATHER_CUSTOM_CITY.into(),
+            RawValue {
+                kind: REG_BINARY_KIND,
+                bytes: b"https://evil.test".to_vec(),
+            },
+        );
+        assert_eq!(load(&store).weather.custom_city.text(), "");
+        store
+            .values
+            .insert(WEATHER_CITY.into(), RawValue::dword(u32::MAX));
+        assert_eq!(load(&store).weather.city_index, 0);
     }
 
     #[test]

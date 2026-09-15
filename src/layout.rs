@@ -61,7 +61,9 @@ impl Layout {
         // Full-size clock and countdown surfaces use a calm, centered stage
         // instead of filling the display. Small Windows preview hosts retain
         // the wider stage so their contents remain legible.
-        let centered_stage = mode != DisplayMode::JapanTravel && width >= 640 && height >= 360;
+        let centered_stage = matches!(mode, DisplayMode::TimeDate | DisplayMode::Countdown)
+            && width >= 640
+            && height >= 360;
         let group = if centered_stage {
             Rect {
                 x: w * 0.18,
@@ -102,6 +104,15 @@ impl Layout {
             detail,
         };
         match mode {
+            DisplayMode::Weather => {
+                result.group = Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    w,
+                    h,
+                };
+                result.panel = crate::weather_render::card(width, height);
+            }
             DisplayMode::TimeDate if horizontal => {
                 let side = (group.w * 0.48).min(group.h);
                 let gap = group.w * 0.08;

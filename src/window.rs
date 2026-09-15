@@ -721,7 +721,13 @@ impl TravelHost {
     }
 }
 
+type UpdateReceiver = mpsc::Receiver<Result<Option<crate::update::Release>, String>>;
 struct Session {
+    weather: RefCell<crate::weather::Snapshot>,
+    weather_job: RefCell<Option<mpsc::Receiver<Result<crate::weather::Snapshot, String>>>>,
+    weather_next: Cell<u64>,
+    update_job: RefCell<Option<UpdateReceiver>>,
+    pending_update: RefCell<Option<crate::update::Release>>,
     mode: Mode,
     config: Cell<AppConfig>,
     countdown_seconds: Cell<u32>,
@@ -745,6 +751,11 @@ struct Session {
 impl Session {
     fn new(mode: Mode, config: AppConfig, countdown_seconds: u32) -> Self {
         Self {
+            weather: RefCell::new(crate::weather::preview(config.weather)),
+            weather_job: RefCell::new(None),
+            weather_next: Cell::new(0),
+            update_job: RefCell::new(None),
+            pending_update: RefCell::new(None),
             mode,
             config: Cell::new(config),
             countdown_seconds: Cell::new(countdown_seconds),
@@ -996,9 +1007,54 @@ impl Session {
         }
     }
 
+    fn maintain_services(&self) {
+        let update = self.update_job.borrow().as_ref().map(|rx| rx.try_recv());
+        if let Some(Ok(result)) = update {
+            self.update_job.borrow_mut().take();
+            match result {
+                Ok(Some(release)) => {
+                    *self.pending_update.borrow_mut() = Some(release);
+                    self.request_shutdown();
+                    return;
+                }
+                Err(error) => crate::app::report_diagnostic(&format!("Update check: {error}")),
+                Ok(None) => (),
+            }
+        }
+        if self.display() != DisplayMode::Weather || self.lifecycle.get().stopping {
+            return;
+        }
+        let now = unsafe { GetTickCount64() };
+        let completed = self.weather_job.borrow().as_ref().map(|rx| rx.try_recv());
+        if let Some(Ok(result)) = completed {
+            self.weather_job.borrow_mut().take();
+            self.weather_next.set(now.saturating_add(3_600_000));
+            match result {
+                Ok(snapshot) => *self.weather.borrow_mut() = snapshot,
+                Err(error) => {
+                    let mut snapshot = self.weather.borrow_mut();
+                    snapshot.status = if snapshot.temperature.is_some() {
+                        "更新失敗，保留上次資料".into()
+                    } else {
+                        "無法取得氣象資料".into()
+                    };
+                    crate::app::report_diagnostic(&format!("Weather: {error}"));
+                }
+            }
+        }
+        if self.weather_job.borrow().is_none() && now >= self.weather_next.get() {
+            self.weather.borrow_mut().status = "正在更新氣象…".into();
+            *self.weather_job.borrow_mut() =
+                Some(crate::weather::fetch_async(self.config.get().weather));
+        }
+    }
+
     fn maintain(&self) {
         if self.lifecycle.get().stopping {
             return;
+        }
+        if matches!(self.mode, Mode::Fullscreen) {
+            self.maintain_services();
         }
         let mut restart = false;
         match self.mode {
@@ -1019,6 +1075,7 @@ impl Session {
                 }
                 let latest = crate::registry::load_registry();
                 if latest != self.config.get() {
+                    *self.weather.borrow_mut() = crate::weather::preview(latest.weather);
                     self.config.set(latest);
                     self.countdown_seconds.set(latest.last_countdown_seconds);
                     restart = true;
@@ -1464,6 +1521,8 @@ fn run(
             }
             session.last_input_tick.set(Some(last_input.dwTime));
             session.initialize_travel(&surfaces);
+            *session.update_job.borrow_mut() = crate::update::start_auto(config);
+            session.maintain_services();
         }
         Mode::Preview(parent) => {
             session.sample_frame(true)?;
@@ -1510,6 +1569,7 @@ fn run(
                 DisplayMode::JapanTravel => {
                     windows_sys::w!("tools-screensaver-tzk — Japan Travel (Debug)")
                 }
+                DisplayMode::Weather => windows_sys::w!("tools-screensaver-tzk — Weather (Debug)"),
             };
             // SAFETY: Show the fully initialized ordinary developer window.
             unsafe {
@@ -1554,10 +1614,18 @@ fn run(
         }
     }
     session.in_loop.set(false);
-    match session.error.get() {
-        Some(error) => Err(error),
-        None => Ok(()),
+    let result = session.error.get().map_or(Ok(()), Err);
+    let pending = session.pending_update.borrow_mut().take();
+    let checking = session.update_job.borrow_mut().take();
+    drop(_guard); // Close all surfaces and restore cursor before any update dialog.
+    if result.is_ok() {
+        if let Some(release) = pending {
+            crate::update::offer(instance, release);
+        } else if let Some(receiver) = checking {
+            crate::update::finish_auto(instance, receiver);
+        }
     }
+    result
 }
 
 unsafe extern "system" fn window_proc(
@@ -1633,6 +1701,7 @@ unsafe extern "system" fn window_proc(
                 DisplayMode::TimeDate => 0,
                 DisplayMode::Countdown => 1,
                 DisplayMode::JapanTravel => 2,
+                DisplayMode::Weather => 3,
             };
             let font = match config.font_mode {
                 crate::model::FontMode::SevenSegment => 0,
@@ -1683,6 +1752,7 @@ unsafe extern "system" fn window_proc(
                         (0, 0)
                     };
                     renderer.set_travel_caption(session.travel_caption(hwnd));
+                    renderer.set_weather(session.weather.borrow().clone());
                     let result = renderer.paint(
                         hwnd,
                         dpi,

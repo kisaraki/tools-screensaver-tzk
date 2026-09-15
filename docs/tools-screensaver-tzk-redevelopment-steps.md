@@ -1,8 +1,8 @@
 # tools-screensaver-tzk 從零重新開發步驟
 
-文件版本：1.2
+文件版本：1.3
 
-目標基準：重建與 v0.14.1（schema 9）相容的 Windows 10 x64 版本
+目標基準：重建與 v0.15.0（schema 10）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 
@@ -14,16 +14,16 @@
 
 ```powershell
 git fetch --tags origin
-git rev-parse v0.14.1^{commit}
-git show --no-patch --format=fuller v0.14.1
+git rev-parse 'v0.15.0^{commit}'
+git show --no-patch --format=fuller v0.15.0
 ```
 
-`v0.14.1` 應解析到 `48bac499d8cc20ae57f0e79f5d575f48d4c90c7c`。參考成品為：
+保存 `v0.15.0` 解析出的 commit，確認工作分支參考同一個 tag。參考成品為：
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 9,570,816 | `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
-| `tools-screensaver-tzk-Setup.exe` | 12,614,509 | `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
+| `tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` |
+| `tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` |
 
 重寫可使用新分支與新內部結構，但對外名稱、CLI、AppId、registry schema 與資料格式必須依規格書保持相容。不要把 `docs/phase*.md` 的歷史需求或中途方案當成最終契約；它們只用於追查設計原因。
 
@@ -134,7 +134,7 @@ tools-screensaver-tzk/
 ## 4. 階段 B：建立純邏輯與設定 schema
 
 1. 在 `model.rs` 實作 Gregorian 月曆、連續指針角度、倒數 deadline/frame、`HH:MM:SS` 及有界 PRNG。
-2. 在 `config.rs` 建立 `DisplayMode`、`TravelStyle`、`ColorPreset`、`FontMode`、`AppConfig` 與 schema 9；加入 `CalendarStyle` 和五組有界 `SourceList`。
+2. 在 `config.rs` 建立四個 `DisplayMode`、`TravelStyle`、`ColorPreset`、`FontMode`、`AppConfig` 與 schema 10；加入 `CalendarStyle`、五組有界 `SourceList`、`AutoUpdate` 與有界 `WeatherSettings`。
 3. 建立 `SettingsStore` trait，先以 memory store 測試，再於 `registry.rs` 實作 HKCU adapter。
 4. 實作局部回退、舊 schema gate、未來 schema 拒絕寫入與多值 rollback transaction。
 5. 對所有 enum 登錄值、預設值、錯誤型別、極端數字、rollback 及 future schema 寫 unit tests。
@@ -159,7 +159,7 @@ tools-screensaver-tzk/
 
 ## 6. 階段 D：完成設定與倒數 dialog
 
-1. 以 RC dialog template 建立三種主模式、五種旅行場景、八種色彩、字型與旅行切換欄位；主色名稱使用「鐵灰」。新增桌曆方式下拉選單，只在日期時鐘模式啟用。
+1. 以 RC dialog template 建立四種主模式、五種旅行場景、八種色彩、字型與旅行切換欄位；主色名稱使用「鐵灰」。加入桌曆方式、氣象城市 modal、自動更新勾選及手動更新按鈕。桌曆方式只在日期時鐘模式啟用。
 2. 加入 `KOMSMOS TOOLKIT／探真拓知酷` 圖示標示。
 3. 設定 dialog 載入 draft，控制項變更只刷新離線預覽；按確定才交易保存。
 4. 日本旅行未選中時停用場景與切換控制；選擇不切換時停用分鐘 edit。
@@ -225,6 +225,24 @@ powershell -NoProfile -NonInteractive -File .\scripts\export-travel-shell-fixtur
 4. controller 必須先隱藏，完成 shell navigation、套用 source 後才顯示。
 5. runtime 缺失或 renderer failure 時顯示原生 fallback，且仍可用輸入退出。
 
+### 9.4 原生氣象
+
+1. 依 [氣象規格](weather-mode.md) 建立附加式的 43 城市表、英文城市驗證與設定子對話框；外層確定才交易保存。
+2. 建立固定 host 的 WinHTTP 層；採用 IP 約略定位並允許停用，失敗回退設定城市；英文搜尋依所選國家篩選。
+3. 建立 CWA 官網最近測站解析、連續七筆十分鐘累積雨量差值及 Open-Meteo 目前模型解析；檢查座標、數值、時間與大小上限。
+4. 實作八類背景映射、center-cover、中央像素合成玻璃卡、時鐘與來源 attribution；無資料不顯示假氣溫。八張 PNG 嵌入，demo 不打包。
+5. coordinator 每 session 啟動抓取一次、每小時更新，全部螢幕分享快照；預覽／Debug 不連網。
+6. 用隔離 registry 測試、離線分類與 GDI fixture 驗證。旅行以外的氣象功能不得建立 WebView2 或要求 Runtime。
+
+### 9.5 版本更新
+
+1. 依 [更新規格](automatic-updates.md) 建立預設關閉的 checkbox 與手動按鈕；保存 AutoUpdate，操作狀態日期獨立保存。
+2. 使用本機 YYYYMMDD、命名 mutex 與 HKCU 日期 gate；只在一般未鎖定桌面的正式 `/s` 每日首次背景檢查。先寫日期再請求，失敗不自動重試。
+3. 嚴格解析 GitHub 正式 `vX.Y.Z` 並以數值比較；不執行 release 文字，也不接受任意下載網址。
+4. 發現新版先關閉全部 saver 與恢復游標，再詢問；手動及確認後下載使用有訊息迴圈的可取消 dialog，處理結果前停止 timer，避免 modal reentrancy。
+5. 固定 Pages 版本目錄下載 SHA256SUMS 與 Setup，驗證唯一檔名、SHA-256、大小與 PE 後才啟動一般 Setup；啟動成功後原程序退出，保留異版移除與 UAC。
+6. 自動 saver 短暫退出時，只保留最多 50 秒背景 metadata 檢查，不保留視窗；真實更新詢問與 UAC 只在互動 Win10 補測。
+
 完成條件：純 Rust/JS source tests、離線 shell geometry 與 WebView2 ignored environment tests 均具備；實際影片另在互動驗收執行。
 
 另加一個原生狀態測試，連續啟用來源時確認 playback token 單調推進、起點始終落在 181～539，且實際產生的 load script 含相同值。再用 JavaScript source test 覆蓋 playlist、direct video、prepared candidate 及片尾重播四條路徑。離線測試只能證明命令與範圍，不能宣稱 YouTube 對短片、直播或 keyframe 實際 seek 到精確秒數。
@@ -269,7 +287,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1 `
 
 `check-japan-sources.ps1` 會連網，其餘標準驗證不得顯示產品 UI、建立 player、安裝程式、觸發 UAC 或更動目前 saver registry。
 
-以 v0.14.1 為參考時，完整 package 預期通過 69 個預設 Rust 測試（library 49、CLI 8、native noninteractive 2、layout 10）、9 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
+以 v0.15.0 為參考時，完整 package 預期通過 79 個預設 Rust 測試（library 59、CLI 8、native noninteractive 2、layout 10）、12 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。ignored 包括顯式網路探測與離線匯出，不得一次啟動全部 ignored tests；測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
 
 提交前至少執行：
 
@@ -293,7 +311,7 @@ git status --short
 4. 測試 WebView2 已存在、缺少後成功安裝、離線失敗、取消 task、要求 restart。
 5. 確認完成頁勾選時開啟設定，取消時不開啟；`/SILENT` 與 `/VERYSILENT` 不顯示設定。
 6. 在 Windows 螢幕保護程式控制台測 `/p`；確認 parent resize、DPI 與關閉。
-7. 逐一執行三種 `/s` 模式，測鍵盤、滑鼠、滾輪、失焦與游標恢復。
+7. 逐一執行四種 `/s` 模式，測鍵盤、滑鼠、滾輪、失焦與游標恢復；氣象與版本更新需另補真實網路／一小時刷新／提示互動。
 8. 以單螢幕、延伸雙螢幕、主要螢幕非左上、負座標與不同 DPI 重複。
 9. 日本旅行五場景各測啟動、正常播放、字幕偏好、3 分鐘後 seek、切換、下一來源預備、buffering、斷網與恢復。
 10. 日期時鐘、番茄鐘、日本旅行各執行 30 分鐘，記錄 GDI/USER objects、private bytes、handles、CPU 與 crash/hang。
@@ -433,8 +451,10 @@ HTTP 必須為 200，兩個 binary hash 必須與 release manifest 一致。Git 
 
 - [ ] 產品名稱與所有路徑均為 `tools-screensaver-tzk`。
 - [ ] Cargo、manifest、SCR、Setup、網站與 release 版本一致。
-- [ ] 三種主模式與五種旅行場景完整。
-- [ ] schema 9 讀寫與舊資料相容，future schema 不被覆寫。
+- [ ] 四種主模式與五種旅行場景完整。
+- [ ] 第四主模式氣象、43 城市／自訂英文城市、每小時更新、八張背景與資料失敗狀態完成。
+- [ ] 每日首次／手動更新、正式版本比較、固定來源 SHA-256 驗證與安全桌面排除完成。
+- [ ] schema 10 讀寫與舊資料相容，future schema 不被覆寫。
 - [ ] 日期時鐘與番茄鐘集中於中央友善面積。
 - [ ] 八種色彩與四種字型來源可用。
 - [ ] 多螢幕、負座標、PerMonitorV2、輸入退出與游標恢復完成。

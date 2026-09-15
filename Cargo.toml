@@ -1,6 +1,6 @@
 [package]
 name = "tools-screensaver-tzk"
-version = "0.14.1"
+version = "0.15.0"
 edition = "2021"
 rust-version = "1.97.1"
 description = "Windows calendar clock, away-work Pomodoro, and Japan live-travel screensaver"
@@ -20,6 +20,8 @@ test = false
 bench = false
 
 [dependencies]
+serde_json = "1.0"
+sha2 = "0.10"
 webview2-com = "0.39.1"
 windows = { version = "0.62", features = [
     "Win32_Foundation",
@@ -39,6 +41,7 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_ProcessStatus",
     "Win32_System_Registry",
     "Win32_System_SystemInformation",
+    "Win32_System_StationsAndDesktops",
     "Win32_System_Threading",
     "Win32_UI_Controls",
     "Win32_UI_Controls_Dialogs",

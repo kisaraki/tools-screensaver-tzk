@@ -1,15 +1,29 @@
 # tools-screensaver-tzk 驗收報告
 
-軟體版本：0.14.1 開發候選版<br>
-規格文件：v2.9（修訂版）<br>
-執行日期：2026-09-07～2026-09-13（建置與續作驗證）<br>
-Source revision：本報告隨 Git tag `v0.14.1` 鎖定；Phase 0～5 歷史結果由 tag `v0.1.1` 追溯<br>
+軟體版本：0.15.0 開發候選版<br>
+規格文件：v2.10（修訂版）<br>
+執行日期：2026-09-07～2026-09-15（建置與續作驗證）<br>
+Source revision：目前結果隨 Git tag `v0.15.0` 鎖定；舊結果按各 Phase tag 追溯<br>
 環境：Windows 10 Education 22H2 x64，build 19045.6456；Intel Core i5-8259U，4 cores／8 logical processors，約 24 GiB RAM；Intel Iris Plus Graphics 655；雙 3840×2160、兩者 144 DPI／150%，左側螢幕為負 X<br>
 工具：Rust／Cargo 1.97.1、MSVC x64 toolset 14.51.36231（link.exe 14.51.36256.0）、Windows SDK RC 10.0.26100.0、Inno Setup 6.7.3、WebView2 Evergreen Runtime 152.0.4191.66
 
 狀態只使用 `PASS`、`FAIL`、`NOT TESTED`、`NOT APPLICABLE`。必要實機情境只完成一部分時，整項仍列 `NOT TESTED` 並說明局部證據。本報告沒有已知 `FAIL`，但仍有必要項目 `NOT TESTED`，所以不宣稱日本旅行模式或 Windows 10 完整驗收完成。
 
-## v0.14.1 非互動驗證摘要
+## v0.15.0 非互動驗證摘要
+
+| 項目 | 狀態 | 結果／證據 |
+| --- | --- | --- |
+| 完整 package | PASS | fmt、Clippy、locked tests、Release、Inno Setup 均 exit 0；79 預設 tests（lib 59／CLI 8／native 2／layout 10）、12 ignored；19＋15 安裝 policy checks；[Phase 23](phase23-report.md) |
+| schema 10 偏好 | PASS | 新欄位預設、遷移、round-trip、每欄故障 rollback 與實際專用 Registry adapter 關閉重開；正式偏好不變 |
+| 氣象資料與城市 | PASS | 原生 CWA 臺北觀測、Open-Meteo 東京、自訂 Yokohama、IP 座標檢查；[探測結果](evidence/phase23/weather-probe.json) |
+| 更新資料與下載 | PASS | 嚴格正式版本比較、每日 HKCU gate、公開固定 Pages Setup 下載及 SHA-256；測試下載立即刪除且未執行；[更新探測](evidence/phase23/update-network.txt) |
+| 氣象版面 | PASS | 八種背景 × 三個尺寸共 24 張 GDI fixtures；新模式納入極小尺寸與 50 次資源循環 |
+| 目前成品非互動 smoke | PASS | 0.15.0、四主模式、五 dialog、新氣象及更新控制項、PE／imports、錯誤 CLI；正式螢幕保護 registry 前後一致；[smoke](evidence/phase23/smoke/smoke-report.json) |
+| 氣象與更新實際 UI | NOT TESTED | 遠端不開啟設定、正式 saver、安裝或 UAC；一小時更新／斷線／多螢幕／提示接受與取消／重裝仍待本機測試 |
+
+以下 v0.14.1 摘要與 AC01～34 為歷史基線，不能當成新 UI 已實機通過；目前增量結果以本節與 Phase 23 為準。
+
+## v0.14.1 歷史非互動驗證摘要
 
 | 項目 | 狀態 | 結果／證據 |
 | --- | --- | --- |
@@ -35,10 +49,13 @@ Phase 20 曾完成 10 張離線 headless Edge 靜態 HTML 版面檢查；本階�
 
 上述驗證沒有開啟 `/s`、WebView2 player、設定畫面或正式 Setup，沒有執行 Microsoft Bootstrapper，也沒有寫 System32、改螢幕保護設定或觸發 UAC。獨立 policy harness 在 wizard 建立前結束。HTTP 可達及 Runtime 可偵測均不能代替影片 `PLAYING`。
 
-## AC01～AC34
+## AC01～AC37
 
 | ID | 狀態 | 環境／實際結果 | 證據 | 失敗原因或缺少條件 |
 | --- | --- | --- | --- | --- |
+| AC35 | NOT TESTED | 四主模式、城市設定、新偏好持久化、原生資料探測與氣象離屏畫面 PASS | Phase 23 | 真實 UI／閒置啟動／每小時更新／定位回退／斷線及雙螢幕尚未操作 |
+| AC36 | NOT TESTED | 可選自動更新、手動更新、版本與日期 gate、Setup HTTPS／SHA-256 原生下載 PASS | Phase 23 | 提示接受／拒絕／取消下載／鎖定切換／UAC／異版移除／重裝未操作 |
+| AC37 | PASS | 臺灣來源明示 CWA 測站，全球明示 Open-Meteo 模型；分類參考 JMA 雨風門檻且明示非官方警報；定位與查詢揭露 | weather-mode、automatic-updates、README | — |
 | AC01 | NOT TESTED | v0.14.1 fmt、Clippy、69 tests、Release、PE／resources／imports 全部實跑通過 | Phase 22 report、smoke | MT15 的無開發工具乾淨 Win10 尚無環境 |
 | AC02 | PASS | Debug／Release 真實命令列與原生視窗測試沿用 Phase 4 證據；v0.9.0 無 UI 錯誤參數重跑通過 | Phase 4 `native-release.txt`、UT01～03、Phase 13 smoke | — |
 | AC03 | NOT TESTED | 真實跨程序 parent、三種 host DPI context、resize／退出／刷新已有基線證據 | Phase 3 native、Phase 4 native Release | v0.9.0 未重跑互動 host；缺實體混合 100%／150%／200% 桌面與 Windows 設定頁 |
@@ -137,11 +154,11 @@ Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.
 
 Windows 11：`NOT TESTED`，依使用者指示延期；這不阻擋目前 Windows 10 候選版交付，也不能被寫成已支援通過。
 
-## v0.14.1 成品
+## v0.15.0 成品
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `dist/tools-screensaver-tzk.scr` | 9,570,816 | `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` | Build／smoke PASS；NotSigned |
-| `dist/tools-screensaver-tzk-Setup.exe` | 12,614,509 | `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` | Build／smoke PASS；NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
 
-Phase 5 的 v0.1.1 hash 保留在 Phase 5 報告與該 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.14.1 成品維持 NotSigned。
+舊版 hash 保留在各 Phase 報告與 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.15.0 成品維持 NotSigned。

@@ -5,26 +5,26 @@
 [![Release](https://img.shields.io/github/v/release/kisaraki/tools-screensaver-tzk?include_prereleases&sort=semver)](https://github.com/kisaraki/tools-screensaver-tzk/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-17d98b.svg)](LICENSE)
 
-tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」與「日本旅行模式」。前兩種模式可完全離線使用；日本旅行模式只在正式全螢幕啟動時連線，並將影片保持靜音。
+tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」、「日本旅行模式」與「即時氣象模式」。前兩種模式可完全離線使用；旅行影片固定靜音。可選擇啟用每天首次啟動的更新檢查。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.14.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.14.1) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.15.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.15.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase13/fixtures/07-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.14.1 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
+> **v0.15.0 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.14.1/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 9,570,816 | `49a2d2a02608aaf574f09f7fabe970770c26f642fea771ade4995f4d384ef7ab` |
-| `tools-screensaver-tzk-Setup.exe` | 12,614,509 | `bc58d235bf4f1f671153b906a9738125c14248e7b841688f014d8b87e26a0642` |
+| `tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` |
+| `tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` |
 
 ## 安裝與使用
 
@@ -45,6 +45,20 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 | 日式（和風月名） | 水無月 | 月曜、火曜、水曜、木曜、金曜、土曜、日曜 |
 
 三種方式皆使用西曆日期；日式依西曆月份對應傳統和風月名，不換算陰曆或日本年號。切換會立即更新離線預覽，按「確定」後保存。「鐵灰」沿用原色彩與既有設定。
+
+### 自動與手動更新
+
+設定面板提供「自動更新」與「手動更新」。自動更新預設不勾選，按主設定「確定」才保存；啟用後，只在每位使用者每天第一次於一般未鎖定桌面啟動正式螢幕保護時背景檢查。發現新版先關閉螢幕保護、恢復游標，再詢問是否下載安裝；拒絕不更新，失敗可手動重試。「手動更新」立即檢查，不受每日限制。
+
+版本與檔案僅取自本專案的公開 GitHub／Pages，不需登入；下載後核對 SHA-256 才啟動 Setup。更新保留正常的異版移除詢問與 UAC，不會無人覆蓋安裝，也不在鎖定／安全桌面啟動安裝。[完整更新規格](docs/automatic-updates.md)
+
+### 即時氣象模式
+
+選擇「即時氣象模式」，按「氣象城市設定…」。提供臺灣、日本、美國、澳洲、新加坡、中國、英國、法國、德國共 43 個主要城市，預設臺北；可輸入正式英文城市名，國家依城市選單所選國家限制，留空使用選單城市。按外層確定後保存，下次啟動恢復。
+
+預設使用 IP 約略定位，失敗回退設定城市；VPN 或 ISP 出口可能使位置偏離實際所在地，可取消定位固定城市。臺灣使用中央氣象署官網最近的已支援測站觀測；其他地區使用 [Open-Meteo](https://open-meteo.com/en/docs) 的目前天氣模型資料。每次正式啟動重新抓取，持續顯示時每小時更新；中央玻璃資訊卡顯示城市、攝氏氣溫、天氣、時鐘／日期、濕度與風速，底部保留來源與資料時間。
+
+八張背景依晴、曇、強風、雨、土砂降り、嵐、雪、吹雪分類。雨量與風速參考日本氣象廳門檻；嵐、吹雪是程式顯示推定，不能當成官方警報。失敗時明示狀態，無資料顯示「—°C」，不捏造天氣。定位會連線 ipwho.is；座標與自訂城市搜尋會送至氣象／GeoNames 服務。Open-Meteo 資料 CC BY 4.0，免費端點供非商業使用。[資料來源、分類與隱私規格](docs/weather-mode.md)
 
 ### 自訂 YouTube 來源
 
@@ -126,9 +140,11 @@ Bootstrapper 已內附，完整 Runtime 仍需在安裝時從 Microsoft 下載�
 - **播放器外觀**：影片固定靜音並停用控制列、鍵盤、註解與全螢幕按鈕；載入、開始播放及字幕 API 狀態變更時均再次要求卸載字幕模組，播放器也不接受滑鼠事件。來源影片本身燒錄的文字無法由 player 關閉；YouTube 仍可能依平台規則短暫顯示必要的標題或品牌資訊。
 - **個人化**：深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰與桌曆時鐘自動換色；自動模式每 2 分鐘循環七種實色。另提供電子錶、Consolas、新細明體及自訂系統字型。
 - **設定識別**：原生設定畫面以程式圖示搭配「KOMSMOS TOOLKIT 探真拓知酷」小型標示。
+- **即時氣象**：八張內附像素風背景、中央透光玻璃資訊卡、43 個主要城市與英文自訂城市；啟動及每小時更新，全部螢幕共用資料。
+- **版本更新**：選用的每日首次背景檢查與即時手動檢查；確認後下載、驗證並交由既有 Setup 安裝。
 - **Windows 整合**：支援 `/s` 全螢幕、`/p HWND` 系統預覽與 `/c` 原生設定對話框；全螢幕啟動時先把游標移到主要螢幕外角的非播放器區域再隱藏，退出及錯誤清理時還原游標形狀。
 - **顯示適配**：多螢幕、負座標、每螢幕 DPI、橫向／直向／極小畫面與防烙印位移。
-- **執行邊界**：前兩種模式、`/p` 系統預覽及 `/c` 設定預覽不建立 WebView2，也不連公開網站；程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
+- **執行邊界**：`/p` 與 `/c` 設定預覽保持離線；只有正式日本旅行建立 WebView2，氣象與更新採 WinHTTP 背景請求。前兩種模式在未啟用自動更新時不連網。程式沒有遙測、常駐服務或額外 VC++ Runtime 需求。
 
 ![離機作業番茄鐘模式：置中的數字、沙漏與暗色藥劑瓶玻璃面板](docs/evidence/phase19/fixtures/23-Countdown-1920x1080-dpi96-p2-SevenSegment-size.png)
 
@@ -161,6 +177,7 @@ tools-screensaver-tzk.scr /c
 ```
 
 - `/s`：每台螢幕建立無邊框視窗；標準桌曆暨時鐘模式直接開始，離機作業番茄鐘模式先要求本次時、分、秒，日本旅行模式則在每個螢幕初始化 player 並於背景檢查來源。
+- 氣象模式的 `/s` 在背景抓取位置與天氣，全部螢幕共享結果；自動更新只在啟用且符合每日條件時檢查。
 - `/p <HWND>` 或 `/p:<HWND>`：嵌入 Windows 提供的預覽父視窗；日本旅行模式只顯示無網路靜態示意。
 - `/c` 或無參數：開啟原生設定對話框；設定預覽不連網。
 
@@ -203,7 +220,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.14.1 的 69 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.15.0 的 79 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -220,16 +237,20 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - `observe-phase4.ps1`
 - `test-installation.ps1`（會安裝到 System32 並顯示 UAC）
 - 日本旅行模式實際播放、至少 5 次預設 1 分鐘輪換、自訂分鐘與不切換、多螢幕／DPI、斷網與 30 分鐘資源觀察
+- 更新的真實提示、取消／接受、UAC 與異版安裝；氣象模式的真實閒置啟動、斷線及一小時輪換
 
 缺少可互動環境時，相關驗收維持 `NOT TESTED`。Windows 10 驗證邊界與逐項狀態見 [驗收報告](docs/acceptance-report.md)。
 
 ## 專案文件
 
-- [截至 v0.14.1 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
+- [截至 v0.15.0 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
 - [從零重新開發、驗證、封裝與發布步驟](docs/tools-screensaver-tzk-redevelopment-steps.md)
 - [Phase 21：自訂 YouTube 來源與桌曆顯示](docs/phase21-report.md)
 - [Phase 22：來源持久化與隨機起播保證](docs/phase22-report.md)
-- [Codex 開發規格 v2.9](tools-screensaver-tzk_Codex_Spec.md)
+- [Phase 23：即時氣象與版本更新](docs/phase23-report.md)
+- [即時氣象：來源、城市與天氣分類](docs/weather-mode.md)
+- [自動及手動更新：行為與發布規則](docs/automatic-updates.md)
+- [Codex 開發規格 v2.10](tools-screensaver-tzk_Codex_Spec.md)
 - [Phase 20 旅行播放與安裝完成設定報告](docs/phase20-report.md)
 - [Phase 19 暗色藥劑瓶玻璃面板報告](docs/phase19-report.md)
 - [Phase 18 啟動設定、游標、眨眼與色彩報告](docs/phase18-report.md)
@@ -251,7 +272,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～22 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.14.1 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～23 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.15.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 
