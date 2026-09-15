@@ -1,8 +1,8 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.4
+文件版本：1.5
 
-實作基準：產品 v0.15.3、設定 schema 10、Git tag `v0.15.3`
+實作基準：產品 v0.15.4、設定 schema 10、Git tag `v0.15.4`
 
 基準日期：2026-09-16
 
@@ -10,18 +10,18 @@
 
 ## 0. 實作快照與文件邊界
 
-本文件記錄 `v0.15.3` 的實作。重建時先以 tag 固定參考原始碼，再依本文件驗證相容性：
+本文件記錄 `v0.15.4` 的實作。重建時先以 tag 固定參考原始碼，再依本文件驗證相容性：
 
-| 項目 | v0.15.3 快照 |
+| 項目 | v0.15.4 快照 |
 | --- | --- |
-| Git tag | `v0.15.3` |
-| Git commit | 以 `git rev-parse 'v0.15.3^{commit}'` 取得，避免文件提交的自我參照 |
-| Cargo／SCR／Setup 版本 | `0.15.3` |
+| Git tag | `v0.15.4` |
+| Git commit | 以 `git rev-parse 'v0.15.4^{commit}'` 取得，避免文件提交的自我參照 |
+| Cargo／SCR／Setup 版本 | `0.15.4` |
 | Registry schema | `10` |
 | Rust toolchain | `1.97.1-x86_64-pc-windows-msvc` |
 | WebView2 Bootstrapper lock | `1.3.265.7`，1,783,000 bytes，SHA-256 `17debf797a6c737959bc588236e897936ffac1af5f7e515e674ab32f9edfe719` |
-| SCR | 20,517,888 bytes，SHA-256 `10b5723e2daa8e8b0bd7580e8ab4951093a300ae9c686022949e9b2bcf8b6a1c` |
-| Setup | 23,314,521 bytes，SHA-256 `c354f57860998552e9fed82f982cc7be62cf7536825f039b26b49940bc1245ab` |
+| SCR | 20,517,888 bytes，SHA-256 `8df12cb9aa35df5bb2fd90a4ca4a2391b8c2ad1ef2cf524536fbad4c667fa023` |
+| Setup | 23,314,600 bytes，SHA-256 `ca03095284eb3c4b606f6ee5942e1ee5af8abf73037fb0756cbf373f77b005ad` |
 
 產品程式碼、安裝器、網站與公開下載是同一個版本集合；規格文件本身可在不變更產品版本的後續文件提交中修訂。若程式行為與本文件衝突，先以該 tag 的實際外部行為及自動測試為證據，修正文件後再進行重寫。
 
@@ -410,7 +410,7 @@ flowchart LR
 
 ## 16. 完成定義
 
-未來重新開發只有在以下條件全部成立時，才可宣告與 v0.15.3 功能相容：
+未來重新開發只有在以下條件全部成立時，才可宣告與 v0.15.4 功能相容：
 
 - 外部名稱、CLI、registry schema、AppId 與 System32 檔名相容。
 - 四個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式、五組自訂來源、氣象城市與自動更新選項均可保存並重新載入。
@@ -441,3 +441,9 @@ flowchart LR
 ### 17.3 v0.15.3 透明度修訂
 
 玻璃本體遮色不透明度從 30% 降至 15%；三個 BGR 通道混色為 `transmitted * 0.85 + [10, 8.5, 7.5]`。廣域反射係數由 0.13 降至 0.065；保留原本曲面邊緣折射、色散、唇邊、陰影與 Gaussian 背景柔化。這是本體遮色強度減半，不代表包含模糊與邊緣反射的整張面板採單一 alpha。詳 [Phase 26](phase26-report.md)。
+
+### 17.4 v0.15.4 接近全透與 MIT 授權
+
+玻璃本體改為 `transmitted * 0.98 + [1.34, 1.14, 1.0]`（BGR），僅 2% 遮色。三次連續模糊的半徑為 round(面板寬 * 0.006)，限制 1～10px，讓背景細節透出；廣域反射係數 0.018、陰影 0.14。曲面法線驅動的邊緣折射、色散、唇邊高光及面板尺寸保留。
+
+根目錄 `LICENSE` 保留標準 MIT 全文與 Copyright (c) 2026 kisaraki；Setup 的 LicenseFile 指向同一份文件，Pages 的 `LICENSE.txt` 與根目錄全文相同，提供匿名下載。詳 [Phase 27](phase27-report.md)。

@@ -47,7 +47,7 @@ struct Glass {
 }
 impl Glass {
     fn new(panel: Rect, sample: impl Fn(i32, i32) -> [u8; 4]) -> Result<Self, AppError> {
-        let radius = (panel.w * 0.035).round().clamp(2.0, 48.0) as i32;
+        let radius = (panel.w * 0.006).round().clamp(1.0, 10.0) as i32;
         let padding = radius * 4;
         let x = panel.x.floor() as i32 - padding;
         let y = panel.y.floor() as i32 - padding;
@@ -74,8 +74,8 @@ impl Glass {
                 pixels.push([value[0], value[1], value[2]]);
             }
         }
-        // Three separable box passes approximate Gaussian diffusion without a
-        // sparse sampling grid that leaves the underlying pixel blocks visible.
+        // A shallow continuous diffusion keeps clear glass from looking frosted.
+        // Three separable passes smooth the optical surface without a sparse grid.
         for _ in 0..3 {
             blur(&pixels, &mut scratch, width, radius, true);
             blur(&scratch, &mut pixels, width, radius, false);
@@ -193,7 +193,7 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
             let shadow_distance =
                 surface(panel, radius, xf - panel.w * 0.012, yf - panel.w * 0.023).0;
             let shadow =
-                (-((shadow_distance.max(0.0) / (panel.w * 0.032).max(1.0)).powi(2))).exp() * 0.22;
+                (-((shadow_distance.max(0.0) / (panel.w * 0.032).max(1.0)).powi(2))).exp() * 0.14;
             if outside > -0.5 {
                 for channel in &mut pixel[..3] {
                     *channel = (f64::from(*channel) * (1.0 - shadow)) as u8;
@@ -208,7 +208,7 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
                 let polish = (-outside.abs() / 0.85).exp() * (0.12 + lighting * 0.38);
                 let u = (xf - panel.x) / panel.w;
                 let v = (yf - panel.y) / panel.h;
-                let reflection = (-((v - 0.08 - u * 0.12) / 0.22).powi(2)).exp() * 0.065;
+                let reflection = (-((v - 0.08 - u * 0.12) / 0.22).powi(2)).exp() * 0.018;
                 let caustic = (-((t - 0.72) / 0.16).powi(2)).exp() * (1.0 - lighting) * 0.14;
                 let shine = (reflection + rim + polish + caustic).clamp(0.0, 0.85);
                 for (c, channel) in pixel[..3].iter_mut().enumerate() {
@@ -217,9 +217,9 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
                     let displacement = bend * (1.0 + (c as f64 - 1.0) * 0.07);
                     let transmitted =
                         glass.sample(xf + nx * displacement, yf + ny * displacement, c);
-                    // Halve the body tint opacity (30% -> 15%) while keeping
-                    // the blurred transmission and curved optical rim intact.
-                    let base = transmitted * 0.85 + [10.0, 8.5, 7.5][c];
+                    // Almost clear body (2% tint); the curved bevel, dispersion
+                    // and polished rim still reveal the physical glass surface.
+                    let base = transmitted * 0.98 + [1.34, 1.14, 1.0][c];
                     let shaded = base * (1.0 - shine) + 250.0 * shine;
                     *channel = (f64::from(*channel) * (1.0 - coverage) + shaded * coverage)
                         .clamp(0.0, 255.0) as u8;
