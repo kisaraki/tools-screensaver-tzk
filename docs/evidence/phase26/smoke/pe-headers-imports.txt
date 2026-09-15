@@ -1,0 +1,544 @@
+Microsoft (R) COFF/PE Dumper Version 14.51.36257.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\Adolf\AppData\Local\Temp\tools-screensaver-tzk-smoke-c58d8e8450444d2f8897215cb383191f\tools-screensaver-tzk.scr
+
+PE signature found
+
+File Type: EXECUTABLE IMAGE
+
+FILE HEADER VALUES
+            8664 machine (x64)
+               7 number of sections
+        EE00FCF8 time date stamp
+               0 file pointer to symbol table
+               0 number of symbols
+              F0 size of optional header
+              22 characteristics
+                   Executable
+                   Application can handle large (>2GB) addresses
+
+OPTIONAL HEADER VALUES
+             20B magic # (PE32+)
+           14.51 linker version
+           7D200 size of code
+         1314A00 size of initialized data
+               0 size of uninitialized data
+           666D0 entry point (00000001400666D0)
+            1000 base of code
+       140000000 image base (0000000140000000 to 0000000141395FFF)
+            1000 section alignment
+             200 file alignment
+            6.00 operating system version
+            0.00 image version
+            6.00 subsystem version
+               0 Win32 version
+         1396000 size of image
+             400 size of headers
+               0 checksum
+               2 subsystem (Windows GUI)
+            8160 DLL characteristics
+                   High Entropy Virtual Addresses
+                   Dynamic base
+                   NX compatible
+                   Terminal Server Aware
+          100000 size of stack reserve
+            1000 size of stack commit
+          100000 size of heap reserve
+            1000 size of heap commit
+               0 loader flags
+              10 number of directories
+               0 [       0] RVA [size] of Export Directory
+         13431BC [     140] RVA [size] of Import Directory
+         134D000 [   47608] RVA [size] of Resource Directory
+         1347000 [    420C] RVA [size] of Exception Directory
+               0 [       0] RVA [size] of Certificates Directory
+         1395000 [     E78] RVA [size] of Base Relocation Directory
+         133D620 [      70] RVA [size] of Debug Directory
+               0 [       0] RVA [size] of Architecture Directory
+               0 [       0] RVA [size] of Global Pointer Directory
+         133D800 [      28] RVA [size] of Thread Storage Directory
+         133D4E0 [     140] RVA [size] of Load Configuration Directory
+               0 [       0] RVA [size] of Bound Import Directory
+           7F000 [     850] RVA [size] of Import Address Table Directory
+               0 [       0] RVA [size] of Delay Import Directory
+               0 [       0] RVA [size] of COM Descriptor Directory
+               0 [       0] RVA [size] of Reserved Directory
+
+
+SECTION HEADER #1
+   .text name
+   7D150 virtual size
+    1000 virtual address (0000000140001000 to 000000014007E14F)
+   7D200 size of raw data
+     400 file pointer to raw data (00000400 to 0007D5FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+60000020 flags
+         Code
+         Execute Read
+
+SECTION HEADER #2
+  .rdata name
+ 12C5F32 virtual size
+   7F000 virtual address (000000014007F000 to 0000000141344F31)
+ 12C6000 size of raw data
+   7D600 file pointer to raw data (0007D600 to 013435FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+  Debug Directories
+
+        Time Type        Size      RVA  Pointer
+    -------- ------- -------- -------- --------
+    EE00FCF8 cv            32 0133DC54  133C254    Format: RSDS, {0A31F538-7740-FB14-1669-3FCF6AA9A9B9}, 1, tools_screensaver_tzk.pdb
+    EE00FCF8 feat          14 0133DC88  133C288    Counts: Pre-VC++ 11.00=7, C/C++=229, /GS=229, /sdl=0, guardN=229
+    EE00FCF8 coffgrp      454 0133DC9C  133C29C
+    EE00FCF8 repro         24 0133E118  133C718    38 F5 31 0A 40 77 14 FB 16 69 3F CF 6A A9 A9 B9 86 41 2B 08 C8 64 A9 50 8B B4 84 8F F8 FC 00 EE
+
+  Section contains the following imports:
+
+    kernel32.dll
+             14007F2F8 Import Address Table
+             1413436F8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 IsValidCodePage
+                           0 CompareStringW
+                           0 LCMapStringW
+                           0 EncodePointer
+                           0 ReleaseSRWLockExclusive
+                           0 AcquireSRWLockExclusive
+                           0 GetSystemTimePreciseAsFileTime
+                           0 GetSystemTime
+                           0 WakeAllConditionVariable
+                           0 SleepConditionVariableSRW
+                           0 GetSystemTimeAsFileTime
+                           0 GetStartupInfoW
+                           0 RtlPcToFileHeader
+                           0 RaiseException
+                           0 GetACP
+                           0 GetOEMCP
+                           0 SwitchToThread
+                           0 OutputDebugStringW
+                           0 GetModuleHandleA
+                           0 FlsAlloc
+                           0 FlsGetValue
+                           0 FlsSetValue
+                           0 GetTickCount64
+                           0 FlsFree
+                           0 ExitProcess
+                           0 TerminateProcess
+                           0 GetModuleHandleExW
+                           0 GetLocalTime
+                           0 GetCommandLineA
+                           0 CreateMutexW
+                           0 IsProcessorFeaturePresent
+                           0 IsDebuggerPresent
+                           0 GetEnvironmentStringsW
+                           0 FreeEnvironmentStringsW
+                           0 SetEnvironmentVariableW
+                           0 VirtualProtect
+                           0 HeapSize
+                           0 MultiByteToWideChar
+                           0 WideCharToMultiByte
+                           0 CreateThread
+                           0 lstrlenW
+                           0 FreeLibrary
+                           0 GetEnvironmentVariableW
+                           0 WaitForSingleObject
+                           0 ReleaseMutex
+                           0 CreateMutexA
+                           0 LoadLibraryA
+                           0 WaitForSingleObjectEx
+                           0 RtlLookupFunctionEntry
+                           0 GetCurrentDirectoryW
+                           0 GetCurrentThreadId
+                           0 HeapReAlloc
+                           0 GetCurrentThread
+                           0 SetThreadStackGuarantee
+                           0 GetStringTypeW
+                           0 GetCurrentProcess
+                           0 FindResourceW
+                           0 GetModuleHandleW
+                           0 GetSystemDirectoryW
+                           0 GetModuleFileNameW
+                           0 GetCPInfo
+                           0 GetCommandLineW
+                           0 FormatMessageW
+                           0 HeapAlloc
+                           0 HeapFree
+                           0 GetProcessHeap
+                           0 LoadLibraryExA
+                           0 GetProcAddress
+                           0 SetLastError
+                           0 CloseHandle
+                           0 LoadLibraryW
+                           0 LocalFree
+                           0 GetCurrentProcessId
+                           0 OutputDebugStringA
+                           0 LoadLibraryExW
+                           0 GetLastError
+
+    user32.dll
+             14007F5F0 Import Address Table
+             1413439F0 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 GetMonitorInfoW
+                           0 InvalidateRect
+                           0 GetDpiForWindow
+                           0 SetThreadDpiAwarenessContext
+                           0 CloseDesktop
+                           0 SetFocus
+                           0 EnumDisplayMonitors
+                           0 RegisterClassW
+                           0 LoadIconW
+                           0 GetWindowDpiAwarenessContext
+                           0 ReleaseDC
+                           0 BeginPaint
+                           0 FillRect
+                           0 EndPaint
+                           0 PostMessageW
+                           0 MonitorFromWindow
+                           0 CheckDlgButton
+                           0 SystemParametersInfoW
+                           0 SendMessageTimeoutW
+                           0 GetForegroundWindow
+                           0 OpenInputDesktop
+                           0 GetUserObjectInformationW
+                           0 LoadStringW
+                           0 EnableWindow
+                           0 DialogBoxParamW
+                           0 CheckRadioButton
+                           0 GetThreadDesktop
+                           0 GetLastInputInfo
+                           0 IsDlgButtonChecked
+                           0 SetWindowTextW
+                           0 GetWindowTextLengthW
+                           0 GetDlgItemTextW
+                           0 SendDlgItemMessageW
+                           0 GetWindowRect
+                           0 SendMessageW
+                           0 GetDlgItem
+                           0 GetParent
+                           0 DestroyWindow
+                           0 IsWindow
+                           0 GetWindowThreadProcessId
+                           0 SetWindowLongPtrW
+                           0 MessageBoxW
+                           0 SetDlgItemTextW
+                           0 KillTimer
+                           0 EndDialog
+                           0 GetClientRect
+                           0 CreateWindowExW
+                           0 SetWindowPos
+                           0 PostQuitMessage
+                           0 DefWindowProcW
+                           0 GetWindowLongPtrW
+                           0 DispatchMessageW
+                           0 TranslateMessage
+                           0 GetMessageW
+                           0 SetTimer
+                           0 GetCursorPos
+                           0 SetForegroundWindow
+                           0 ShowWindow
+                           0 SetCursor
+                           0 SetCursorPos
+                           0 GetSystemMetrics
+                           0 UnregisterClassW
+                           0 LoadCursorW
+                           0 GetDC
+
+    ntdll.dll
+             14007F570 Import Address Table
+             141343970 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 RtlNtStatusToDosError
+                         2A7 NtWriteFile
+                         218 NtReadFile
+
+    ole32.dll
+             14007F590 Import Address Table
+             141343990 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 CoInitializeEx
+                           0 CoUninitialize
+                           0 CoCreateInstance
+
+    oleaut32.dll
+             14007F5B0 Import Address Table
+             1413439B0 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 GetErrorInfo
+                           0 SetErrorInfo
+                           0 SysStringLen
+                           0 SysFreeString
+
+    combase.dll
+             14007F1A8 Import Address Table
+             1413435A8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 CoTaskMemFree
+                           0 CoCreateFreeThreadedMarshaler
+                           0 CoTaskMemAlloc
+
+    shell32.dll
+             14007F5D8 Import Address Table
+             1413439D8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 ShellExecuteW
+                           0 CommandLineToArgvW
+
+    advapi32.dll
+             14007F138 Import Address Table
+             141343538 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 RegCreateKeyExW
+                           0 RegCloseKey
+                           0 RegQueryValueExW
+                           0 RegGetValueW
+                           0 RegSetValueExW
+                           0 RegDeleteValueW
+                           0 GetTokenInformation
+                           0 OpenProcessToken
+                           0 RegOpenKeyExW
+
+    api-ms-win-core-synch-l1-2-0.dll
+             14007F188 Import Address Table
+             141343588 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 WaitOnAddress
+                           0 WakeByAddressSingle
+                           0 WakeByAddressAll
+
+    winhttp.dll
+             14007F7F8 Import Address Table
+             141343BF8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 WinHttpSetTimeouts
+                           0 WinHttpConnect
+                           0 WinHttpOpenRequest
+                           0 WinHttpSetOption
+                           0 WinHttpOpen
+                           0 WinHttpReceiveResponse
+                           0 WinHttpCloseHandle
+                           0 WinHttpReadData
+                           0 WinHttpQueryHeaders
+                           0 WinHttpSendRequest
+
+    gdi32.dll
+             14007F1E0 Import Address Table
+             1413435E0 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 Ellipse
+                           0 Polygon
+                           0 CreatePen
+                           0 GetStockObject
+                           0 RoundRect
+                           0 Polyline
+                           0 AbortPath
+                           0 SelectClipPath
+                           0 EndPath
+                           0 CloseFigure
+                           0 LineTo
+                           0 MoveToEx
+                           0 BeginPath
+                           0 GetGlyphIndicesW
+                           0 GetTextExtentPoint32W
+                           0 TextOutW
+                           0 SetTextColor
+                           0 SetBkMode
+                           0 CreateFontW
+                           0 CreateFontIndirectW
+                           0 StretchDIBits
+                           0 SetBrushOrgEx
+                           0 SetStretchBltMode
+                           0 SetDCBrushColor
+                           0 CreateCompatibleBitmap
+                           0 CreateCompatibleDC
+                           0 RestoreDC
+                           0 IntersectClipRect
+                           0 SetViewportOrgEx
+                           0 SaveDC
+                           0 BitBlt
+                           0 DeleteObject
+                           0 DeleteDC
+                           0 SelectObject
+
+    msimg32.dll
+             14007F560 Import Address Table
+             141343960 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 GradientFill
+
+    comdlg32.dll
+             14007F1C8 Import Address Table
+             1413435C8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 CommDlgExtendedError
+                           0 ChooseFontW
+
+    ADVAPI32.dll
+             14007F000 Import Address Table
+             141343400 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                         10C EventRegister
+                         114 EventWriteTransfer
+                         10D EventSetInformation
+                         10E EventUnregister
+
+    KERNEL32.dll
+             14007F028 Import Address Table
+             141343428 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                         272 GetFileInformationByHandle
+                         273 GetFileInformationByHandleEx
+                         569 SetFilePointerEx
+                         27A GetFileType
+                         1C8 FlushFileBuffers
+                         1B4 FindNextFileW
+                         5FB UnhandledExceptionFilter
+                         660 WriteFile
+                         12F DeleteCriticalSection
+                         397 InitializeCriticalSectionEx
+                         3F0 LeaveCriticalSection
+                         157 EnterCriticalSection
+                         517 RtlUnwindEx
+                         5B8 SetUnhandledExceptionFilter
+                         39A InitializeSListHead
+                         225 GetConsoleMode
+                         593 SetStdHandle
+                          14 AddVectoredExceptionHandler
+                         509 RtlCaptureContext
+                         518 RtlVirtualUnwind
+                         303 GetStdHandle
+                         19D FindClose
+                         229 GetConsoleOutputCP
+                         65F WriteConsoleW
+                         270 GetFileAttributesW
+                         482 QueryPerformanceFrequency
+                         481 QueryPerformanceCounter
+                         285 GetFullPathNameW
+                          E6 CreateFileW
+                         56C SetFileTime
+                         566 SetFileInformationByHandle
+                         1A3 FindFirstFileExW
+                          D4 CreateDirectoryW
+
+SECTION HEADER #3
+   .data name
+    1AC0 virtual size
+ 1345000 virtual address (0000000141345000 to 0000000141346ABF)
+    1000 size of raw data
+ 1343600 file pointer to raw data (01343600 to 013445FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+C0000040 flags
+         Initialized Data
+         Read Write
+
+SECTION HEADER #4
+  .pdata name
+    420C virtual size
+ 1347000 virtual address (0000000141347000 to 000000014134B20B)
+    4400 size of raw data
+ 1344600 file pointer to raw data (01344600 to 013489FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+SECTION HEADER #5
+.fptable name
+     100 virtual size
+ 134C000 virtual address (000000014134C000 to 000000014134C0FF)
+     200 size of raw data
+ 1348A00 file pointer to raw data (01348A00 to 01348BFF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+C0000040 flags
+         Initialized Data
+         Read Write
+
+SECTION HEADER #6
+   .rsrc name
+   47608 virtual size
+ 134D000 virtual address (000000014134D000 to 0000000141394607)
+   47800 size of raw data
+ 1348C00 file pointer to raw data (01348C00 to 013903FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+40000040 flags
+         Initialized Data
+         Read Only
+
+SECTION HEADER #7
+  .reloc name
+     E78 virtual size
+ 1395000 virtual address (0000000141395000 to 0000000141395E77)
+    1000 size of raw data
+ 1390400 file pointer to raw data (01390400 to 013913FF)
+       0 file pointer to relocation table
+       0 file pointer to line numbers
+       0 number of relocations
+       0 number of line numbers
+42000040 flags
+         Initialized Data
+         Discardable
+         Read Only
+
+  Summary
+
+        2000 .data
+        1000 .fptable
+        5000 .pdata
+     12C6000 .rdata
+        1000 .reloc
+       48000 .rsrc
+       7E000 .text

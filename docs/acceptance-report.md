@@ -1,15 +1,17 @@
 # tools-screensaver-tzk 驗收報告
 
-軟體版本：0.15.2 開發候選版<br>
+軟體版本：0.15.3 開發候選版<br>
 規格文件：v2.10（修訂版）<br>
-執行日期：2026-09-07～2026-09-15（建置與續作驗證）<br>
-Source revision：目前結果隨 Git tag `v0.15.2` 鎖定；舊結果按各 Phase tag 追溯<br>
+執行日期：2026-09-07～2026-09-16（建置與續作驗證）<br>
+Source revision：目前結果隨 Git tag `v0.15.3` 鎖定；舊結果按各 Phase tag 追溯<br>
 環境：Windows 10 Education 22H2 x64，build 19045.6456；Intel Core i5-8259U，4 cores／8 logical processors，約 24 GiB RAM；Intel Iris Plus Graphics 655；雙 3840×2160、兩者 144 DPI／150%，左側螢幕為負 X<br>
 工具：Rust／Cargo 1.97.1、MSVC x64 toolset 14.51.36231（link.exe 14.51.36256.0）、Windows SDK RC 10.0.26100.0、Inno Setup 6.7.3、WebView2 Evergreen Runtime 152.0.4191.66
 
 狀態只使用 `PASS`、`FAIL`、`NOT TESTED`、`NOT APPLICABLE`。必要實機情境只完成一部分時，整項仍列 `NOT TESTED` 並說明局部證據。本報告沒有已知 `FAIL`，但仍有必要項目 `NOT TESTED`，所以不宣稱日本旅行模式或 Windows 10 完整驗收完成。
 
 ## v0.15.0 非互動驗證摘要
+
+v0.15.3 增量：玻璃本體遮色不透明度由 30% 降至 15%，大面積反射強度減半；保留平滑背景柔化、面板大小與邊緣光學效果，詳 [Phase 26](phase26-report.md)。
 
 v0.15.2 增量：氣象資訊面板通常再縮小約 31% 面積，改為連續模糊、雙線性取樣及曲面邊緣折射、色散與反射的擬真玻璃；文字移除描邊。79 預設 tests、34 安裝政策 checks、24 張 GDI fixtures 與非互動 smoke 通過，詳 [Phase 25](phase25-report.md)。
 
@@ -22,7 +24,7 @@ v0.15.1 增量：氣象背景改為保持完整比例置中於 64% 寬、60% 高
 | 氣象資料與城市 | PASS | 原生 CWA 臺北觀測、Open-Meteo 東京、自訂 Yokohama、IP 座標檢查；[探測結果](evidence/phase23/weather-probe.json) |
 | 更新資料與下載 | PASS | 嚴格正式版本比較、每日 HKCU gate、公開固定 Pages Setup 下載及 SHA-256；測試下載立即刪除且未執行；[更新探測](evidence/phase23/update-network.txt) |
 | 氣象版面 | PASS | 八種背景 × 三個尺寸共 24 張 GDI fixtures；新模式納入極小尺寸與 50 次資源循環 |
-| 目前成品非互動 smoke | PASS | 0.15.0、四主模式、五 dialog、新氣象及更新控制項、PE／imports、錯誤 CLI；正式螢幕保護 registry 前後一致；[smoke](evidence/phase23/smoke/smoke-report.json) |
+| 目前成品非互動 smoke | PASS | 0.15.3、四主模式、五 dialog、氣象及更新控制項、PE／imports、錯誤 CLI；正式螢幕保護 registry 前後一致；[smoke](evidence/phase26/smoke/smoke-report.json) |
 | 氣象與更新實際 UI | NOT TESTED | 遠端不開啟設定、正式 saver、安裝或 UAC；一小時更新／斷線／多螢幕／提示接受與取消／重裝仍待本機測試 |
 
 以下 v0.14.1 摘要與 AC01～34 為歷史基線，不能當成新 UI 已實機通過；目前增量結果以本節與 Phase 23 為準。
@@ -158,11 +160,11 @@ Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.
 
 Windows 11：`NOT TESTED`，依使用者指示延期；這不阻擋目前 Windows 10 候選版交付，也不能被寫成已支援通過。
 
-## v0.15.2 成品
+## v0.15.3 成品
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `dist/tools-screensaver-tzk.scr` | 20,517,888 | `de9a23b8118b520b8d473acf2bc63619c2e625ccb886c5b20ff54ed5623a712d` | Build／smoke PASS；NotSigned |
-| `dist/tools-screensaver-tzk-Setup.exe` | 23,314,635 | `01dbe0558487d675f0a847512285df2db838bb81a519fe70c9c5dce6ae511c0e` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 20,517,888 | `10b5723e2daa8e8b0bd7580e8ab4951093a300ae9c686022949e9b2bcf8b6a1c` | Build／smoke PASS；NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 23,314,521 | `c354f57860998552e9fed82f982cc7be62cf7536825f039b26b49940bc1245ab` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
 
-舊版 hash 保留在各 Phase 報告與 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.15.2 成品維持 NotSigned。
+舊版 hash 保留在各 Phase 報告與 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.15.3 成品維持 NotSigned。

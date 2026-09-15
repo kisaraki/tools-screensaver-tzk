@@ -189,7 +189,7 @@ dependencies = [
 
 [[package]]
 name = "tools-screensaver-tzk"
-version = "0.15.2"
+version = "0.15.3"
 dependencies = [
  "serde_json",
  "sha2",

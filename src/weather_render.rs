@@ -208,7 +208,7 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
                 let polish = (-outside.abs() / 0.85).exp() * (0.12 + lighting * 0.38);
                 let u = (xf - panel.x) / panel.w;
                 let v = (yf - panel.y) / panel.h;
-                let reflection = (-((v - 0.08 - u * 0.12) / 0.22).powi(2)).exp() * 0.13;
+                let reflection = (-((v - 0.08 - u * 0.12) / 0.22).powi(2)).exp() * 0.065;
                 let caustic = (-((t - 0.72) / 0.16).powi(2)).exp() * (1.0 - lighting) * 0.14;
                 let shine = (reflection + rim + polish + caustic).clamp(0.0, 0.85);
                 for (c, channel) in pixel[..3].iter_mut().enumerate() {
@@ -217,7 +217,9 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
                     let displacement = bend * (1.0 + (c as f64 - 1.0) * 0.07);
                     let transmitted =
                         glass.sample(xf + nx * displacement, yf + ny * displacement, c);
-                    let base = transmitted * 0.70 + [20.0, 17.0, 15.0][c];
+                    // Halve the body tint opacity (30% -> 15%) while keeping
+                    // the blurred transmission and curved optical rim intact.
+                    let base = transmitted * 0.85 + [10.0, 8.5, 7.5][c];
                     let shaded = base * (1.0 - shine) + 250.0 * shine;
                     *channel = (f64::from(*channel) * (1.0 - coverage) + shaded * coverage)
                         .clamp(0.0, 255.0) as u8;
