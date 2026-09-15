@@ -1,0 +1,41 @@
+{
+  "version": "0.15.0",
+  "sourceCommit": "c39ed6bdbfb7ca78dd566487dc37415fcd74cb5a",
+  "capturedAt": "2026-09-15T21:41:18.9842201+08:00",
+  "method": "curl -q; no cookies, credentials or Authorization; redirects disabled",
+  "checksumTextNote": "SHA256SUMS content compared after normalizing CRLF/LF; SCR and Setup compared byte-for-byte via SHA-256",
+  "pagesRun": "https://github.com/kisaraki/tools-screensaver-tzk/actions/runs/34976356795",
+  "result": "PASS",
+  "downloads": [
+    {
+      "file": "tools-screensaver-tzk.scr",
+      "url": "https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk.scr",
+      "http": 200,
+      "bytes": 20509184,
+      "sha256": "060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b",
+      "matchesPackage": true,
+      "authenticated": false,
+      "executed": false
+    },
+    {
+      "file": "tools-screensaver-tzk-Setup.exe",
+      "url": "https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk-Setup.exe",
+      "http": 200,
+      "bytes": 23310022,
+      "sha256": "8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3",
+      "matchesPackage": true,
+      "authenticated": false,
+      "executed": false
+    },
+    {
+      "file": "SHA256SUMS.txt",
+      "url": "https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/SHA256SUMS.txt",
+      "http": 200,
+      "bytes": 190,
+      "sha256": "bcaaec966f9127cba7b5c70814a30daeee1f3b3220b936096e896e160b27eb0f",
+      "matchesPackage": true,
+      "authenticated": false,
+      "executed": false
+    }
+  ]
+}

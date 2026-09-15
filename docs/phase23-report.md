@@ -38,3 +38,5 @@ CWA CDN 的壓縮回應曾令 Win10 原生 WinHTTP 讀取失敗；改為明確 T
 ## 成品
 
 成品版本一致且未簽章；大小與 SHA-256 以同版本的 [README](../README.md) 及 `dist/SHA256SUMS.txt` 為準。版本化下載先部署 Pages，確認匿名下載後才公開 GitHub Release，避免自動更新發現尚不能下載的新版。
+
+2026-09-15 Pages [部署成功](https://github.com/kisaraki/tools-screensaver-tzk/actions/runs/34976356795)；以停用 curl 設定檔、沒有 cookie／帳密／Authorization 且禁止 redirect 的請求下載 SCR、Setup、SHA256SUMS，均 HTTP 200。兩個二進位的 SHA-256 與本機封裝完全一致，雜湊表只有 Git／Linux 的 CRLF→LF 換行差異；[匿名下載證據](evidence/phase23/public-downloads.json)。下載測試未執行檔案。
