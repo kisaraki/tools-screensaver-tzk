@@ -10,6 +10,8 @@
 
 ## 0. 文件使用方式與修訂決策
 
+產品 v0.15.1 的氣象背景改為保持 1983:793 完整比例，放入中央 64% 寬、60% 高區域內；四周純黑。玻璃卡須完整位於背景中，來源與時間放在背景下方。見 [Phase 24](docs/phase24-report.md)。
+
 v2.10／產品 v0.15.0 新增第四主模式與版本更新，schema 升為 10。新功能的最終契約見 [即時氣象](docs/weather-mode.md)、[自動及手動更新](docs/automatic-updates.md) 及 [截至目前的系統規格](docs/tools-screensaver-tzk-system-development-spec.md)；這些契約覆蓋舊章節的三主模式、schema 9 與全面離線敘述。設定／系統預覽保持離線；手動更新按鈕是使用者明確觸發網路的例外。
 
 ### 0.1 範圍與規範用語

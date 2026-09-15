@@ -1,0 +1,2 @@
+75832c33193e296898d5f084b203ac118d76bc4b827b0ce80fb3cf247e6764eb  tools-screensaver-tzk.scr
+ef503b79630d8327fc3394de6f01b8a7b851e7384007e9d792cb1c6e54965f4a  tools-screensaver-tzk-Setup.exe

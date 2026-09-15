@@ -1,15 +1,17 @@
 # tools-screensaver-tzk 驗收報告
 
-軟體版本：0.15.0 開發候選版<br>
+軟體版本：0.15.1 開發候選版<br>
 規格文件：v2.10（修訂版）<br>
 執行日期：2026-09-07～2026-09-15（建置與續作驗證）<br>
-Source revision：目前結果隨 Git tag `v0.15.0` 鎖定；舊結果按各 Phase tag 追溯<br>
+Source revision：目前結果隨 Git tag `v0.15.1` 鎖定；舊結果按各 Phase tag 追溯<br>
 環境：Windows 10 Education 22H2 x64，build 19045.6456；Intel Core i5-8259U，4 cores／8 logical processors，約 24 GiB RAM；Intel Iris Plus Graphics 655；雙 3840×2160、兩者 144 DPI／150%，左側螢幕為負 X<br>
 工具：Rust／Cargo 1.97.1、MSVC x64 toolset 14.51.36231（link.exe 14.51.36256.0）、Windows SDK RC 10.0.26100.0、Inno Setup 6.7.3、WebView2 Evergreen Runtime 152.0.4191.66
 
 狀態只使用 `PASS`、`FAIL`、`NOT TESTED`、`NOT APPLICABLE`。必要實機情境只完成一部分時，整項仍列 `NOT TESTED` 並說明局部證據。本報告沒有已知 `FAIL`，但仍有必要項目 `NOT TESTED`，所以不宣稱日本旅行模式或 Windows 10 完整驗收完成。
 
 ## v0.15.0 非互動驗證摘要
+
+v0.15.1 增量：氣象背景改為保持完整比例置中於 64% 寬、60% 高區域內，資訊卡同步縮小，四周純黑；79 預設 tests、34 安裝政策 checks、24 張 GDI fixtures 與非互動 smoke 通過，詳 [Phase 24](phase24-report.md)。以下 v0.15.0 功能結果為沿用基線；未重新操作未修改的氣象來源、更新 UI 或安裝流程。
 
 | 項目 | 狀態 | 結果／證據 |
 | --- | --- | --- |
@@ -154,11 +156,11 @@ Phase 5 的 helper 精確旗標與非 System32 真實 binary 拒絕測試在 v0.
 
 Windows 11：`NOT TESTED`，依使用者指示延期；這不阻擋目前 Windows 10 候選版交付，也不能被寫成已支援通過。
 
-## v0.15.0 成品
+## v0.15.1 成品
 
 | 成品 | Bytes | SHA-256 | 狀態 |
 | --- | ---: | --- | --- |
-| `dist/tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` | Build／smoke PASS；NotSigned |
-| `dist/tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
+| `dist/tools-screensaver-tzk.scr` | 20,509,696 | `75832c33193e296898d5f084b203ac118d76bc4b827b0ce80fb3cf247e6764eb` | Build／smoke PASS；NotSigned |
+| `dist/tools-screensaver-tzk-Setup.exe` | 23,310,157 | `ef503b79630d8327fc3394de6f01b8a7b851e7384007e9d792cb1c6e54965f4a` | Package PASS；實際安裝／升級 NOT TESTED；NotSigned |
 
-舊版 hash 保留在各 Phase 報告與 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.15.0 成品維持 NotSigned。
+舊版 hash 保留在各 Phase 報告與 Release，不再列為目前成品。完成 Windows 10 完整驗收仍需在可互動本機環境補做上述必要項目；遠端工作階段不觸發 UAC。程式碼簽章憑證尚未提供，v0.15.1 成品維持 NotSigned。

@@ -2,7 +2,7 @@
 
 文件版本：1.3
 
-目標基準：重建與 v0.15.0（schema 10）相容的 Windows 10 x64 版本
+目標基準：重建與 v0.15.1（schema 10）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 
@@ -14,16 +14,16 @@
 
 ```powershell
 git fetch --tags origin
-git rev-parse 'v0.15.0^{commit}'
-git show --no-patch --format=fuller v0.15.0
+git rev-parse 'v0.15.1^{commit}'
+git show --no-patch --format=fuller v0.15.1
 ```
 
-保存 `v0.15.0` 解析出的 commit，確認工作分支參考同一個 tag。參考成品為：
+保存 `v0.15.1` 解析出的 commit，確認工作分支參考同一個 tag。參考成品為：
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` |
-| `tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` |
+| `tools-screensaver-tzk.scr` | 20,509,696 | `75832c33193e296898d5f084b203ac118d76bc4b827b0ce80fb3cf247e6764eb` |
+| `tools-screensaver-tzk-Setup.exe` | 23,310,157 | `ef503b79630d8327fc3394de6f01b8a7b851e7384007e9d792cb1c6e54965f4a` |
 
 重寫可使用新分支與新內部結構，但對外名稱、CLI、AppId、registry schema 與資料格式必須依規格書保持相容。不要把 `docs/phase*.md` 的歷史需求或中途方案當成最終契約；它們只用於追查設計原因。
 
@@ -230,7 +230,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\export-travel-shell-fixtur
 1. 依 [氣象規格](weather-mode.md) 建立附加式的 43 城市表、英文城市驗證與設定子對話框；外層確定才交易保存。
 2. 建立固定 host 的 WinHTTP 層；採用 IP 約略定位並允許停用，失敗回退設定城市；英文搜尋依所選國家篩選。
 3. 建立 CWA 官網最近測站解析、連續七筆十分鐘累積雨量差值及 Open-Meteo 目前模型解析；檢查座標、數值、時間與大小上限。
-4. 實作八類背景映射、center-cover、中央像素合成玻璃卡、時鐘與來源 attribution；無資料不顯示假氣溫。八張 PNG 嵌入，demo 不打包。
+4. 實作八類背景映射；保持背景完整比例，置中縮放至中央 64% 寬、60% 高區域內，區域外純黑。玻璃卡同步縮小並完整位於背景中，時鐘與來源 attribution 放在中央卡及圖下；無資料不顯示假氣溫。八張 PNG 嵌入，demo 不打包。
 5. coordinator 每 session 啟動抓取一次、每小時更新，全部螢幕分享快照；預覽／Debug 不連網。
 6. 用隔離 registry 測試、離線分類與 GDI fixture 驗證。旅行以外的氣象功能不得建立 WebView2 或要求 Runtime。
 
@@ -287,7 +287,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1 `
 
 `check-japan-sources.ps1` 會連網，其餘標準驗證不得顯示產品 UI、建立 player、安裝程式、觸發 UAC 或更動目前 saver registry。
 
-以 v0.15.0 為參考時，完整 package 預期通過 79 個預設 Rust 測試（library 59、CLI 8、native noninteractive 2、layout 10）、12 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。ignored 包括顯式網路探測與離線匯出，不得一次啟動全部 ignored tests；測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
+以 v0.15.1 為參考時，完整 package 預期通過 79 個預設 Rust 測試（library 59、CLI 8、native noninteractive 2、layout 10）、12 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。ignored 包括顯式網路探測與離線匯出，不得一次啟動全部 ignored tests；測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
 
 提交前至少執行：
 

@@ -13,10 +13,25 @@ pub(crate) struct Scene {
     condition: Condition,
     pixels: Pixels,
 }
+fn background(width: i32, height: i32) -> Rect {
+    // All eight supplied backgrounds share this aspect ratio. Keep the complete
+    // image within the same central area used by the clock and countdown.
+    let w = f64::from(width);
+    let h = f64::from(height);
+    let scale = (w * 0.64 / 1983.0).min(h * 0.60 / 793.0);
+    let bw = (1983.0 * scale).max(1.0);
+    let bh = (793.0 * scale).max(1.0);
+    Rect {
+        x: (w - bw) / 2.0,
+        y: (h - bh) / 2.0,
+        w: bw,
+        h: bh,
+    }
+}
 pub(crate) fn card(width: i32, height: i32) -> Rect {
     let w = f64::from(width);
     let h = f64::from(height);
-    let side = (w * 0.30).min(h * 0.60).max(1.0);
+    let side = (w * 0.30).min(background(width, height).h * 0.84).max(1.0);
     Rect {
         x: (w - side) / 2.0,
         y: (h - side) / 2.0,
@@ -34,15 +49,12 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
         .get_or_init(|| travel_art::decode(condition.png()))
         .as_ref()
         .map_err(|e| *e)?;
-    let scale = (f64::from(width) / f64::from(source.width))
-        .max(f64::from(height) / f64::from(source.height));
-    let ox = (f64::from(source.width) - f64::from(width) / scale) / 2.0;
-    let oy = (f64::from(source.height) - f64::from(height) / scale) / 2.0;
+    let region = background(width, height);
     let sample = |x: i32, y: i32| {
-        let sx = (ox + f64::from(x.clamp(0, width - 1)) / scale)
+        let sx = ((f64::from(x) - region.x) / region.w * f64::from(source.width))
             .floor()
             .clamp(0.0, f64::from(source.width - 1)) as usize;
-        let sy = (oy + f64::from(y.clamp(0, height - 1)) / scale)
+        let sy = ((f64::from(y) - region.y) / region.h * f64::from(source.height))
             .floor()
             .clamp(0.0, f64::from(source.height - 1)) as usize;
         let index = (sy * source.width as usize + sx) * 4;
@@ -61,6 +73,14 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
         .map_err(|_| AppError::OperationFailed("weather pixel allocation"))?;
     for y in 0..height {
         for x in 0..width {
+            if f64::from(x) < region.x
+                || f64::from(x) >= region.right()
+                || f64::from(y) < region.y
+                || f64::from(y) >= region.bottom()
+            {
+                pixels.extend_from_slice(&[0, 0, 0, 0]);
+                continue;
+            }
             let mut pixel = sample(x, y);
             let xf = f64::from(x);
             let yf = f64::from(y);
@@ -200,11 +220,12 @@ pub(crate) fn draw(
             "{} · {} · {}",
             snapshot.source, snapshot.location, snapshot.observed
         );
+        let region = background(width, height);
         let rect = Rect {
-            x: f64::from(width) * 0.04,
-            y: f64::from(height) * 0.95,
-            w: f64::from(width) * 0.92,
-            h: f64::from(height) * 0.025,
+            x: region.x,
+            y: region.bottom() + f64::from(height) * 0.015,
+            w: region.w,
+            h: (f64::from(height) * 0.025).min(region.h * 0.065).max(1.0),
         };
         let font = Font::fit(
             canvas.dc,

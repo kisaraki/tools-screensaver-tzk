@@ -7,24 +7,24 @@
 
 tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Windows x64 螢幕保護程式，提供「標準桌曆暨時鐘模式」、「離機作業番茄鐘模式」、「日本旅行模式」與「即時氣象模式」。前兩種模式可完全離線使用；旅行影片固定靜音。可選擇啟用每天首次啟動的更新檢查。
 
-[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.15.0 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.15.0) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
+[專案網站與下載頁](https://kisaraki.github.io/tools-screensaver-tzk/) · [v0.15.1 發行說明](https://github.com/kisaraki/tools-screensaver-tzk/releases/tag/v0.15.1) · [完整開發規格](tools-screensaver-tzk_Codex_Spec.md) · [解除安裝](#uninstall)
 
 ![標準桌曆暨時鐘模式：置中的指針鐘與六列月曆](docs/evidence/phase13/fixtures/07-TimeDate-1920x1080-dpi96-p2-SevenSegment-size.png)
 
-> **v0.15.0 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
+> **v0.15.1 是未簽章的開發候選版。** Setup 會檢查既有 tools-screensaver-tzk 的版本；不同版本不能並存，一般安裝會詢問是否先移除既有版本再安裝本版。
 
 ## 下載
 
 | 檔案 | 用途 |
 | --- | --- |
-| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
-| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
-| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.0/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk-Setup.exe](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.1/tools-screensaver-tzk-Setup.exe) | 建議使用的 Windows x64 安裝程式；GitHub Pages 匿名直連 |
+| [tools-screensaver-tzk.scr](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.1/tools-screensaver-tzk.scr) | 獨立螢幕保護程式檔，供進階使用者或檢查；GitHub Pages 匿名直連 |
+| [SHA256SUMS.txt](https://kisaraki.github.io/tools-screensaver-tzk/downloads/v0.15.1/SHA256SUMS.txt) | 兩個成品的 SHA-256；GitHub Pages 匿名直連 |
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 20,509,184 | `060fa4420725fc30ba9baa862a4796bcf8291278117a444d8724cd08ade0c15b` |
-| `tools-screensaver-tzk-Setup.exe` | 23,310,022 | `8dbd9971ec1b5f6bdbf02e73dbf27561edf735116cf2e24578562a3b8db6d9a3` |
+| `tools-screensaver-tzk.scr` | 20,509,696 | `75832c33193e296898d5f084b203ac118d76bc4b827b0ce80fb3cf247e6764eb` |
+| `tools-screensaver-tzk-Setup.exe` | 23,310,157 | `ef503b79630d8327fc3394de6f01b8a7b851e7384007e9d792cb1c6e54965f4a` |
 
 ## 安裝與使用
 
@@ -53,6 +53,8 @@ tools-screensaver-tzk 是以 Rust、原生 Win32／GDI 與 WebView2 製作的 Wi
 版本與檔案僅取自本專案的公開 GitHub／Pages，不需登入；下載後核對 SHA-256 才啟動 Setup。更新保留正常的異版移除詢問與 UAC，不會無人覆蓋安裝，也不在鎖定／安全桌面啟動安裝。[完整更新規格](docs/automatic-updates.md)
 
 ### 即時氣象模式
+
+氣象背景保持完整比例，置中於螢幕中央 64% 寬、60% 高區域內，四周保留黑色留白。玻璃資訊卡同步縮小，來源與資料時間放在圖下方。
 
 選擇「即時氣象模式」，按「氣象城市設定…」。提供臺灣、日本、美國、澳洲、新加坡、中國、英國、法國、德國共 43 個主要城市，預設臺北；可輸入正式英文城市名，國家依城市選單所選國家限制，留空使用選單城市。按外層確定後保存，下次啟動恢復。
 
@@ -220,7 +222,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\smoke-test.ps1 `
   -OutputDirectory (Join-Path $env:TEMP 'tools-screensaver-tzk-smoke')
 ```
 
-`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.15.0 的 79 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
+`build.bat` 會執行格式檢查、Clippy `-D warnings`、非互動測試與 locked Release build。v0.15.1 的 79 個預設測試通過；互動、長時間或環境測試預設 ignored。另有 19 個 WebView2 與 15 個產品版本 installer policy checks，在不建立精靈、不執行程序、不提權、不顯示提示且不寫 registry 的 harness 通過。
 
 公開來源探測必須另行顯式執行；它會連線，但不建立 player 或視窗：
 
@@ -243,10 +245,11 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 
 ## 專案文件
 
-- [截至 v0.15.0 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
+- [截至 v0.15.1 的系統開發規格書](docs/tools-screensaver-tzk-system-development-spec.md)
 - [從零重新開發、驗證、封裝與發布步驟](docs/tools-screensaver-tzk-redevelopment-steps.md)
 - [Phase 21：自訂 YouTube 來源與桌曆顯示](docs/phase21-report.md)
 - [Phase 22：來源持久化與隨機起播保證](docs/phase22-report.md)
+- [Phase 24：氣象背景置中留白](docs/phase24-report.md)
 - [Phase 23：即時氣象與版本更新](docs/phase23-report.md)
 - [即時氣象：來源、城市與天氣分類](docs/weather-mode.md)
 - [自動及手動更新：行為與發布規則](docs/automatic-updates.md)
@@ -272,7 +275,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1
 - [視覺參考與自製畫面證據](docs/visual-reference.md)
 - [FFI 與 GDI 資源稽核](docs/phase4-ffi-audit.md)
 
-Phase 0～23 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.15.0 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
+Phase 0～24 報告記錄各階段當時的版本、hash 與限制。目前下載成品以 v0.15.1 的 `SHA256SUMS.txt` 為準；GitHub Pages 直連與 GitHub Release 提供相同的 SCR 與 Setup。
 
 ## 授權
 
