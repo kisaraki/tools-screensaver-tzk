@@ -31,13 +31,116 @@ fn background(width: i32, height: i32) -> Rect {
 pub(crate) fn card(width: i32, height: i32) -> Rect {
     let w = f64::from(width);
     let h = f64::from(height);
-    let side = (w * 0.30).min(background(width, height).h * 0.84).max(1.0);
+    let side = (w * 0.26).min(background(width, height).h * 0.70).max(1.0);
     Rect {
         x: (w - side) / 2.0,
         y: (h - side) / 2.0,
         w: side,
         h: side,
     }
+}
+struct Glass {
+    x: i32,
+    y: i32,
+    width: usize,
+    pixels: Vec<[u8; 3]>,
+}
+impl Glass {
+    fn new(panel: Rect, sample: impl Fn(i32, i32) -> [u8; 4]) -> Result<Self, AppError> {
+        let radius = (panel.w * 0.035).round().clamp(2.0, 48.0) as i32;
+        let padding = radius * 4;
+        let x = panel.x.floor() as i32 - padding;
+        let y = panel.y.floor() as i32 - padding;
+        let width = panel.w.ceil() as usize + padding as usize * 2 + 2;
+        let count = width
+            .checked_mul(width)
+            .filter(|n| {
+                n.checked_mul(6)
+                    .is_some_and(|bytes| bytes <= 16 * 1024 * 1024)
+            })
+            .ok_or(AppError::OperationFailed("weather glass pixel limit"))?;
+        let mut pixels = Vec::new();
+        let mut scratch = Vec::new();
+        pixels
+            .try_reserve_exact(count)
+            .map_err(|_| AppError::OperationFailed("weather glass allocation"))?;
+        scratch
+            .try_reserve_exact(count)
+            .map_err(|_| AppError::OperationFailed("weather glass scratch allocation"))?;
+        scratch.resize(count, [0; 3]);
+        for row in 0..width {
+            for column in 0..width {
+                let value = sample(x + column as i32, y + row as i32);
+                pixels.push([value[0], value[1], value[2]]);
+            }
+        }
+        // Three separable box passes approximate Gaussian diffusion without a
+        // sparse sampling grid that leaves the underlying pixel blocks visible.
+        for _ in 0..3 {
+            blur(&pixels, &mut scratch, width, radius, true);
+            blur(&scratch, &mut pixels, width, radius, false);
+        }
+        Ok(Self {
+            x,
+            y,
+            width,
+            pixels,
+        })
+    }
+    fn sample(&self, x: f64, y: f64, channel: usize) -> f64 {
+        let x = (x - f64::from(self.x)).clamp(0.0, (self.width - 1) as f64);
+        let y = (y - f64::from(self.y)).clamp(0.0, (self.width - 1) as f64);
+        let (ix, iy) = (x.floor() as usize, y.floor() as usize);
+        let (next_x, next_y) = ((ix + 1).min(self.width - 1), (iy + 1).min(self.width - 1));
+        let (fx, fy) = (x.fract(), y.fract());
+        let p = |px: usize, py: usize| f64::from(self.pixels[py * self.width + px][channel]);
+        (p(ix, iy) * (1.0 - fx) + p(next_x, iy) * fx) * (1.0 - fy)
+            + (p(ix, next_y) * (1.0 - fx) + p(next_x, next_y) * fx) * fy
+    }
+}
+fn blur(input: &[[u8; 3]], output: &mut [[u8; 3]], width: usize, radius: i32, horizontal: bool) {
+    let index = |line: usize, position: i32| {
+        let p = position.clamp(0, width as i32 - 1) as usize;
+        if horizontal {
+            line * width + p
+        } else {
+            p * width + line
+        }
+    };
+    let divisor = (radius * 2 + 1) as u32;
+    for line in 0..width {
+        let mut sum = [0u32; 3];
+        for position in -radius..=radius {
+            for (c, total) in sum.iter_mut().enumerate() {
+                *total += u32::from(input[index(line, position)][c]);
+            }
+        }
+        for position in 0..width as i32 {
+            for (c, total) in sum.iter_mut().enumerate() {
+                output[index(line, position)][c] = (*total / divisor) as u8;
+                *total -= u32::from(input[index(line, position - radius)][c]);
+                *total += u32::from(input[index(line, position + radius + 1)][c]);
+            }
+        }
+    }
+}
+fn surface(panel: Rect, radius: f64, x: f64, y: f64) -> (f64, f64, f64) {
+    let qx = (x - panel.cx()).abs() - panel.w / 2.0 + radius;
+    let qy = (y - panel.cy()).abs() - panel.h / 2.0 + radius;
+    let (dx, dy) = (qx.max(0.0), qy.max(0.0));
+    let length = dx.hypot(dy);
+    let distance = length + qx.max(qy).min(0.0) - radius;
+    let (nx, ny) = if length > 0.0001 {
+        (
+            dx / length * (x - panel.cx()).signum(),
+            dy / length * (y - panel.cy()).signum(),
+        )
+    } else if qx > qy {
+        ((x - panel.cx()).signum(), 0.0)
+    } else {
+        (0.0, (y - panel.cy()).signum())
+    };
+    (distance, nx, ny)
 }
 fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppError> {
     let bytes = (width as usize)
@@ -67,6 +170,8 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
     };
     let panel = card(width, height);
     let radius = panel.w * 0.13;
+    let glass = Glass::new(panel, sample)?;
+    let bevel = (panel.w * 0.038).max(1.5);
     let mut pixels = Vec::new();
     pixels
         .try_reserve_exact(bytes)
@@ -84,28 +189,38 @@ fn compose(width: i32, height: i32, condition: Condition) -> Result<Scene, AppEr
             let mut pixel = sample(x, y);
             let xf = f64::from(x);
             let yf = f64::from(y);
-            let nearest_x = xf.clamp(panel.x + radius, panel.right() - radius);
-            let nearest_y = yf.clamp(panel.y + radius, panel.bottom() - radius);
-            let outside = ((xf - nearest_x).powi(2) + (yf - nearest_y).powi(2)).sqrt() - radius;
-            if outside <= 0.0 {
-                let blur = (panel.w * 0.012).max(1.0) as i32;
-                let samples = [
-                    sample(x - blur, y - blur),
-                    sample(x + blur, y - blur),
-                    sample(x - blur, y + blur),
-                    sample(x + blur, y + blur),
-                ];
-                let edge = (1.0 - (-outside / 3.0).clamp(0.0, 1.0)) * 0.36;
-                let shine = (1.0 - (yf - panel.y) / panel.h).powi(4) * 0.18 + edge;
-                for c in 0..3 {
-                    let average = samples.iter().map(|p| f64::from(p[c])).sum::<f64>() / 4.0;
-                    pixel[c] =
-                        (average * 0.60 + 24.0 + (255.0 - average) * shine).clamp(0.0, 255.0) as u8;
-                }
-            } else if outside < 8.0 && yf > panel.y {
+            let (outside, nx, ny) = surface(panel, radius, xf, yf);
+            let shadow_distance =
+                surface(panel, radius, xf - panel.w * 0.012, yf - panel.w * 0.023).0;
+            let shadow =
+                (-((shadow_distance.max(0.0) / (panel.w * 0.032).max(1.0)).powi(2))).exp() * 0.22;
+            if outside > -0.5 {
                 for channel in &mut pixel[..3] {
-                    *channel =
-                        (f64::from(*channel) * (0.75 + outside / 32.0)).clamp(0.0, 255.0) as u8;
+                    *channel = (f64::from(*channel) * (1.0 - shadow)) as u8;
+                }
+            }
+            let coverage = (0.5 - outside).clamp(0.0, 1.0);
+            if coverage > 0.0 {
+                let t = (-outside / bevel).clamp(0.0, 1.0);
+                let bend = (std::f64::consts::PI * t).sin() * bevel * 1.2;
+                let lighting = (-nx * 0.6 - ny * 0.8).max(0.0);
+                let rim = (1.0 - t).powi(3) * (0.20 + lighting * 0.56);
+                let polish = (-outside.abs() / 0.85).exp() * (0.12 + lighting * 0.38);
+                let u = (xf - panel.x) / panel.w;
+                let v = (yf - panel.y) / panel.h;
+                let reflection = (-((v - 0.08 - u * 0.12) / 0.22).powi(2)).exp() * 0.13;
+                let caustic = (-((t - 0.72) / 0.16).powi(2)).exp() * (1.0 - lighting) * 0.14;
+                let shine = (reflection + rim + polish + caustic).clamp(0.0, 0.85);
+                for (c, channel) in pixel[..3].iter_mut().enumerate() {
+                    // Subpixel displacement and mild dispersion follow the curved
+                    // bevel normal, instead of drawing a flat bright outline.
+                    let displacement = bend * (1.0 + (c as f64 - 1.0) * 0.07);
+                    let transmitted =
+                        glass.sample(xf + nx * displacement, yf + ny * displacement, c);
+                    let base = transmitted * 0.70 + [20.0, 17.0, 15.0][c];
+                    let shaded = base * (1.0 - shine) + 250.0 * shine;
+                    *channel = (f64::from(*channel) * (1.0 - coverage) + shaded * coverage)
+                        .clamp(0.0, 255.0) as u8;
                 }
             }
             pixels.extend_from_slice(&pixel);
@@ -205,7 +320,7 @@ pub(crate) fn draw(
         };
         let font = Font::fit(
             canvas.dc,
-            FontMode::MingLiu,
+            FontMode::Consolas,
             None,
             &text,
             rect.w,
@@ -213,7 +328,7 @@ pub(crate) fn draw(
             rect.h * 0.90,
             true,
         )?;
-        canvas.text(&font, &text, rect, rgb(248, 250, 255), true)?;
+        canvas.text(&font, &text, rect, rgb(248, 250, 255), false)?;
     }
     if width >= 320 && height >= 180 {
         let caption = format!(
@@ -229,7 +344,7 @@ pub(crate) fn draw(
         };
         let font = Font::fit(
             canvas.dc,
-            FontMode::MingLiu,
+            FontMode::Consolas,
             None,
             &caption,
             rect.w,
@@ -237,7 +352,7 @@ pub(crate) fn draw(
             rect.h * 0.90,
             true,
         )?;
-        canvas.text(&font, &caption, rect, rgb(240, 245, 255), true)?;
+        canvas.text(&font, &caption, rect, rgb(240, 245, 255), false)?;
     }
     Ok(())
 }

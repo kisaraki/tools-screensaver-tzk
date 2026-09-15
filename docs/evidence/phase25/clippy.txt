@@ -1,0 +1,2 @@
+   Compiling tools-screensaver-tzk v0.15.2 (C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 20.34s

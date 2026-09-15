@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity name="tools-screensaver-tzk" version="0.15.1.0" processorArchitecture="amd64" type="win32" />
+  <assemblyIdentity name="tools-screensaver-tzk" version="0.15.2.0" processorArchitecture="amd64" type="win32" />
   <description>tools-screensaver-tzk</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
