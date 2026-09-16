@@ -147,7 +147,7 @@ Classroom Timer 網址是倒數畫面的需求來源；開發期間沒有取得�
 - [設定對話框（150%）](evidence/phase3/config-dialog-win10-150.png)：繁體中文標籤、四種色票、四種字型入口、owner-draw 即時預覽及確定／取消。
 - [倒數輸入（150%）](evidence/phase3/countdown-dialog-win10-150.png)：時／分／秒欄位、預填、錯誤列及開始／取消。
 
-上述截圖是 Phase 3 歷史證據。v0.1.1 設定畫面已加入「KOMSMOS TOOLKIT 探真拓知酷」識別，目前由非互動 smoke test 檢查內嵌資源字串；尚未以新的互動截圖補證。
+上述截圖是 Phase 3 歷史證據。v0.15.6 設定畫面底部識別已更新為「KOSMOS TOOLKIT tools-screensaver-tzk v{版本}」與「探真拓知酷 作者：水清見底謂之湜」，目前由非互動 smoke test 檢查內嵌資源字串；尚未以新的互動截圖補證。
 
 100%／200% 實體對話框、混合 DPI 實體桌面及 Windows 11 沒有可用環境，狀態為 `NOT TESTED`。既有 96／144／192／288 DPI fixture 與三種 preview host DPI context 不能代替這些實機畫面。
 

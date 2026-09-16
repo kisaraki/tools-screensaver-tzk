@@ -108,7 +108,7 @@ fn generate_version(root: &Path, output: &Path) -> Result<(), Box<dyn Error>> {
     fs::write(
         output.join("version.generated.h"),
         format!(
-            "#define APP_VERSION_NUM {major},{minor},{patch},0\n#define APP_VERSION_STR \"{version}\"\n"
+            "#define APP_VERSION_NUM {major},{minor},{patch},0\n#define APP_VERSION_STR \"{version}\"\n#define APP_BRAND_STR \"KOSMOS TOOLKIT tools-screensaver-tzk v{version}\"\n"
         ),
     )?;
     Ok(())

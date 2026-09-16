@@ -10,6 +10,8 @@
 
 ## 0. 文件使用方式與修訂決策
 
+產品 v0.15.6 更新設定畫面底部產品識別：第一列為「KOSMOS TOOLKIT tools-screensaver-tzk v{Cargo 版本}」，第二列為「探真拓知酷 作者：水清見底謂之湜」。版本由建置腳本寫入 `APP_BRAND_STR`，不得手動寫死或顯示不同版本，見 [Phase 29](docs/phase29-report.md)。
+
 產品 v0.15.5 將氣象中央資訊區面積縮為 v0.15.4 的一半：邊長改為 min(螢幕寬 18.4%, 背景高 49.5%)。玻璃模糊半徑降至 round(面板寬 * 0.0025)，限制 1～4px，保留折射、色散、高光與反射。八種天氣背景依類型加入每 500ms 更新的簡單循環動畫，見 [Phase 28](docs/phase28-report.md)。
 
 產品 v0.15.4 的氣象玻璃接近全透：本體透光係數 0.98、遮色 2%，連續模糊半徑 round(面板寬 * 0.006) 限制 1～10px，廣域反射係數 0.018、陰影 0.14。保留小面板、曲面折射、色散與光學高光，覆蓋以下舊版玻璃本體數值，見 [Phase 27](docs/phase27-report.md)。MIT 授權全文位於根目錄 `LICENSE`、Setup 授權頁及 Pages 的 `LICENSE.txt`。
@@ -813,7 +815,7 @@ HKEY_CURRENT_USER\Software\tools-screensaver-tzk
 - 日本旅行 radio 附近以非互動文字說明「需要網路；全螢幕連線至 YouTube，和風庭園另使用 tw.live；影片靜音」。選取 radio 不得立即連線、建立 WebView2、下載 Runtime 或顯示 UAC。
 - 顏色群組：深紅、深橘、亮綠、灰白、雪藍、琥珀、鐵灰與「自動切換（2 分鐘）」八個 radio；各組正確設 `WS_GROUP`，不能兩組互相取消。
 - 字型 combo 使用固定四選項及不可自由輸入樣式；另有「選擇系統字型…」。
-- 設定畫面固定顯示「KOMSMOS TOOLKIT 探真拓知酷」產品識別；該文字不是可互動控制項。
+- 設定畫面固定顯示「KOSMOS TOOLKIT tools-screensaver-tzk v{目前版本}」及「探真拓知酷 作者：水清見底謂之湜」產品識別；版本取自 Cargo 建置版本，兩列文字不是可互動控制項。
 - 自訂大小說明、`SS_OWNERDRAW` 預覽、標準「確定」「取消」。
 - Tab 順序循序可用，radio 支援方向鍵，Enter 提交、Esc 取消；標籤有明確欄位關係，不只靠顏色表意。
 - 100%、150%、200% DPI 不重疊／截字；跨螢幕依 dialog DPI 機制更新，避免系統與程式各縮放一次。

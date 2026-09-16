@@ -1,8 +1,8 @@
 # tools-screensaver-tzk 從零重新開發步驟
 
-文件版本：1.5
+文件版本：1.6
 
-目標基準：重建與 v0.15.5（schema 10）相容的 Windows 10 x64 版本
+目標基準：重建與 v0.15.6（schema 10）相容的 Windows 10 x64 版本
 
 搭配文件：[系統開發規格書](tools-screensaver-tzk-system-development-spec.md)
 
@@ -14,16 +14,16 @@
 
 ```powershell
 git fetch --tags origin
-git rev-parse 'v0.15.5^{commit}'
-git show --no-patch --format=fuller v0.15.5
+git rev-parse 'v0.15.6^{commit}'
+git show --no-patch --format=fuller v0.15.6
 ```
 
-保存 `v0.15.5` 解析出的 commit，確認工作分支參考同一個 tag。參考成品為：
+保存 `v0.15.6` 解析出的 commit，確認工作分支參考同一個 tag。參考成品為：
 
 | 成品 | Bytes | SHA-256 |
 | --- | ---: | --- |
-| `tools-screensaver-tzk.scr` | 20,520,960 | `84348b583582a3c1add9daa4b71e27475a43d42368702719c2c5d36029c70602` |
-| `tools-screensaver-tzk-Setup.exe` | 23,316,025 | `16280028741966ecccb5965122b453ff917c5221c83bd1217f954a151e6b2063` |
+| `tools-screensaver-tzk.scr` | 20,520,960 | `46f6040e444254e2e414719be8184975d32b8caa659865edb7e565cedc9c5628` |
+| `tools-screensaver-tzk-Setup.exe` | 23,315,526 | `f8b41a9d97e3d9f54177830f07bc8015a6902d5117bccfe906f0a8bce424651d` |
 
 重寫可使用新分支與新內部結構，但對外名稱、CLI、AppId、registry schema 與資料格式必須依規格書保持相容。不要把 `docs/phase*.md` 的歷史需求或中途方案當成最終契約；它們只用於追查設計原因。
 
@@ -160,7 +160,7 @@ tools-screensaver-tzk/
 ## 6. 階段 D：完成設定與倒數 dialog
 
 1. 以 RC dialog template 建立四種主模式、五種旅行場景、八種色彩、字型與旅行切換欄位；主色名稱使用「鐵灰」。加入桌曆方式、氣象城市 modal、自動更新勾選及手動更新按鈕。桌曆方式只在日期時鐘模式啟用。
-2. 加入 `KOMSMOS TOOLKIT／探真拓知酷` 圖示標示。
+2. 加入 `KOSMOS TOOLKIT tools-screensaver-tzk v{版本}`／`探真拓知酷 作者：水清見底謂之湜` 圖示標示；版本由 Cargo 建置版本產生，不得手動保留舊版號。
 3. 設定 dialog 載入 draft，控制項變更只刷新離線預覽；按確定才交易保存。
 4. 日本旅行未選中時停用場景與切換控制；選擇不切換時停用分鐘 edit。
 5. 自訂字型使用標準系統 font picker，保存正規化 LOGFONT 與 point size。
@@ -232,7 +232,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\export-travel-shell-fixtur
 3. 建立 CWA 官網最近測站解析、連續七筆十分鐘累積雨量差值及 Open-Meteo 目前模型解析；檢查座標、數值、時間與大小上限。
 4. 實作八類背景映射；保持背景完整比例，置中縮放至中央 64% 寬、60% 高區域內，區域外純黑。玻璃卡同步縮小並完整位於背景中，時鐘與來源 attribution 放在中央卡及圖下；無資料不顯示假氣溫。八張 PNG 嵌入，demo 不打包。
 
-v0.15.5 玻璃卡邊長應為 min(螢幕寬 18.4%, 背景高 49.5%)；使用連續模糊、曲面法線驅動平滑取樣位移與色散、方向性高光及柔和投影。不要用離散四點模糊來製作玻璃，須以晴／曇／嵐背景確認玻璃光學表面平滑、背景細節可透出；文字無描邊。玻璃本體以 transmitted * 0.98 + [1.34, 1.14, 1.0] 混色；本體遮色不透明度 2%，廣域反射係數 0.018，模糊半徑 round(面板寬 * 0.0025) 限制 1～4px、陰影係數 0.14，見 [Phase 28](phase28-report.md)。玻璃及暫存合計限制 16 MiB，只在尺寸或天氣變化重建，見 [Phase 25](phase25-report.md)。
+v0.15.6 玻璃卡邊長應為 min(螢幕寬 18.4%, 背景高 49.5%)；使用連續模糊、曲面法線驅動平滑取樣位移與色散、方向性高光及柔和投影。不要用離散四點模糊來製作玻璃，須以晴／曇／嵐背景確認玻璃光學表面平滑、背景細節可透出；文字無描邊。玻璃本體以 transmitted * 0.98 + [1.34, 1.14, 1.0] 混色；本體遮色不透明度 2%，廣域反射係數 0.018，模糊半徑 round(面板寬 * 0.0025) 限制 1～4px、陰影係數 0.14，見 [Phase 28](phase28-report.md)。玻璃及暫存合計限制 16 MiB，只在尺寸或天氣變化重建，見 [Phase 25](phase25-report.md)。
 5. coordinator 每 session 啟動抓取一次、每小時更新，全部螢幕分享快照；預覽／Debug 不連網。
 6. 用隔離 registry 測試、離線分類與 GDI fixture 驗證。旅行以外的氣象功能不得建立 WebView2 或要求 Runtime。
 
@@ -289,7 +289,7 @@ powershell -NoProfile -NonInteractive -File .\scripts\check-japan-sources.ps1 `
 
 `check-japan-sources.ps1` 會連網，其餘標準驗證不得顯示產品 UI、建立 player、安裝程式、觸發 UAC 或更動目前 saver registry。
 
-以 v0.15.5 為參考時，完整 package 預期通過 80 個預設 Rust 測試（library 60、CLI 8、native noninteractive 2、layout 10）、12 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。ignored 包括顯式網路探測與離線匯出，不得一次啟動全部 ignored tests；測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
+以 v0.15.6 為參考時，完整 package 預期通過 80 個預設 Rust 測試（library 60、CLI 8、native noninteractive 2、layout 10）、12 ignored、19 個 WebView2 installer policy checks 及 15 個產品版本 policy checks。ignored 包括顯式網路探測與離線匯出，不得一次啟動全部 ignored tests；測試總數可因合理重構增加，但不能刪除對應行為覆蓋。
 
 提交前至少執行：
 

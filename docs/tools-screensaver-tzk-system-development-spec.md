@@ -1,8 +1,8 @@
 # tools-screensaver-tzk 系統開發規格書
 
-文件版本：1.6
+文件版本：1.7
 
-實作基準：產品 v0.15.5、設定 schema 10、Git tag `v0.15.5`
+實作基準：產品 v0.15.6、設定 schema 10、Git tag `v0.15.6`
 
 基準日期：2026-09-16
 
@@ -10,18 +10,18 @@
 
 ## 0. 實作快照與文件邊界
 
-本文件記錄 `v0.15.5` 的實作。重建時先以 tag 固定參考原始碼，再依本文件驗證相容性：
+本文件記錄 `v0.15.6` 的實作。重建時先以 tag 固定參考原始碼，再依本文件驗證相容性：
 
-| 項目 | v0.15.5 快照 |
+| 項目 | v0.15.6 快照 |
 | --- | --- |
-| Git tag | `v0.15.5` |
-| Git commit | 以 `git rev-parse 'v0.15.5^{commit}'` 取得，避免文件提交的自我參照 |
-| Cargo／SCR／Setup 版本 | `0.15.5` |
+| Git tag | `v0.15.6` |
+| Git commit | 以 `git rev-parse 'v0.15.6^{commit}'` 取得，避免文件提交的自我參照 |
+| Cargo／SCR／Setup 版本 | `0.15.6` |
 | Registry schema | `10` |
 | Rust toolchain | `1.97.1-x86_64-pc-windows-msvc` |
 | WebView2 Bootstrapper lock | `1.3.265.7`，1,783,000 bytes，SHA-256 `17debf797a6c737959bc588236e897936ffac1af5f7e515e674ab32f9edfe719` |
-| SCR | 20,520,960 bytes，SHA-256 `84348b583582a3c1add9daa4b71e27475a43d42368702719c2c5d36029c70602` |
-| Setup | 23,316,025 bytes，SHA-256 `16280028741966ecccb5965122b453ff917c5221c83bd1217f954a151e6b2063` |
+| SCR | 20,520,960 bytes，SHA-256 `46f6040e444254e2e414719be8184975d32b8caa659865edb7e565cedc9c5628` |
+| Setup | 23,315,526 bytes，SHA-256 `f8b41a9d97e3d9f54177830f07bc8015a6902d5117bccfe906f0a8bce424651d` |
 
 產品程式碼、安裝器、網站與公開下載是同一個版本集合；規格文件本身可在不變更產品版本的後續文件提交中修訂。若程式行為與本文件衝突，先以該 tag 的實際外部行為及自動測試為證據，修正文件後再進行重寫。
 
@@ -108,7 +108,7 @@
 
 ## 5. 設定面板
 
-設定面板是傳統 Win32 modal dialog，使用 Microsoft JhengHei UI，底部顯示程式圖示與 `KOMSMOS TOOLKIT／探真拓知酷`。
+設定面板是傳統 Win32 modal dialog，使用 Microsoft JhengHei UI，底部顯示程式圖示、`KOSMOS TOOLKIT tools-screensaver-tzk v{Cargo 版本}` 與 `探真拓知酷 作者：水清見底謂之湜`。完整品牌與版本文字由建置產生的 `APP_BRAND_STR` 注入資源，不可與成品版本分離。
 
 ### 5.1 主模式
 
@@ -410,7 +410,7 @@ flowchart LR
 
 ## 16. 完成定義
 
-未來重新開發只有在以下條件全部成立時，才可宣告與 v0.15.5 功能相容：
+未來重新開發只有在以下條件全部成立時，才可宣告與 v0.15.6 功能相容：
 
 - 外部名稱、CLI、registry schema、AppId 與 System32 檔名相容。
 - 四個主模式、五個旅行場景、八種色彩、四種字型來源、三種桌曆方式、五組自訂來源、氣象城市與自動更新選項均可保存並重新載入。
@@ -453,3 +453,9 @@ flowchart LR
 資訊卡邊長為 min(螢幕寬 18.4%, 背景高 49.5%)，是 v0.15.4 邊長約 70.7%，面積約 50%。連續模糊半徑為 round(面板寬 * 0.0025)，限制 1～4px；保留 98% 本體透光與既有曲面折射、色散、高光、反射及陰影。
 
 正式氣象模式更新週期為 500ms。動畫以單調 tick、condition 與固定雜湊決定位置：晴為旋轉光芒；曇、強風為移動流線；雨、土砂降り、嵐為不同密度的斜雨；雪、吹雪為不同密度及水平速度的雪粒。所有圖元保持在背景矩形中，文字最後繪製，靜態背景及玻璃快取不因動畫重建。詳 [Phase 28](phase28-report.md)。
+
+### 17.6 v0.15.6 設定品牌與作者標示
+
+設定對話框底部第一列是 `KOSMOS TOOLKIT tools-screensaver-tzk v{版本}`，第二列是 `探真拓知酷 作者：水清見底謂之湜`。兩列皆從 x=36 延伸 202 dialog units，右側與 x=244 的按鈕保有 6 units 間距。
+
+`build.rs` 從 Cargo package version 產生 `APP_BRAND_STR`，RC 的第一列直接使用該 macro；因此品牌版本與 EXE／SCR／Setup 版本共用同一來源。非互動 smoke 必須從 embedded `RT_DIALOG` 讀回完整當前版本字串及作者字串。見 [Phase 29](phase29-report.md)。

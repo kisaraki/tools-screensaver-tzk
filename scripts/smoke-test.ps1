@@ -267,8 +267,8 @@ try {
         '來源切換(&I)：',
         '分鐘（1～1440）',
         '旅行會連線 YouTube／tw.live；影片靜音。',
-        'KOMSMOS TOOLKIT',
-        '探真拓知酷'
+        "KOSMOS TOOLKIT tools-screensaver-tzk v$expectedVersion",
+        '探真拓知酷 作者：水清見底謂之湜'
     )
     foreach ($label in $expectedDialogLabels) {
         if (-not $configDialogText.Contains($label)) {
