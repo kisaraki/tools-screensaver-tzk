@@ -282,6 +282,8 @@ impl Timeline {
     pub fn interval(self, frame: FrameSnapshot) -> u32 {
         if self.mode == DisplayMode::Countdown && frame.countdown.animating {
             100
+        } else if self.mode == DisplayMode::Weather {
+            500
         } else {
             1000
         }

@@ -31,7 +31,10 @@ fn background(width: i32, height: i32) -> Rect {
 pub(crate) fn card(width: i32, height: i32) -> Rect {
     let w = f64::from(width);
     let h = f64::from(height);
-    let side = (w * 0.26).min(background(width, height).h * 0.70).max(1.0);
+    // 1/sqrt(2) of the v0.15.4 side makes the visible panel area one half.
+    let side = (w * 0.184)
+        .min(background(width, height).h * 0.495)
+        .max(1.0);
     Rect {
         x: (w - side) / 2.0,
         y: (h - side) / 2.0,
@@ -47,7 +50,7 @@ struct Glass {
 }
 impl Glass {
     fn new(panel: Rect, sample: impl Fn(i32, i32) -> [u8; 4]) -> Result<Self, AppError> {
-        let radius = (panel.w * 0.006).round().clamp(1.0, 10.0) as i32;
+        let radius = (panel.w * 0.0025).round().clamp(1.0, 4.0) as i32;
         let padding = radius * 4;
         let x = panel.x.floor() as i32 - padding;
         let y = panel.y.floor() as i32 - padding;
@@ -97,6 +100,141 @@ impl Glass {
         (p(ix, iy) * (1.0 - fx) + p(next_x, iy) * fx) * (1.0 - fy)
             + (p(ix, next_y) * (1.0 - fx) + p(next_x, next_y) * fx) * fy
     }
+}
+
+fn animated_point(
+    region: Rect,
+    condition: Condition,
+    index: u32,
+    tick: u64,
+    speed_x: i32,
+    speed_y: i32,
+) -> (f64, f64) {
+    let seed = index
+        .wrapping_mul(0x9e37_79b9)
+        .wrapping_add((condition as u32 + 1).wrapping_mul(0x85eb_ca6b));
+    let phase = (tick / 500) as i64;
+    let unit = |initial: u32, speed: i32| {
+        (i64::from(initial & 1023) + phase * i64::from(speed)).rem_euclid(1024) as f64 / 1024.0
+    };
+    (
+        region.x + region.w * unit(seed, speed_x),
+        region.y + region.h * unit(seed.rotate_left(13), speed_y),
+    )
+}
+
+fn inside_background(x: f64, y: f64, extent: f64, region: Rect) -> bool {
+    x - extent >= region.x
+        && x + extent < region.right()
+        && y - extent >= region.y
+        && y + extent < region.bottom()
+}
+
+fn animate_background(
+    canvas: &mut Canvas<'_>,
+    region: Rect,
+    _panel: Rect,
+    condition: Condition,
+    tick: u64,
+) -> Result<(), AppError> {
+    let scale = (region.h / 360.0).clamp(0.5, 3.0);
+    match condition {
+        Condition::Sunny => {
+            let center = (region.x + region.w * 0.75, region.y + region.h * 0.22);
+            let turn = (tick as f64 / 2_800.0) % std::f64::consts::TAU;
+            for ray in 0..8 {
+                let angle = turn + f64::from(ray) * std::f64::consts::TAU / 8.0;
+                let inner = 18.0 * scale;
+                let outer = (24.0 + f64::from((ray + (tick / 500) as i32) & 1) * 5.0) * scale;
+                canvas.line(
+                    &[
+                        (
+                            center.0 + angle.cos() * inner,
+                            center.1 + angle.sin() * inner,
+                        ),
+                        (
+                            center.0 + angle.cos() * outer,
+                            center.1 + angle.sin() * outer,
+                        ),
+                    ],
+                    1.5 * scale,
+                    rgb(255, 244, 122),
+                )?;
+            }
+        }
+        Condition::Cloudy | Condition::Windy => {
+            let count = if condition == Condition::Windy { 9 } else { 5 };
+            for index in 0..count {
+                let (x, y) = animated_point(region, condition, index, tick, 7, 0);
+                let length = (24.0 + f64::from(index % 4) * 8.0) * scale;
+                if inside_background(x, y, length, region) {
+                    canvas.line(
+                        &[(x - length, y), (x, y - 2.0 * scale), (x + length, y)],
+                        scale,
+                        if condition == Condition::Windy {
+                            rgb(204, 224, 232)
+                        } else {
+                            rgb(128, 132, 136)
+                        },
+                    )?;
+                }
+            }
+        }
+        Condition::Rain | Condition::Pouring | Condition::Storm => {
+            let count = match condition {
+                Condition::Rain => 16,
+                Condition::Pouring => 30,
+                _ => 24,
+            };
+            for index in 0..count {
+                let (x, y) = animated_point(region, condition, index, tick, -3, 31);
+                let length = if condition == Condition::Rain {
+                    7.0
+                } else {
+                    11.0
+                } * scale;
+                if inside_background(x, y, length, region) {
+                    canvas.line(
+                        &[(x, y), (x - length * 0.45, y + length)],
+                        scale,
+                        if condition == Condition::Storm {
+                            rgb(166, 181, 255)
+                        } else {
+                            rgb(178, 215, 255)
+                        },
+                    )?;
+                }
+            }
+        }
+        Condition::Snow | Condition::Blizzard => {
+            let count = if condition == Condition::Blizzard {
+                28
+            } else {
+                18
+            };
+            for index in 0..count {
+                let speed_x = if condition == Condition::Blizzard {
+                    19
+                } else {
+                    3
+                };
+                let (x, y) = animated_point(region, condition, index, tick, speed_x, 13);
+                let size = (2.0 + f64::from(index % 3)) * scale;
+                if inside_background(x, y, size, region) {
+                    canvas.ellipse(
+                        Rect {
+                            x: x - size,
+                            y: y - size,
+                            w: size * 2.0,
+                            h: size * 2.0,
+                        },
+                        rgb(238, 246, 255),
+                    )?;
+                }
+            }
+        }
+    }
+    Ok(())
 }
 fn blur(input: &[[u8; 3]], output: &mut [[u8; 3]], width: usize, radius: i32, horizontal: bool) {
     let index = |line: usize, position: i32| {
@@ -270,6 +408,13 @@ pub(crate) fn draw(
         return Ok(());
     }
     let panel = card(width, height);
+    animate_background(
+        canvas,
+        background(width, height),
+        panel,
+        snapshot.condition,
+        frame.tick,
+    )?;
     let time = format!(
         "{:02}:{:02}:{:02}",
         frame.local.hour, frame.local.minute, frame.local.second
@@ -368,6 +513,23 @@ mod tests {
             assert_eq!(scene.pixels.bytes.len(), 320 * 180 * 4);
             let p = card(320, 180);
             assert!(p.x > 0.0 && p.y > 0.0 && p.right() < 320.0 && p.bottom() < 180.0);
+            let old_side = (320.0_f64 * 0.26).min(background(320, 180).h * 0.70);
+            let area_ratio = p.w * p.h / (old_side * old_side);
+            assert!((area_ratio - 0.5).abs() < 0.01);
+        }
+    }
+
+    #[test]
+    fn weather_animation_moves_and_stays_bounded() {
+        let region = background(1600, 900);
+        for condition in Condition::ALL {
+            let first = animated_point(region, condition, 3, 0, 7, 13);
+            let next = animated_point(region, condition, 3, 500, 7, 13);
+            assert_ne!(first, next);
+            for (x, y) in [first, next] {
+                assert!(x >= region.x && x < region.right());
+                assert!(y >= region.y && y < region.bottom());
+            }
         }
     }
 }

@@ -140,6 +140,8 @@ fn shared_generation_clock_adjustment_and_resume_do_not_change_deadline() {
     assert_eq!(timeline.interval(resumed), 1000);
     let time = Timeline::new(DisplayMode::TimeDate, 300, 0).unwrap();
     assert_eq!(time.interval(a), 1000);
+    let weather = Timeline::new(DisplayMode::Weather, 300, 0).unwrap();
+    assert_eq!(weather.interval(a), 500);
 }
 
 #[test]

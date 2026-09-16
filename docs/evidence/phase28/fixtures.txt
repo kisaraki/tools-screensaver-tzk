@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\tools_screensaver_tzk-73664970dbf0eed5.exe)
+
+running 1 test
+test render::tests::export_weather_fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 65 filtered out; finished in 6.42s
+
+PNG fixtures: C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk\docs\evidence\phase28\weather-fixtures
+Uncompressed GDI output: C:\Users\Adolf\OneDrive\桌面\WorkSpace\tools-screensaver-tzk\target\weather-fixtures-0738fc9dac704ab5a2938351df2300f0
